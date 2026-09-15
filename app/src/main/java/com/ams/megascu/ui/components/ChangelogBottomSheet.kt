@@ -44,9 +44,24 @@ data class ChangelogVersion(
 object ChangelogRepository {
     val changelogList = listOf(
         ChangelogVersion(
-            version = "0.7.8-beta_(242)",
+            version = "0.7.8-beta_(243)",
             date = "2026-09-15",
             isLatest = true,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Respuesta háptica táctil expresiva al conmutar el interruptor de actualizaciones automáticas en Ajustes.",
+                        "Respuesta háptica táctil en el botón de comprobación manual de actualizaciones en GitHub.",
+                        "Respuesta háptica integrada nativamente en el componente ExpressiveSwitch tanto por toque como por arrastre."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.7.8-beta_(242)",
+            date = "2026-09-15",
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.ADDED,

@@ -7,6 +7,15 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.7.8-beta_(243)] - 2026-09-15
+
+### Añadido
+- Respuesta háptica táctil expresiva (`LocalHapticFeedback`) al activar o desactivar el interruptor de comprobación automática de actualizaciones en Ajustes.
+- Respuesta háptica táctil en el botón "Comprobar actualización ahora" en la tarjeta de actualizaciones.
+- Respuesta háptica nativa integrada en el componente `ExpressiveSwitch` tanto en toque directo como en gesto de arrastre horizontal.
+
+---
+
 ## [0.7.8-beta_(242)] - 2026-09-15
 
 ### Añadido
