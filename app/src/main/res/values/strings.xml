@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">MegasCU</string>
+    
+    <string name="shortcut_check_balance_short">Comprobar Saldo</string>
+    <string name="shortcut_check_balance_long">Comprobar Saldo Principal (*222#)</string>
+    <string name="shortcut_check_data_short">Comprobar Datos</string>
+    <string name="shortcut_check_data_long">Comprobar Paquete de Datos (*222*328#)</string>
+    <string name="shortcut_open_history_short">Historial</string>
+    <string name="shortcut_open_history_long">Abrir Historial de Consumo</string>
+    <string name="widget_description">Muestra el saldo y los datos de tu plan Cubacel.</string>
+    <string name="widget_description_small">Muestra tu parámetro elegido en formato compacto 2x1.</string>
+    <string name="widget_description_expressive_2x1">Widget 2x1 Material M3 Expressive con tarjetas dinámicas y distintivos pill.</string>
+    <string name="widget_description_expressive_4x2">Widget 4x2 Material M3 Expressive con resumen completo de plan Cubacel.</string>
+    <string name="widget_description_chart">Muestra el gráfico de consumo de datos en formato 3x2.</string>
+    
+    <!-- UI Strings -->
+    <string name="section_quick_queries">Consultas Rápidas</string>
+    <string name="btn_show_more_queries">Mostrar más consultas</string>
+    <string name="btn_show_less_queries">Mostrar menos</string>
+    <string name="query_balance">Saldo</string>
+    <string name="query_validity">Vigencia</string>
+    <string name="query_data">Datos</string>
+    <string name="query_bonus">Bono</string>
+    <string name="query_minutes">Minutos</string>
+    <string name="query_messages">Mensajes</string>
+    <string name="query_friends_plan">Plan amigos</string>
+    <string name="query_internet_access">Acceso Internet</string>
+    <string name="query_recharge_history">Historial Recargas</string>
+    
+    <string name="app_subtitle">Gestión Inteligente de Datos y Planes ETECSA</string>
+    <string name="developed_by">Desarrollado por</string>
+    <string name="developer_name">App Móvil Shop</string>
+    <string name="copyright_text">© 2026 App Móvil Shop. Todos los derechos reservados.</string>
+    <string name="btn_changelog">Historial de Cambios</string>
+    <string name="community_and_support">Comunidad y Soporte</string>
+    <string name="btn_close">Cerrar</string>
+    <string name="btn_buy">Comprar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_understood">Entendido</string>
+    <string name="confirm_purchase_title">Confirmar Compra</string>
+    <string name="insufficient_balance_title">Saldo Insuficiente</string>
+</resources>

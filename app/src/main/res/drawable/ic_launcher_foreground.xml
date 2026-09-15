@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="2.4"
+        android:scaleY="2.4"
+        android:translateX="25.2"
+        android:translateY="25.2">
+        <!-- Contorno del escudo estilizado y redondeado -->
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000"
+            android:pathData="M12,3.5 L5,6.2 V12 C5,16.5 8.1,20.2 12,21.5 C15.9,20.2 19,16.5 19,12 V6.2 L12,3.5 Z" />
+
+        <!-- Símbolo de 4 barras de señal móvil -->
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.5"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="
+                M 8.25,15.5 V 13.5
+                M 10.75,15.5 V 11.5
+                M 13.25,15.5 V 9.5
+                M 15.75,15.5 V 7.5" />
+    </group>
+</vector>

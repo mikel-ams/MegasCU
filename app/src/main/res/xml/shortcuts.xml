@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="check_balance"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_balance"
+        android:shortcutShortLabel="@string/shortcut_check_balance_short"
+        android:shortcutLongLabel="@string/shortcut_check_balance_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.ams.megascu"
+            android:targetClass="com.ams.megascu.MainActivity">
+            <extra android:name="shortcut_action" android:value="check_balance" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="check_data"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_data"
+        android:shortcutShortLabel="@string/shortcut_check_data_short"
+        android:shortcutLongLabel="@string/shortcut_check_data_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.ams.megascu"
+            android:targetClass="com.ams.megascu.MainActivity">
+            <extra android:name="shortcut_action" android:value="check_data" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="open_history"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_history"
+        android:shortcutShortLabel="@string/shortcut_open_history_short"
+        android:shortcutLongLabel="@string/shortcut_open_history_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.ams.megascu"
+            android:targetClass="com.ams.megascu.MainActivity">
+            <extra android:name="shortcut_action" android:value="open_history" />
+        </intent>
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="50dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_megas_2x1"
+    android:previewImage="@drawable/ic_widget_preview_2x1"
+    android:previewLayout="@layout/widget_megas_2x1"
+    android:description="@string/widget_description_small"
+    android:configure="com.ams.megascu.widget.Widget2x1ConfigActivity"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />

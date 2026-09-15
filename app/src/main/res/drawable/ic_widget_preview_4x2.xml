@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="250dp"
+    android:height="110dp"
+    android:viewportWidth="250"
+    android:viewportHeight="110">
+    
+    <!-- Outer Card Background with M3 Deep Purple Fill -->
+    <path
+        android:fillColor="#221238"
+        android:pathData="M16,0 L234,0 A16,16 0 0,1 250,16 L250,94 A16,16 0 0,1 234,110 L16,110 A16,16 0 0,1 0,94 L0,16 A16,16 0 0,1 16,0 Z" />
+
+    <!-- Card Subtle Inner Border -->
+    <path
+        android:strokeColor="#3D2B5E"
+        android:strokeWidth="1"
+        android:pathData="M16,1 L234,1 A15,15 0 0,1 249,16 L249,94 A15,15 0 0,1 234,109 L16,109 A15,15 0 0,1 1,94 L1,16 A15,15 0 0,1 16,1 Z" />
+
+    <!-- ROW 1: Saldo Principal Label & Value -->
+    <path
+        android:fillColor="#D0BCFF"
+        android:pathData="M14,12 L72,12 A2,2 0 0,1 74,14 L74,18 A2,2 0 0,1 72,20 L14,20 A2,2 0 0,1 12,18 L12,14 A2,2 0 0,1 14,12 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,24 L100,24 A3,3 0 0,1 103,27 L103,37 A3,3 0 0,1 100,40 L14,40 A3,3 0 0,1 11,37 L11,27 A3,3 0 0,1 14,24 Z" />
+
+    <!-- Refresh Button Top Right -->
+    <path
+        android:fillColor="#4A2882"
+        android:pathData="M172,12 L236,12 A10,10 0 0,1 246,22 L246,22 A10,10 0 0,1 236,32 L172,32 A10,10 0 0,1 162,22 L162,22 A10,10 0 0,1 172,12 Z" />
+    <path
+        android:fillColor="#E8DEF8"
+        android:pathData="M182,19 L226,19 A2,2 0 0,1 228,21 L228,23 A2,2 0 0,1 226,25 L182,25 A2,2 0 0,1 180,23 L180,21 A2,2 0 0,1 182,19 Z" />
+
+    <!-- ROW 2: Left Column (Datos) -->
+    <path
+        android:fillColor="#E6DEFF"
+        android:pathData="M14,48 L80,48 A2,2 0 0,1 82,50 L82,54 A2,2 0 0,1 80,56 L14,56 A2,2 0 0,1 12,54 L12,50 A2,2 0 0,1 14,48 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,59 L68,59 A3,3 0 0,1 71,62 L71,70 A3,3 0 0,1 68,73 L14,73 A3,3 0 0,1 11,70 L11,62 A3,3 0 0,1 14,59 Z" />
+    <!-- Badge 30d -->
+    <path
+        android:fillColor="#5B1FE6"
+        android:pathData="M78,61 L96,61 A4,4 0 0,1 100,65 L100,67 A4,4 0 0,1 96,71 L78,71 A4,4 0 0,1 74,67 L74,65 A4,4 0 0,1 78,61 Z" />
+
+    <!-- ROW 2: Right Column (Bono .CU) -->
+    <path
+        android:fillColor="#E6DEFF"
+        android:pathData="M140,48 L206,48 A2,2 0 0,1 208,50 L208,54 A2,2 0 0,1 206,56 L140,56 A2,2 0 0,1 138,54 L138,50 A2,2 0 0,1 140,48 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M140,59 L188,59 A3,3 0 0,1 191,62 L191,70 A3,3 0 0,1 188,73 L140,73 A3,3 0 0,1 137,70 L137,62 A3,3 0 0,1 140,59 Z" />
+    <!-- Badge 30d -->
+    <path
+        android:fillColor="#5B1FE6"
+        android:pathData="M198,61 L216,61 A4,4 0 0,1 220,65 L220,67 A4,4 0 0,1 216,71 L198,71 A4,4 0 0,1 194,67 L194,65 A4,4 0 0,1 198,61 Z" />
+
+    <!-- ROW 3: Left Column (Llamadas) -->
+    <path
+        android:fillColor="#E6DEFF"
+        android:pathData="M14,79 L75,79 A2,2 0 0,1 77,81 L77,85 A2,2 0 0,1 75,87 L14,87 A2,2 0 0,1 12,85 L12,81 A2,2 0 0,1 14,79 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,89 L56,89 A2,2 0 0,1 58,91 L58,97 A2,2 0 0,1 56,99 L14,99 A2,2 0 0,1 12,97 L12,91 A2,2 0 0,1 14,89 Z" />
+
+    <!-- ROW 3: Right Column (Mensajes) -->
+    <path
+        android:fillColor="#E6DEFF"
+        android:pathData="M140,79 L195,79 A2,2 0 0,1 197,81 L197,85 A2,2 0 0,1 195,87 L140,87 A2,2 0 0,1 138,85 L138,81 A2,2 0 0,1 140,79 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M140,89 L180,89 A2,2 0 0,1 182,91 L182,97 A2,2 0 0,1 180,99 L140,99 A2,2 0 0,1 138,97 L138,91 A2,2 0 0,1 140,89 Z" />
+
+    <!-- Footer: Line -->
+    <path
+        android:fillColor="#3D2B5E"
+        android:pathData="M12,102 L238,102 A1,1 0 0,1 239,103 L239,103 A1,1 0 0,1 238,104 L12,104 A1,1 0 0,1 11,103 L11,103 A1,1 0 0,1 12,102 Z" />
+</vector>

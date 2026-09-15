@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="110dp"
+    android:viewportWidth="180"
+    android:viewportHeight="110">
+    
+    <!-- Outer Card Background -->
+    <path
+        android:fillColor="#221238"
+        android:pathData="M16,0 L164,0 A16,16 0 0,1 180,16 L180,94 A16,16 0 0,1 164,110 L16,110 A16,16 0 0,1 0,94 L0,16 A16,16 0 0,1 16,0 Z" />
+
+    <!-- Card Inner Border -->
+    <path
+        android:strokeColor="#3D2B5E"
+        android:strokeWidth="1"
+        android:pathData="M16,1 L164,1 A15,15 0 0,1 179,16 L179,94 A15,15 0 0,1 164,109 L16,109 A15,15 0 0,1 1,94 L1,16 A15,15 0 0,1 16,1 Z" />
+
+    <!-- Title Label: Consumo de Datos -->
+    <path
+        android:fillColor="#E6DEFF"
+        android:pathData="M12,12 L80,12 A2,2 0 0,1 82,14 L82,19 A2,2 0 0,1 80,21 L12,21 A2,2 0 0,1 10,19 L10,14 A2,2 0 0,1 12,12 Z" />
+
+    <!-- Value Label: 8.50 GB -->
+    <path
+        android:fillColor="#D0BCFF"
+        android:pathData="M120,12 L168,12 A2,2 0 0,1 170,14 L170,19 A2,2 0 0,1 168,21 L120,21 A2,2 0 0,1 118,19 L118,14 A2,2 0 0,1 120,12 Z" />
+
+    <!-- Chart Fill Area Gradient Simulation -->
+    <path
+        android:fillColor="#3D5B1FE6"
+        android:pathData="M12,85 L12,68 C35,55 55,75 80,50 C105,35 130,60 168,38 L168,85 Z" />
+
+    <!-- Chart Smooth Line -->
+    <path
+        android:strokeColor="#D0BCFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M12,68 C35,55 55,75 80,50 C105,35 130,60 168,38" />
+
+    <!-- Chart Dots -->
+    <path
+        android:fillColor="#E8DEF8"
+        android:pathData="M12,68 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 M42,61 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 M80,50 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 M120,52 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 M168,38 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+
+    <!-- Footer Label: Últimos 7 días -->
+    <path
+        android:fillColor="#938F99"
+        android:pathData="M12,94 L70,94 A2,2 0 0,1 72,96 L72,99 A2,2 0 0,1 70,101 L12,101 A2,2 0 0,1 10,99 L10,96 A2,2 0 0,1 12,94 Z" />
+
+    <!-- Record Count Chip Pill: 7 reg. -->
+    <path
+        android:fillColor="#5B1FE6"
+        android:pathData="M138,92 L168,92 A5,5 0 0,1 173,97 L173,97 A5,5 0 0,1 168,102 L138,102 A5,5 0 0,1 133,97 L133,97 A5,5 0 0,1 138,92 Z" />
+</vector>
