@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget Colors Light (matches PriorityStatusCard) -->
+    <color name="widget_primary_container">#E0E7FF</color>
+    <color name="widget_on_primary_container">#1E1B4B</color>
+    <color name="widget_on_primary_container_secondary">#991E1B4B</color>
+</resources>

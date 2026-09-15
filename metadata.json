@@ -1,0 +1,6 @@
+{
+  "name": "MegasCU",
+  "description": "Gestión simplificada de datos móviles y saldo Cubacel ETECSA en Cuba.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_container_bg">#1E1B4B</color>
+    <color name="widget_card_item_bg">#2E2A72</color>
+    <color name="widget_text_primary">#FFFFFF</color>
+    <color name="widget_text_secondary">#B3FFFFFF</color>
+
+    <!-- App Main Status Card Colors for Widget (Dark Theme) -->
+    <color name="widget_card_bg">#1D0C38</color>
+    <color name="widget_card_border">#3B226A</color>
+    <color name="widget_card_text_primary">#FFFFFF</color>
+    <color name="widget_card_text_secondary">#D0BCFF</color>
+    <color name="widget_card_badge_bg">#25D0BCFF</color>
+    <color name="widget_card_chip_bg">#7C3AED</color>
+    <color name="widget_card_chip_text">#FFFFFF</color>
+</resources>

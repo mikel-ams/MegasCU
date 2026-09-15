@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="26dp"
+    android:height="26dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- Status bar custom icon: Antenna / Tower signal with alert warning symbol -->
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M12,2 L10,6 L14,6 Z M11,7 H13 V13 H11 Z M11,15 H13 V17 H11 Z"/>
+  <path
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFF"
+      android:strokeWidth="0.5"
+      android:strokeLineCap="round"
+      android:pathData="M7,12 C5.5,10.5 5.5,8 7,6.5 M17,12 C18.5,10.5 18.5,8 17,6.5 M4,15 C1.5,12.5 1.5,8.5 4,6 M20,15 C22.5,12.5 22.5,8.5 20,6"/>
+</vector>

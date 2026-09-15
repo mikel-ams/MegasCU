@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:clipToOutline="true"
+    android:background="@drawable/widget_card_background"
+    tools:ignore="UseAppTint">
+
+    <!-- Top Row: Label & Badge Chip -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/widget_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Datos Disponibles"
+            android:textColor="@color/widget_card_text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:ellipsize="end"
+            android:maxLines="1" />
+
+        <TextView
+            android:id="@+id/widget_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_card_badge_bg"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:textColor="@color/widget_card_text_primary"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/widget_refresh_btn"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="6dp"
+            android:padding="2dp"
+            android:src="@android:drawable/ic_popup_sync"
+            android:tint="@color/widget_card_text_secondary"
+            android:contentDescription="Actualizar"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Main Value Row & Days Chip -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        
+        <TextView
+            android:id="@+id/widget_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0.00 GB"
+            android:textColor="@color/widget_card_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:maxLines="1" />
+
+        <TextView
+            android:id="@+id/widget_days"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_card_badge_bg"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:text="0 días restantes"
+            android:textColor="@color/widget_card_text_primary"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:maxLines="1" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="260dp"
+    android:viewportWidth="200"
+    android:viewportHeight="260">
+    <!-- Single continuous thick hand-drawn line arrow with a loop -->
+    <path
+        android:pathData="M 100,10 C 100,35 55,45 45,80 C 35,115 80,140 115,125 C 145,110 135,68 105,88 C 85,102 100,150 100,195 L 100,225"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Arrow tip filled -->
+    <path
+        android:pathData="M 100,250 L 82,216 L 118,216 Z"
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="60dp"
+    android:viewportWidth="120"
+    android:viewportHeight="60">
+    
+    <!-- Outer Card Background -->
+    <path
+        android:fillColor="#221238"
+        android:pathData="M12,0 L108,0 A12,12 0 0,1 120,12 L120,48 A12,12 0 0,1 108,60 L12,60 A12,12 0 0,1 0,48 L0,12 A12,12 0 0,1 12,0 Z" />
+
+    <!-- Card Inner Border -->
+    <path
+        android:strokeColor="#3D2B5E"
+        android:strokeWidth="1"
+        android:pathData="M12,1 L108,1 A11,11 0 0,1 119,12 L119,48 A11,11 0 0,1 108,59 L12,59 A11,11 0 0,1 1,48 L1,12 A11,11 0 0,1 12,1 Z" />
+
+    <!-- Top Row Label: Datos Disponibles -->
+    <path
+        android:fillColor="#E6DEFF"
+        android:pathData="M10,8 L65,8 A2,2 0 0,1 67,10 L67,14 A2,2 0 0,1 65,16 L10,16 A2,2 0 0,1 8,14 L8,10 A2,2 0 0,1 10,8 Z" />
+
+    <!-- Badge Pill: 30d -->
+    <path
+        android:fillColor="#5B1FE6"
+        android:pathData="M88,8 L108,8 A5,5 0 0,1 113,13 L113,13 A5,5 0 0,1 108,18 L88,18 A5,5 0 0,1 83,13 L83,13 A5,5 0 0,1 88,8 Z" />
+
+    <!-- Value Line: 8.50 GB -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10,22 L80,22 A3,3 0 0,1 83,25 L83,37 A3,3 0 0,1 80,40 L10,40 A3,3 0 0,1 7,37 L7,25 A3,3 0 0,1 10,22 Z" />
+
+    <!-- Expiration Text Line: Vence 20 Ago (30d) -->
+    <path
+        android:fillColor="#D0BCFF"
+        android:pathData="M10,45 L95,45 A2,2 0 0,1 97,47 L97,51 A2,2 0 0,1 95,53 L10,53 A2,2 0 0,1 8,51 L8,47 A2,2 0 0,1 10,45 Z" />
+</vector>

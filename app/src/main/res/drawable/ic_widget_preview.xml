@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="250dp"
+    android:height="110dp"
+    android:viewportWidth="250"
+    android:viewportHeight="110">
+    
+    <!-- Background Card -->
+    <path
+        android:fillColor="#3A0080"
+        android:pathData="M16,0 L234,0 A16,16 0 0,1 250,16 L250,94 A16,16 0 0,1 234,110 L16,110 A16,16 0 0,1 0,94 L0,16 A16,16 0 0,1 16,0 Z" />
+
+    <!-- Saldo Principal Title -->
+    <path
+        android:fillColor="#D8D2E3"
+        android:pathData="M16,16 L80,16 L80,22 L16,22 Z" />
+        
+    <!-- Saldo Value -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,26 L110,26 L110,40 L16,40 Z" />
+
+    <!-- Datos Disponibles Label -->
+    <path
+        android:fillColor="#D8D2E3"
+        android:pathData="M16,48 L85,48 L85,54 L16,54 Z" />
+
+    <!-- Datos Value -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,58 L75,58 L75,70 L16,70 Z" />
+
+    <!-- Days badge -->
+    <path
+        android:fillColor="#5B1FE6"
+        android:pathData="M80,58 L100,58 A4,4 0 0,1 104,62 L104,68 A4,4 0 0,1 100,72 L80,72 A4,4 0 0,1 76,68 L76,62 A4,4 0 0,1 80,58 Z" />
+
+    <!-- Llamadas Label -->
+    <path
+        android:fillColor="#D8D2E3"
+        android:pathData="M16,78 L70,78 L70,84 L16,84 Z" />
+
+    <!-- Llamadas Value -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,88 L75,88 L75,98 L16,98 Z" />
+
+    <!-- Right Side: Bono Datos -->
+    <path
+        android:fillColor="#D8D2E3"
+        android:pathData="M150,48 L220,48 L220,54 L150,54 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M150,58 L200,58 L200,70 L150,70 Z" />
+
+    <!-- Right Side: Mensajes -->
+    <path
+        android:fillColor="#D8D2E3"
+        android:pathData="M150,78 L200,78 L200,84 L150,84 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M150,88 L210,88 L210,98 L150,98 Z" />
+
+    <!-- Refresh pill button top right -->
+    <path
+        android:fillColor="#5B1FE6"
+        android:pathData="M160,16 L230,16 A12,12 0 0,1 242,28 L242,28 A12,12 0 0,1 230,40 L160,40 A12,12 0 0,1 148,28 L148,28 A12,12 0 0,1 160,16 Z" />
+</vector>

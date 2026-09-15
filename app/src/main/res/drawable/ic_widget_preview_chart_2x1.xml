@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="60dp"
+    android:viewportWidth="120"
+    android:viewportHeight="60">
+    
+    <!-- Outer Card Background -->
+    <path
+        android:fillColor="#221238"
+        android:pathData="M12,0 L108,0 A12,12 0 0,1 120,12 L120,48 A12,12 0 0,1 108,60 L12,60 A12,12 0 0,1 0,48 L0,12 A12,12 0 0,1 12,0 Z" />
+
+    <!-- Card Inner Border -->
+    <path
+        android:strokeColor="#3D2B5E"
+        android:strokeWidth="1"
+        android:pathData="M12,1 L108,1 A11,11 0 0,1 119,12 L119,48 A11,11 0 0,1 108,59 L12,59 A11,11 0 0,1 1,48 L1,12 A11,11 0 0,1 12,1 Z" />
+
+    <!-- Title Label: Consumo -->
+    <path
+        android:fillColor="#E6DEFF"
+        android:pathData="M8,8 L50,8 A2,2 0 0,1 52,10 L52,14 A2,2 0 0,1 50,16 L8,16 A2,2 0 0,1 6,14 L6,10 A2,2 0 0,1 8,8 Z" />
+
+    <!-- Value Label: 8.50 GB -->
+    <path
+        android:fillColor="#D0BCFF"
+        android:pathData="M75,8 L112,8 A2,2 0 0,1 114,10 L114,14 A2,2 0 0,1 112,16 L75,16 A2,2 0 0,1 73,14 L73,10 A2,2 0 0,1 75,8 Z" />
+
+    <!-- Chart Fill Area -->
+    <path
+        android:fillColor="#3D5B1FE6"
+        android:pathData="M8,52 L8,42 C25,32 45,45 65,30 C85,20 100,32 112,22 L112,52 Z" />
+
+    <!-- Chart Line -->
+    <path
+        android:strokeColor="#D0BCFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M8,42 C25,32 45,45 65,30 C85,20 100,32 112,22" />
+
+    <!-- Chart Points -->
+    <path
+        android:fillColor="#E8DEF8"
+        android:pathData="M8,42 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 M65,30 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 M112,22 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+</vector>
