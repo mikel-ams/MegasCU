@@ -25,7 +25,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Icon
@@ -47,6 +49,7 @@ fun ExpressiveSwitch(
     val isDark = androidx.compose.foundation.isSystemInDarkTheme()
     val primaryColor = MaterialTheme.colorScheme.primary
     val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
+    val haptic = LocalHapticFeedback.current
 
     // Animated colors for super fluid transitions
     val animatedTrackBgColor by animateColorAsState(
@@ -103,8 +106,10 @@ fun ExpressiveSwitch(
                     detectHorizontalDragGestures { change, dragAmount ->
                         change.consume()
                         if (dragAmount > 6 && !checked) {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             onCheckedChange(true)
                         } else if (dragAmount < -6 && checked) {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             onCheckedChange(false)
                         }
                     }
@@ -119,6 +124,7 @@ fun ExpressiveSwitch(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onCheckedChange?.invoke(!checked)
             },
         contentAlignment = Alignment.CenterStart

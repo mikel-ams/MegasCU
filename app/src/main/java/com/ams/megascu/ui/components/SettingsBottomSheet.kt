@@ -2811,6 +2811,7 @@ fun SettingsBottomSheet(
                         ExpressiveSwitch(
                             checked = autoUpdateCheck,
                             onCheckedChange = { checked ->
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 autoUpdateCheck = checked
                                 prefs.edit().putBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, checked).apply()
                             }
@@ -2821,7 +2822,10 @@ fun SettingsBottomSheet(
 
                     // Button to check for updates now
                     ExpressiveButton(
-                        onClick = { performUpdateCheck() },
+                        onClick = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            performUpdateCheck() 
+                        },
                         enabled = !isCheckingUpdate,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
