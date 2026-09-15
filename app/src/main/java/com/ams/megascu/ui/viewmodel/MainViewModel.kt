@@ -10,6 +10,8 @@ import com.ams.megascu.data.ussd.SimOperatorUtils
 import com.ams.megascu.data.ussd.UssdCallback
 import com.ams.megascu.data.ussd.UssdExecutor
 import com.ams.megascu.service.EtecsaMonitoringService
+import com.ams.megascu.utils.GitHubUpdateChecker
+import com.ams.megascu.utils.UpdateCheckResult
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -552,6 +554,59 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun restartCoachMark() {
         repository.setCoachMarkCompleted(false)
+    }
+
+    private val _updateCheckResult = MutableStateFlow<UpdateCheckResult?>(null)
+    val updateCheckResult: StateFlow<UpdateCheckResult?> = _updateCheckResult
+
+    private val _isCheckingUpdate = MutableStateFlow(false)
+    val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
+
+    fun checkForAppUpdates(force: Boolean = false) {
+        viewModelScope.launch {
+            val prefs = app.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE)
+            val autoCheck = prefs.getBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, true)
+            if (!force && !autoCheck) return@launch
+
+            val lastCheck = prefs.getLong(GitHubUpdateChecker.PREF_LAST_UPDATE_CHECK_TIME, 0L)
+            val now = System.currentTimeMillis()
+            // If not forced, only query network if more than 24h passed
+            if (!force && (now - lastCheck < 24 * 60 * 60 * 1000L)) {
+                // If there is already a saved update available and not dismissed
+                val isAvailable = prefs.getBoolean(GitHubUpdateChecker.PREF_UPDATE_AVAILABLE, false)
+                val versionName = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME, "") ?: ""
+                val dismissed = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_DISMISSED_VERSION, "")
+                if (isAvailable && versionName.isNotBlank() && versionName != dismissed) {
+                    _updateCheckResult.value = UpdateCheckResult(
+                        isSuccess = true,
+                        isUpdateAvailable = true,
+                        latestVersionName = versionName,
+                        latestVersionCode = prefs.getInt(GitHubUpdateChecker.PREF_UPDATE_VERSION_CODE, 0),
+                        releaseTitle = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_TITLE, "") ?: "",
+                        changelog = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_CHANGELOG, "") ?: "",
+                        apkDownloadUrl = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_APK_URL, null),
+                        releaseHtmlUrl = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_RELEASE_URL, "") ?: ""
+                    )
+                }
+                return@launch
+            }
+
+            _isCheckingUpdate.value = true
+            val result = GitHubUpdateChecker.checkForUpdates(app)
+            _isCheckingUpdate.value = false
+            if (result.isSuccess && result.isUpdateAvailable) {
+                val dismissed = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_DISMISSED_VERSION, "")
+                if (force || result.latestVersionName != dismissed) {
+                    _updateCheckResult.value = result
+                }
+            } else if (force) {
+                _updateCheckResult.value = result
+            }
+        }
+    }
+
+    fun dismissUpdateDialog() {
+        _updateCheckResult.value = null
     }
 
     fun clearAllData() {

@@ -16,8 +16,17 @@
 .cxx
 local.properties
 .env
+# Keystore files & Sensitive credentials
+*.jks
+*.keystore
+keystore/
+release-key*.jks
+release-key.jks
 debug.keystore
 debug.keystore.base64
+secrets.properties
+signing.properties
+keystore.properties
 *.apk
 *.aab
 .build-outputs/

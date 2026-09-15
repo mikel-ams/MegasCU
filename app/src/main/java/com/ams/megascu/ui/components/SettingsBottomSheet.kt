@@ -48,6 +48,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.luminance
 
+import com.ams.megascu.BuildConfig
+import com.ams.megascu.utils.GitHubUpdateChecker
+import com.ams.megascu.utils.UpdateCheckResult
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsBottomSheet(
@@ -117,6 +121,34 @@ fun SettingsBottomSheet(
     var showExpirationConfirmDialog by remember { mutableStateOf(false) }
     var lastSavedPrimaryDays by remember { mutableStateOf(expirationAlertDays) }
     var lastSavedSecondDays by remember { mutableStateOf(secondExpirationAlertDays) }
+
+    val coroutineScope = rememberCoroutineScope()
+    var isCheckingUpdate by remember { mutableStateOf(false) }
+    var autoUpdateCheck by remember { mutableStateOf(prefs.getBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, true)) }
+    var lastCheckTimeStr by remember { mutableStateOf(GitHubUpdateChecker.getFormattedLastCheck(context)) }
+    var updateResultToShow by remember { mutableStateOf<UpdateCheckResult?>(null) }
+    var showUpToDateDialog by remember { mutableStateOf(false) }
+    var updateErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    fun performUpdateCheck() {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        isCheckingUpdate = true
+        updateErrorMessage = null
+        coroutineScope.launch {
+            val result = GitHubUpdateChecker.checkForUpdates(context)
+            isCheckingUpdate = false
+            lastCheckTimeStr = GitHubUpdateChecker.getFormattedLastCheck(context)
+            if (result.isSuccess) {
+                if (result.isUpdateAvailable) {
+                    updateResultToShow = result
+                } else {
+                    showUpToDateDialog = true
+                }
+            } else {
+                updateErrorMessage = result.errorMessage
+            }
+        }
+    }
 
     if (showExpirationConfirmDialog) {
         AlertDialog(
@@ -189,6 +221,67 @@ fun SettingsBottomSheet(
                     }
                 ) {
                     Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (updateResultToShow != null) {
+        UpdateAvailableDialog(
+            updateResult = updateResultToShow!!,
+            onDismiss = { updateResultToShow = null }
+        )
+    }
+
+    if (showUpToDateDialog) {
+        AlertDialog(
+            onDismissRequest = { showUpToDateDialog = false },
+            modifier = Modifier.expressiveModalEntrance(),
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = { Text("¡Estás al día!") },
+            text = {
+                Text(
+                    text = "Tienes instalada la versión más reciente de MegasCU (v${BuildConfig.VERSION_NAME}). No hay nuevas actualizaciones en GitHub.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                ExpressiveButton(onClick = { showUpToDateDialog = false }) {
+                    Text("Entendido")
+                }
+            }
+        )
+    }
+
+    if (updateErrorMessage != null) {
+        AlertDialog(
+            onDismissRequest = { updateErrorMessage = null },
+            modifier = Modifier.expressiveModalEntrance(),
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.ErrorOutline,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = { Text("Comprobación de actualización") },
+            text = {
+                Text(
+                    text = updateErrorMessage ?: "Ocurrió un error al consultar GitHub.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                ExpressiveButton(onClick = { updateErrorMessage = null }) {
+                    Text("Cerrar")
                 }
             }
         )
@@ -2614,6 +2707,141 @@ fun SettingsBottomSheet(
                             }
 
                             Spacer(modifier = Modifier.navigationBarsPadding())
+                        }
+                    }
+                }
+            }
+
+            Text(
+                text = "Actualizaciones de la App",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp)
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.SystemUpdate,
+                                    contentDescription = "Actualizaciones",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Buscar en GitHub",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Versión actual: v${BuildConfig.VERSION_NAME}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Última comprobación:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = lastCheckTimeStr,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Switch for automatic 24h background checks
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Comprobación automática (cada 24h)",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Avisar en segundo plano cuando haya una nueva APK en GitHub",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        ExpressiveSwitch(
+                            checked = autoUpdateCheck,
+                            onCheckedChange = { checked ->
+                                autoUpdateCheck = checked
+                                prefs.edit().putBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, checked).apply()
+                            }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Button to check for updates now
+                    ExpressiveButton(
+                        onClick = { performUpdateCheck() },
+                        enabled = !isCheckingUpdate,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        if (isCheckingUpdate) {
+                            CircularWavyProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                trackThickness = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Comprobando repositorio...")
+                        } else {
+                            Icon(
+                                imageVector = Icons.Rounded.CloudDownload,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Comprobar actualización ahora")
                         }
                     }
                 }

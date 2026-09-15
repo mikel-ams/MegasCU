@@ -555,7 +555,7 @@ fun TasaConsumoCard(
                         )
                     }
                     Spacer(modifier = Modifier.height(6.dp))
-                    LinearWavyProgressIndicator(
+                    LinearProgressIndicator(
                         progress = { animatedProgress.value },
                         modifier = Modifier
                             .fillMaxWidth()
