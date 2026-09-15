@@ -33,6 +33,9 @@ import android.view.WindowManager
 import com.ams.megascu.ui.components.AuthDialog
 import com.ams.megascu.ui.components.ShapeMorphingLoadingIndicator
 import com.ams.megascu.ui.components.AuthScreen
+import com.ams.megascu.ui.components.UpdateAvailableDialog
+import com.ams.megascu.utils.GitHubUpdateChecker
+import com.ams.megascu.utils.UpdateCheckResult
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -344,6 +347,9 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun handleShortcutIntent(intent: Intent?) {
+        if (intent?.getBooleanExtra("EXTRA_SHOW_UPDATE", false) == true) {
+            viewModel.setPendingAction("show_update")
+        }
         val notifAction = intent?.getStringExtra("action")
         if (notifAction != null) {
             viewModel.setPendingAction(notifAction)
@@ -480,6 +486,8 @@ fun MegasMainApp(
     val quickActionCode by viewModel.quickActionCode.collectAsStateWithLifecycle()
     val quickActionLabel by viewModel.quickActionLabel.collectAsStateWithLifecycle()
 
+    val updateCheckResult by viewModel.updateCheckResult.collectAsStateWithLifecycle()
+
     val nonCubacelSimAlert by viewModel.nonCubacelSimAlert.collectAsStateWithLifecycle()
     val missingSimAlertSlot by viewModel.missingSimAlertSlot.collectAsStateWithLifecycle()
 
@@ -496,6 +504,10 @@ fun MegasMainApp(
     val hazeState = remember { HazeState() }
     val pullRefreshState = rememberPullToRefreshState()
     var isPullRefreshing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.checkForAppUpdates(force = false)
+    }
 
     LaunchedEffect(isRefreshing) {
         if (!isRefreshing) {
@@ -551,6 +563,9 @@ fun MegasMainApp(
                 "menu" -> {
                     showSettingsSheet = true
                 }
+                "show_update" -> {
+                    viewModel.checkForAppUpdates(force = true)
+                }
             }
             viewModel.clearPendingAction()
         }
@@ -562,7 +577,9 @@ fun MegasMainApp(
 
     var activeSheetProgress by remember { mutableFloatStateOf(0f) }
 
-    val isAnyDialogOnlyOpen = showAbout || showMatrixTerminal || showUssdTutorial || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null ||
+    val isUpdateModalOpen = updateCheckResult != null && updateCheckResult!!.isUpdateAvailable
+
+    val isAnyDialogOnlyOpen = showAbout || showMatrixTerminal || showUssdTutorial || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
             (ussdState !is UssdUiState.Idle && ussdState !is UssdUiState.Executing)
 
     val dialogBlurFraction by animateFloatAsState(
@@ -576,7 +593,7 @@ fun MegasMainApp(
 
     val effectiveBlurAmount = maxOf(dialogBlurFraction, activeSheetProgress)
     val backgroundBlurRadius = if (disableBlurEffects) 0.dp else (16.dp * effectiveBlurAmount).coerceIn(0.dp, 16.dp)
-    val isDarkScrimDialog = (showMatrixTerminal || showUssdTutorial || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null ||
+    val isDarkScrimDialog = (showMatrixTerminal || showUssdTutorial || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
             (ussdState !is UssdUiState.Idle && ussdState !is UssdUiState.Executing)) && !showAbout
     val backgroundOverlayAlpha = if (isDarkScrimDialog) {
         (0.25f * dialogBlurFraction).coerceIn(0f, 0.25f)
@@ -1135,7 +1152,12 @@ fun MegasMainApp(
                 )
             }
 
-
+            if (updateCheckResult != null && updateCheckResult!!.isUpdateAvailable) {
+                UpdateAvailableDialog(
+                    updateResult = updateCheckResult!!,
+                    onDismiss = { viewModel.dismissUpdateDialog() }
+                )
+            }
 
             if (showUssdTutorial) {
                 com.ams.megascu.ui.components.UssdTutorialOverlay(onDismiss = { showUssdTutorial = false })

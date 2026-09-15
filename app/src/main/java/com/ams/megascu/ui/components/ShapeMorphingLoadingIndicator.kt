@@ -22,7 +22,7 @@ import kotlin.math.sin
 
 /**
  * Material 3 Expressive Shape Morphing Loading Indicator.
- * Smoothly morphs between Circle -> Clover -> Rounded Square -> Star -> Shield while rotating.
+ * Smoothly morphs between Circle -> 6-Crest Hexagonal Wave -> Rounded Hexagon -> 6-Point Star -> 8-Lobe Flower while rotating.
  */
 @Composable
 fun ShapeMorphingLoadingIndicator(
@@ -69,16 +69,14 @@ fun ShapeMorphingLoadingIndicator(
         fun radiusForShape(shapeIdx: Int, theta: Double): Double {
             return when (shapeIdx) {
                 0 -> 1.0 // Circle
-                1 -> 0.82 + 0.18 * cos(4.0 * theta) // 4-lobe clover
+                1 -> 0.78 + 0.22 * cos(6.0 * theta) // 6-crest hexagonal wave
                 2 -> {
-                    // Smooth Rounded Square / Superellipse
-                    val c = abs(cos(theta)).pow(3.0)
-                    val s = abs(sin(theta)).pow(3.0)
-                    val factor = (c + s).pow(-1.0 / 3.0)
-                    0.80 * factor.coerceIn(0.8, 1.15)
+                    // Smooth Rounded Hexagon with pronounced crests
+                    val cos6 = cos(6.0 * theta)
+                    0.80 + 0.20 * cos6 + 0.04 * cos(12.0 * theta)
                 }
-                3 -> 0.82 + 0.18 * cos(5.0 * theta) // 5-point star
-                4 -> 0.84 + 0.16 * cos(3.0 * theta) // 3-lobe shield
+                3 -> 0.76 + 0.24 * cos(6.0 * theta) // Pronounced 6-point hexagonal star
+                4 -> 0.78 + 0.22 * cos(8.0 * theta) // 8-crest expressive wave
                 else -> 1.0
             }
         }

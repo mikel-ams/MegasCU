@@ -28,12 +28,25 @@ android {
   }
 
   signingConfigs {
-    create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/keystore/release-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD") ?: "Cojalop*9"
-      keyAlias = System.getenv("KEY_ALIAS") ?: "megascu_release"
-      keyPassword = System.getenv("KEY_PASSWORD") ?: "Cojalop*9"
+    val candidateKeystores = listOfNotNull(
+      System.getenv("KEYSTORE_PATH")?.let { file(it) },
+      file("${projectDir}/release-key.jks"),
+      file("${rootDir}/release-key.jks"),
+      file("${rootDir}/keystore/release-key.jks"),
+      file("${rootDir}/app/release-key.jks")
+    )
+    val releaseKeystoreFile = candidateKeystores.firstOrNull { it.exists() && it.isFile }
+    val releaseStorePassword = System.getenv("STORE_PASSWORD") ?: System.getenv("RELEASE_STORE_PASSWORD") ?: "Cojalop*9"
+    val releaseKeyAlias = System.getenv("KEY_ALIAS") ?: System.getenv("RELEASE_KEY_ALIAS") ?: "megascu_release"
+    val releaseKeyPassword = System.getenv("KEY_PASSWORD") ?: System.getenv("RELEASE_KEY_PASSWORD") ?: "Cojalop*9"
+
+    if (releaseKeystoreFile != null) {
+      create("release") {
+        storeFile = releaseKeystoreFile
+        storePassword = releaseStorePassword
+        keyAlias = releaseKeyAlias
+        keyPassword = releaseKeyPassword
+      }
     }
     create("debugConfig") {
       storeFile = file("${rootDir}/debug.keystore")
@@ -50,7 +63,7 @@ android {
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("release")
+      signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debugConfig")
     }
     debug {
       isDebuggable = true

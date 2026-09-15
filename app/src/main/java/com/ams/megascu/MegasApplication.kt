@@ -13,6 +13,7 @@ import androidx.work.WorkManager
 import com.ams.megascu.data.db.MegasDatabase
 import com.ams.megascu.data.db.MegasRepository
 import com.ams.megascu.service.ExpirationWorker
+import com.ams.megascu.service.GitHubUpdateWorker
 import java.util.concurrent.TimeUnit
 
 class MegasApplication : Application(), Configuration.Provider {
@@ -28,19 +29,28 @@ class MegasApplication : Application(), Configuration.Provider {
         super.onCreate()
         createNotificationChannel()
         scheduleExpirationWorker()
+        scheduleGitHubUpdateWorker()
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
             val name = "Alertas ETECSA"
             val descriptionText = "Notificaciones de consumo y expiración de datos"
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+
+            val updateChannelName = "Actualizaciones de la App"
+            val updateChannelDesc = "Avisos de nuevas versiones y mejoras disponibles en GitHub"
+            val updateChannel = NotificationChannel(CHANNEL_UPDATES_ID, updateChannelName, NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = updateChannelDesc
+            }
+            notificationManager.createNotificationChannel(updateChannel)
         }
     }
     
@@ -54,7 +64,24 @@ class MegasApplication : Application(), Configuration.Provider {
         )
     }
 
+    private fun scheduleGitHubUpdateWorker() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val updateWorkRequest = PeriodicWorkRequestBuilder<GitHubUpdateWorker>(24, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "GitHubUpdateCheck",
+            androidx.work.ExistingPeriodicWorkPolicy.UPDATE,
+            updateWorkRequest
+        )
+    }
+
     companion object {
         const val CHANNEL_ID = "etecsa_alerts"
+        const val CHANNEL_UPDATES_ID = "megas_updates"
     }
 }
