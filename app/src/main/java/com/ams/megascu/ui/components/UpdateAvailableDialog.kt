@@ -37,6 +37,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.ams.megascu.BuildConfig
 import com.ams.megascu.utils.ApkDownloadManager
 import com.ams.megascu.utils.GitHubUpdateChecker
+import com.ams.megascu.utils.PermissionUtils
 import com.ams.megascu.utils.UpdateCheckResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -106,8 +107,10 @@ fun UpdateAvailableDialog(
                     downloadedApkFile = file
                     downloadStatus = DownloadStatus.COMPLETED
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    // Launch installer automatically
-                    ApkDownloadManager.installApk(context, file)
+                    // Launch installer automatically if permission is already granted
+                    if (PermissionUtils.canInstallUnknownApps(context)) {
+                        ApkDownloadManager.installApk(context, file)
+                    }
                 },
                 onFailure = { error ->
                     downloadStatus = DownloadStatus.FAILED
@@ -464,6 +467,8 @@ fun UpdateAvailableDialog(
                         }
 
                         DownloadStatus.COMPLETED -> {
+                            val hasInstallPermission = PermissionUtils.canInstallUnknownApps(context)
+
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -499,18 +504,49 @@ fun UpdateAvailableDialog(
                                 Spacer(modifier = Modifier.height(4.dp))
 
                                 Text(
-                                    text = "El instalador de Android se ha iniciado. Si la ventana se cerró, pulsa el botón inferior.",
+                                    text = if (hasInstallPermission) {
+                                        "El instalador de Android se ha iniciado. Si la ventana se cerró, pulsa el botón inferior."
+                                    } else {
+                                        "Para completar la actualización debes conceder el permiso 'Instalar aplicaciones desconocidas'."
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
                                 )
+
+                                if (!hasInstallPermission) {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    OutlinedButton(
+                                        onClick = {
+                                            PermissionUtils.openInstallUnknownAppsSettings(context)
+                                        },
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.primary
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Security,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Conceder Permiso de Instalación", fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
                                 ExpressiveButton(
                                     onClick = {
                                         downloadedApkFile?.let { file ->
-                                            ApkDownloadManager.installApk(context, file)
+                                            if (PermissionUtils.canInstallUnknownApps(context)) {
+                                                ApkDownloadManager.installApk(context, file)
+                                            } else {
+                                                Toast.makeText(context, "Por favor autoriza la instalación de aplicaciones desconocidas", Toast.LENGTH_LONG).show()
+                                                PermissionUtils.openInstallUnknownAppsSettings(context)
+                                            }
                                         }
                                     },
                                     modifier = Modifier
@@ -523,7 +559,10 @@ fun UpdateAvailableDialog(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Instalar Actualización Ahora", fontWeight = FontWeight.Bold)
+                                    Text(
+                                        text = if (hasInstallPermission) "Instalar Actualización Ahora" else "Permitir e Instalar",
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
 
                                 Spacer(modifier = Modifier.height(6.dp))
