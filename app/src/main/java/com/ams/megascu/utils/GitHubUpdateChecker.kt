@@ -19,6 +19,7 @@ data class UpdateCheckResult(
     val isSuccess: Boolean,
     val isUpdateAvailable: Boolean = false,
     val isPrerelease: Boolean = false,
+    val hasReleasesFound: Boolean = true,
     val latestVersionName: String = "",
     val latestVersionCode: Int = 0,
     val currentVersionName: String = BuildConfig.VERSION_NAME,
@@ -83,6 +84,7 @@ object GitHubUpdateChecker {
                     return@withContext UpdateCheckResult(
                         isSuccess = true,
                         isUpdateAvailable = false,
+                        hasReleasesFound = false,
                         errorMessage = "No se encontraron releases ni pre-releases en el repositorio '$targetRepo'."
                     )
                 }

@@ -7,6 +7,22 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.8.2-beta_(245)] - 2026-09-16
+
+### Añadido
+- Verificación segura y gestión guiada de permisos para instalación de paquetes desconocidos (`REQUEST_INSTALL_PACKAGES` y `canRequestPackageInstalls()`) en Android 8.0+ hasta Android 15.
+- Tarjeta interactiva de advertencia y botón de concesión de permisos dentro del diálogo de descarga completada (`UpdateAvailableDialog`).
+- Detección inteligente y mensaje contextual en Ajustes (`SettingsBottomSheet`) cuando el repositorio de GitHub aún no posee releases públicos publicados.
+
+### Cambiado
+- Redirección asistida a `Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES` mediante `PermissionUtils.openInstallUnknownAppsSettings()` con fallback seguro a los ajustes de la aplicación ante capas personalizadas (MIUI/HyperOS, ColorOS, EMUI).
+- Refactorización de `ApkDownloadManager.installApk()` y flujo de actualización para evitar bloqueos silenciosos o excepciones del sistema al instalar APKs actualizadas.
+
+### Corregido
+- Prevención de fallos silenciosos en la apertura del instalador de paquetes de Android cuando la aplicación carecía del permiso de origen desconocido.
+
+---
+
 ## [0.8.1-beta_(244)] - 2026-09-16
 
 ### Añadido

@@ -127,6 +127,7 @@ fun SettingsBottomSheet(
     var autoUpdateCheck by remember { mutableStateOf(prefs.getBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, true)) }
     var lastCheckTimeStr by remember { mutableStateOf(GitHubUpdateChecker.getFormattedLastCheck(context)) }
     var updateResultToShow by remember { mutableStateOf<UpdateCheckResult?>(null) }
+    var lastCheckedResult by remember { mutableStateOf<UpdateCheckResult?>(null) }
     var showUpToDateDialog by remember { mutableStateOf(false) }
     var updateErrorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -137,6 +138,7 @@ fun SettingsBottomSheet(
         coroutineScope.launch {
             val result = GitHubUpdateChecker.checkForUpdates(context)
             isCheckingUpdate = false
+            lastCheckedResult = result
             lastCheckTimeStr = GitHubUpdateChecker.getFormattedLastCheck(context)
             if (result.isSuccess) {
                 if (result.isUpdateAvailable) {
@@ -234,21 +236,28 @@ fun SettingsBottomSheet(
     }
 
     if (showUpToDateDialog) {
+        val hasReleases = lastCheckedResult?.hasReleasesFound ?: true
         AlertDialog(
             onDismissRequest = { showUpToDateDialog = false },
             modifier = Modifier.expressiveModalEntrance(),
             icon = {
                 Icon(
-                    imageVector = Icons.Rounded.CheckCircle,
+                    imageVector = if (hasReleases) Icons.Rounded.CheckCircle else Icons.Rounded.Info,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(32.dp)
                 )
             },
-            title = { Text("¡Estás al día!") },
+            title = {
+                Text(if (hasReleases) "¡Estás al día!" else "Sin versiones en GitHub")
+            },
             text = {
                 Text(
-                    text = "Tienes instalada la versión más reciente de MegasCU (v${BuildConfig.VERSION_NAME}). No hay nuevas actualizaciones en GitHub.",
+                    text = if (hasReleases) {
+                        "Tienes instalada la versión más reciente de MegasCU (v${BuildConfig.VERSION_NAME}). No hay nuevas actualizaciones en GitHub."
+                    } else {
+                        "El repositorio '${GitHubUpdateChecker.DEFAULT_REPO}' no cuenta con publicaciones públicas en GitHub actualmente. Tienes instalada la versión v${BuildConfig.VERSION_NAME}."
+                    },
                     style = MaterialTheme.typography.bodyMedium
                 )
             },

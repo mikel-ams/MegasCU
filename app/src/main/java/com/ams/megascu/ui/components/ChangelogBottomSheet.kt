@@ -44,9 +44,37 @@ data class ChangelogVersion(
 object ChangelogRepository {
     val changelogList = listOf(
         ChangelogVersion(
-            version = "0.8.1-beta_(244)",
+            version = "0.8.2-beta_(245)",
             date = "2026-09-16",
             isLatest = true,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Verificación segura y gestión guiada de permisos para instalación de paquetes desconocidos (REQUEST_INSTALL_PACKAGES y canRequestPackageInstalls()) en Android 8.0+ hasta Android 15.",
+                        "Tarjeta interactiva de advertencia y botón de concesión de permisos dentro del diálogo de descarga completada (UpdateAvailableDialog).",
+                        "Detección inteligente y mensaje contextual en Ajustes cuando el repositorio de GitHub aún no posee releases públicos publicados."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Redirección asistida a ACTION_MANAGE_UNKNOWN_APP_SOURCES con fallback multinivel ante capas personalizadas (MIUI/HyperOS, ColorOS, EMUI).",
+                        "Refactorización del flujo de actualización para evitar bloqueos silenciosos o excepciones del sistema al instalar APKs actualizadas."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Prevención de fallos silenciosos en la apertura del instalador de paquetes de Android cuando la aplicación carecía del permiso de origen desconocido."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.8.1-beta_(244)",
+            date = "2026-09-16",
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.ADDED,

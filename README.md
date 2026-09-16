@@ -14,22 +14,22 @@
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│                                 PRESENTATION LAYER                                  │
-│        Jetpack Compose Expressive M3 • Dynamic Physics Springs • Haze Glass         │
-│           Wavy Progress • Morphic Corner Shapes • WCAG Contrast Inspector           │
+│                          PRESENTATION LAYER                            │
+│  Jetpack Compose Expressive M3 • Dynamic Physics Springs • Haze Glass  │
+│    Wavy Progress • Morphic Corner Shapes • WCAG Contrast Inspector     │
 └───────────────────────────────────┬────────────────────────────────────┘
-  │ StateFlow / UI States
+                                    │ StateFlow / UI States
 ┌───────────────────────────────────▼────────────────────────────────────┐
-│                                   DOMAIN / VIEWMODEL                                │
-│            Clean MVVM • Heuristic USSD Parsers • Daily Rate Estimators              │
-│                 Biometric Protection • Expiration Alert Schedulers                  │
+│                            DOMAIN / VIEWMODEL                          │
+│     Clean MVVM • Heuristic USSD Parsers • Daily Rate Estimators        │
+│          Biometric Protection • Expiration Alert Schedulers            │
 └───────────────────┬────────────────────────────────┬───────────────────┘
-                        │                                     │
-┌───────────────────▼──────────────┐ ┌───────────────▼──────────────────┐
-│                 DATA LAYER             │ │          HARDWARE & OS APIS             │
-│      Room Database (KSP) + SQLite      │ │  TelephonyManager (sendUssdRequest.     │
-│      Reactive DAOs • Flow Pipelines    │ │  SubscriptionManager (Multi-SIM)        │
-│      Encrypted Local Preferences       │ │  NetworkStatsManager (Traffic API).     │
+                    │                                │
+┌───────────────────▼──────────────┐ ┌───────────────▼───────────────────┐
+│           DATA LAYER             │ │        HARDWARE & OS APIS         │
+│  Room Database (KSP) + SQLite    │ │  TelephonyManager (sendUssdRequest│
+│  Reactive DAOs • Flow Pipelines  │ │  SubscriptionManager (Multi-SIM)  │
+│  Encrypted Local Preferences     │ │  NetworkStatsManager (Traffic API)│
 └──────────────────────────────────┘ └───────────────────────────────────┘
 ```
 

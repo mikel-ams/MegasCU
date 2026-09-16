@@ -154,4 +154,54 @@ object PermissionUtils {
             e.printStackTrace()
         }
     }
+
+    /**
+     * Verificación segura de permiso para instalar aplicaciones desconocidas (REQUEST_INSTALL_PACKAGES).
+     * En Android 8.0+ (API 26+) comprueba context.packageManager.canRequestPackageInstalls().
+     */
+    fun canInstallUnknownApps(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                context.packageManager.canRequestPackageInstalls()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        } else {
+            true
+        }
+    }
+
+    /**
+     * Abre los Ajustes de "Instalar aplicaciones desconocidas" para el paquete de MegasCU (ACTION_MANAGE_UNKNOWN_APP_SOURCES).
+     * Incluye fallback para evitar fallos en capas personalizadas.
+     */
+    fun openInstallUnknownAppsSettings(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = Uri.parse("package:${context.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+                return
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            try {
+                val intentGeneral = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intentGeneral)
+                return
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // Fallback para versiones o dispositivos donde falle ACTION_MANAGE_UNKNOWN_APP_SOURCES
+        openAppSettings(context)
+    }
 }
+
