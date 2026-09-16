@@ -18,6 +18,7 @@ import java.util.regex.Pattern
 data class UpdateCheckResult(
     val isSuccess: Boolean,
     val isUpdateAvailable: Boolean = false,
+    val isPrerelease: Boolean = false,
     val latestVersionName: String = "",
     val latestVersionCode: Int = 0,
     val currentVersionName: String = BuildConfig.VERSION_NAME,
@@ -50,7 +51,7 @@ object GitHubUpdateChecker {
     suspend fun checkForUpdates(context: Context, repoOwnerAndName: String? = null): UpdateCheckResult = withContext(Dispatchers.IO) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         val targetRepo = repoOwnerAndName ?: prefs.getString(PREF_GITHUB_REPO, DEFAULT_REPO)?.ifBlank { DEFAULT_REPO } ?: DEFAULT_REPO
-        val apiUrl = "https://api.github.com/repos/${targetRepo.trim()}/releases/latest"
+        val apiUrl = "https://api.github.com/repos/${targetRepo.trim()}/releases?per_page=5"
 
         try {
             val url = URL(apiUrl)
@@ -68,12 +69,30 @@ object GitHubUpdateChecker {
                 val response = reader.use { it.readText() }
                 connection.disconnect()
 
-                val json = JSONObject(response)
+                val trimmedResponse = response.trim()
+                val json: JSONObject? = if (trimmedResponse.startsWith("[")) {
+                    val array = JSONArray(trimmedResponse)
+                    if (array.length() > 0) array.getJSONObject(0) else null
+                } else if (trimmedResponse.startsWith("{")) {
+                    JSONObject(trimmedResponse)
+                } else {
+                    null
+                }
+
+                if (json == null) {
+                    return@withContext UpdateCheckResult(
+                        isSuccess = true,
+                        isUpdateAvailable = false,
+                        errorMessage = "No se encontraron releases ni pre-releases en el repositorio '$targetRepo'."
+                    )
+                }
+
                 val tagName = json.optString("tag_name", "").trim()
                 val releaseName = json.optString("name", "").trim()
                 val body = json.optString("body", "").trim()
                 val htmlUrl = json.optString("html_url", "").trim()
                 val publishedAtRaw = json.optString("published_at", "")
+                val isPrerelease = json.optBoolean("prerelease", false)
 
                 var apkDownloadUrl: String? = null
                 var apkSizeBytes: Long = 0L
@@ -126,6 +145,7 @@ object GitHubUpdateChecker {
                 UpdateCheckResult(
                     isSuccess = true,
                     isUpdateAvailable = isNewer,
+                    isPrerelease = isPrerelease,
                     latestVersionName = remoteVersionName,
                     latestVersionCode = remoteVersionCode,
                     releaseTitle = if (releaseName.isNotBlank()) releaseName else tagName,

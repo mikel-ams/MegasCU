@@ -1,47 +1,55 @@
-# MegasCU — Descripción Técnica para Repositorio de GitHub
+# MegasCU — Primera Release Pública (v0.8.0-beta / Build 243)
 
 > **Short Description (GitHub About / Subtitle):**  
-> Monitor nativo y gestor inteligente de saldo, paquetes LTE, bonos y consumo de datos para Cubacel / ETECSA en Android, construido con Jetpack Compose Expressive (M3), arquitectura Clean MVVM, telemetría celular en tiempo real, Room Database y privacidad 100% Offline-First.
+> Monitor nativo y gestor inteligente de saldo, paquetes LTE, bonos y consumo de datos para Cubacel / ETECSA en Android, construido con Jetpack Compose Expressive (M3), arquitectura Clean MVVM, telemetría celular en tiempo real, Room Database, actualizador OTA integrado y privacidad 100% Offline-First.
 
 ---
 
-## 📌 Descripción Completa (Markdown para README / Wiki / Releases)
+## 📌 Descripción de la Primera Release Pública (Pre-release)
 
-### Resumen Ejecutivo
-**MegasCU** es una suite de herramientas y monitor de telecomunicaciones de código abierto para dispositivos Android, desarrollada específicamente para optimizar la gestión de recursos móviles en la red de **ETECSA / Cubacel** en Cuba. 
+**MegasCU** es una suite de herramientas de telecomunicaciones de código abierto desarrollada en Kotlin y Jetpack Compose para dispositivos Android. Diseñada a medida para optimizar y simplificar la gestión de saldo, planes LTE, paquetes combinados, bonos y llamadas en la red de **ETECSA / Cubacel** en Cuba.
 
-La aplicación combina un diseño visual moderno basado en las especificaciones **Material 3 Expressive** de Google con un motor heurístico de bajo nivel para el análisis de tramas USSD y telemetría de consumo de datos a través de los servicios del kernel y del framework de Android.
+Esta versión **v0.8.0-beta_(243)** constituye la primera compilación pública oficial distribuida mediante GitHub Releases con soporte para verificación y descarga automática de actualizaciones desde la propia aplicación.
 
 ---
 
-### 🧩 Arquitectura del Sistema y Componentes Clave
+### 🚀 Novedades y Características Principales
 
-#### 1. Capa de Presentación (M3 Expressive UI)
-* **Jetpack Compose Expressive:** Integración de los componentes de última generación de Material Design 3 con física de resortes no lineales (`spring` physics con amortiguación y rigidez personalizadas).
-* **Morphic Corner Dynamics:** Metamorfosis elástica de bordes en botones (`ExpressiveButton`, `ExpressiveIconButton`) y selectores táctiles, sustituyendo las reducciones de escala rígidas tradicionales por deformaciones físicas asimétricas en tiempo real.
+#### 1. Sistema Integrado de Actualizaciones OTA (GitHub Releases)
+* **Comprobación Automática en Segundo Plano:** Tarea periódica programada cada 24 horas mediante `WorkManager` con restricciones inteligentes de red para no consumir recursos innecesarios.
+* **Detección de Pre-releases y Releases:** Motor `GitHubUpdateChecker` conectado a la API de GitHub (`migue-ams/MegasCU`) para encontrar al instante nuevas versiones, leer el changelog y calcular el tamaño del paquete.
+* **Diálogo Modal Expresivo (`UpdateAvailableDialog`):** Ventana emergente con comparador visual de versiones, visor de novedades y descarga directa del archivo `.apk` mediante el navegador o gestor de descargas del sistema.
+* **Ajustes de Actualización Personalizables:** Conmutador para activar/desactivar chequeos automáticos, botón para comprobación manual inmediata y visualización del historial de comprobaciones.
+
+#### 2. Respuesta Háptica Táctil Expresiva (Haptic Feedback)
+* **Microinteracciones Hápticas:** Retroalimentación táctil suave (`LocalHapticFeedback`) al accionar interruptores (`ExpressiveSwitch`), cambiar opciones y pulsar el botón de comprobación de actualizaciones.
+* **Soporte Táctil Completo:** Respuesta táctil tanto al pulsar como al deslizar suavemente los componentes expresivos.
+
+#### 3. Capa de Presentación (Material 3 Expressive UI)
+* **Jetpack Compose Expressive:** Implementación integral de componentes M3 con física de resortes no lineales (`spring` physics con rigidez y amortiguación personalizadas).
+* **Morphic Corner Dynamics:** Metamorfosis elástica de bordes en botones (`ExpressiveButton`, `ExpressiveIconButton`) y selectores táctiles.
 * **Componentes Expresivos Nativos:**
   * Indicadores de progreso ondulatorios (`LinearWavyProgressIndicator`, `CircularWavyProgressIndicator`).
-  * Indicador de carga con metamorfosis morfológica (`ShapeMorphingLoadingIndicator`).
+  * Indicador de carga morfológico (`ShapeMorphingLoadingIndicator`).
   * Deslizadores táctiles elásticos (`ExpressiveSlider`, `ExpressiveSwitch`).
-  * Hojas de diálogo modales con controlador de arrastre expresivo (`ExpressiveDragHandle`) y renderizado de desenfoque en tiempo real con `Haze`.
-* **Inspector de Contraste y Accesibilidad WCAG AAA:** Módulo de diagnóstico en vivo que evalúa los ratios de contraste de luminancia relativa y permite activar una paleta de alta accesibilidad para uso bajo luz solar intensa.
+  * Hojas de diálogo modales con controlador de arrastre (`ExpressiveDragHandle`) y desenfoque en tiempo real con `Haze`.
+* **Inspector de Contraste y Accesibilidad WCAG AAA:** Módulo de diagnóstico en vivo que evalúa ratios de contraste y permite activar paletas de alta visibilidad para uso bajo luz solar intensa.
 
-#### 2. Motor de Telemetría Celular y Procesamiento USSD
-* **Telephony Stack Nativo:** Empleo de `TelephonyManager.sendUssdRequest()` en dispositivos con Android 8.0+ para consultas silenciosas en segundo plano con fallback por intenciones de llamada (`Intent.ACTION_CALL`).
-* **Soporte Multi-SIM Avanzado:** Identificación granular de suscripciones mediante `SubscriptionManager` para enrutar consultas de saldo y consumo de forma independiente a la ranura SIM 1 o SIM 2.
-* **Parser Heurístico de Tramas Cubacel:** Motor regex resiliente capaz de decodificar respuestas de saldo principal (`*222#`), paquetes de datos (`*222*328#`), bonos promocionales (`*222*835#`), minutos de voz (`*222*869#`), paquetes SMS (`*222*763#`) y adelanto de saldo (`*222*266#`).
-* **Telemetría de Tráfico de Red:** Acceso a `NetworkStatsManager` para computar los bytes transmitidos por interfaz celular (subida y bajada) en el ciclo diario y mensual, correlacionándolos con la información de los paquetes activos.
+#### 4. Motor de Telemetría Celular y Procesamiento USSD
+* **Telephony Stack Nativo:** Empleo de `TelephonyManager.sendUssdRequest()` en Android 8.0+ para consultas silenciosas en segundo plano con fallback por intenciones de llamada (`Intent.ACTION_CALL`).
+* **Soporte Multi-SIM Granular:** Detección de líneas mediante `SubscriptionManager` para ejecutar consultas de saldo y consumo asignadas de forma independiente a la SIM 1 o SIM 2.
+* **Parser Heurístico de Tramas Cubacel:** Decodificación instantánea de respuestas de saldo principal (`*222#`), paquetes de datos (`*222*328#`), bonos (`*222*835#`), minutos de voz (`*222*869#`), paquetes SMS (`*222*763#`) y adelanto de saldo (`*222*266#`).
+* **Telemetría de Tráfico Celular:** Acceso a `NetworkStatsManager` para computar bytes transmitidos (subida/bajada) por interfaz celular diarios y mensuales.
 
-#### 3. Capa de Dominio y Datos (Clean Architecture + Room)
-* **Persistencia Reactiva:** Base de datos relacional SQLite gestionada mediante **Android Room** con compilación KSP. Estructura de entidades para estados de planes (`PlanStatusEntity`), historial de consultas (`UssdRecordEntity`) y accesos directos (`QuickActionEntity`).
-* **Algoritmo de Tasa de Consumo Recomendada:** Calcula dinámicamente la cuota diaria ideal de megabytes en función del volumen de datos remanente y los días restantes antes de la fecha de expiración.
-* **Procesamiento Asíncrono:** Corrutinas de Kotlin con `Flow` y `StateFlow` conectados al ciclo de vida del UI mediante `collectAsStateWithLifecycle()`.
+#### 5. Persistencia y Arquitectura (Clean Architecture + Room)
+* **Persistencia Reactiva Local:** Base de datos SQLite gestionada mediante **Android Room** con KSP. Entidades para estados de planes (`PlanStatusEntity`), historial de consultas (`UssdRecordEntity`) y accesos directos (`QuickActionEntity`).
+* **Tasa de Consumo Recomendada:** Algoritmo dinámico que calcula los megabytes sugeridos por día según los días restantes del paquete activo.
+* **Flujos Asíncronos:** Corrutinas de Kotlin con `Flow` y `StateFlow` sincronizados con el ciclo de vida de la UI (`collectAsStateWithLifecycle()`).
 
-#### 4. Seguridad, Widgets y Herramientas
-* **Criptografía y Biometría Local:** Autenticación biométrica integrada (`androidx.biometric.BiometricPrompt`) para el resguardo de historiales e información de cuenta.
-* **AppWidget de Inicio (Glance):** Widget interactivo para la pantalla de inicio con actualización periódica de recursos disponibles y accesos de ejecución rápida.
-* **Entorno Sandbox / Modo Simulación:** Módulo de emulación que permite generar respuestas USSD virtuales para pruebas de desarrollo sin consumir saldo ni requerir conexión a la red de antenas base.
-* **Política de Cero Telemetría (100% Offline-First):** La aplicación no realiza peticiones HTTP a servidores externos, no integra SDKs de publicidad ni almacena datos fuera del entorno local del dispositivo.
+#### 6. Seguridad y Privacidad (100% Offline-First)
+* **Biometría Local:** Protección opcional mediante `BiometricPrompt` para resguardar historiales y balances.
+* **Sin Rastreos ni Publicidad:** Cero telemetría a servidores privados y ausencia total de librerías publicitarias.
+* **Firma Criptográfica Segura:** Keystore oficial de producción firmada con llaves protegidas por variables de entorno.
 
 ---
 
@@ -49,10 +57,13 @@ La aplicación combina un diseño visual moderno basado en las especificaciones 
 
 | Parámetro | Especificación |
 | :--- | :--- |
+| **Versión** | `0.8.0-beta_(243)` (Pre-release) |
+| **Código de Build** | `243` |
 | **Plataforma** | Android (Kotlin) |
 | **SDK Mínimo** | API 30 (Android 11.0) |
 | **SDK Objetivo / Compilación** | API 36 |
 | **Toolkit de UI** | Jetpack Compose con M3 Expressive |
-| **Motor de Base de Datos** | Room Database con SQLite nativo |
-| **Motor Gráfico** | Vico Compose M3 / Canvas |
-| **Licencia** | Open Source |
+| **Base de Datos** | Room Database (SQLite) |
+| **Gráficos** | Vico Compose M3 / Canvas Nativo |
+| **Repositorio Oficial** | [https://github.com/migue-ams/MegasCU](https://github.com/migue-ams/MegasCU) |
+| **Licencia** | Código Abierto |

@@ -6,7 +6,7 @@
    - Antes de subir el archivo, renómbralo siguiendo el formato `MegasCU_<versionName>.apk` (por ejemplo, `MegasCU_0.7.3-beta_(224).apk`) tomado de `app/build/outputs/apk/release/app-release.apk`.
    - Sube este archivo recién compilado en conjunto a los dos sitios:
      - **Litterbox (Catbox):** `curl -F "reqtype=fileupload" -F "time=72h" -F "fileToUpload=@MegasCU_<versionName>.apk" https://litterbox.catbox.moe/resources/internals/api.php`
-     - **Tempfiles (tmpfiles.org):** `curl -F "file=@MegasCU_<versionName>.apk" -F "expire=28800" https://tmpfiles.org/api/v1/upload` (añadiendo `/dl/` al link de descarga directa).
+     - **Tempfiles (tmpfiles.org):** `curl -s -F "file=@MegasCU_<versionName>.apk" -F "expire=28800" https://tmpfiles.org/api/v1/upload` (para descarga directa resolver el token temporal dinámico mediante `curl -s "<url_tmpfiles>" | grep -o 'https://tmpfiles.org/dl/[^"\' ]*'` ya que la API devuelve la URL de vista y requiere `/dl/<timestamp>.<hash>/<id>/<archivo>` para evitar error 404/redirección).
    - Devuelve en tu respuesta los enlaces de descarga de ambos sitios con el mismo nombre de APK base.
    - Ejecuta `compile_applet` para garantizar que la última versión de desarrollo quede compilada e instalada en la vista previa interactiva (emulador streaming) de Google AI Studio.
 2. **Resumen de Cambios:** Al finalizar cada turno de modificaciones, debes entregar siempre un resumen claro, estructurado y profesional de los cambios realizados.
@@ -15,4 +15,8 @@
    - Todos los binarios (.ttf y .webp) provienen de los archivos comprimidos fuente de referencia (`res_font.zip` / `res_fonts.zip` para las fuentes personalizadas TrueType Space Mono y `res_images.zip` para las dos imágenes del menú de Bienvenida).
    - Estos archivos NUNCA deben modificarse con herramientas de texto, editores de código o convertidores que inserten secuencias de reemplazo (`EF BF BD`) o alteren sus bytes. Deben manejarse estrictamente como binarios puros (byte a byte).
    - En cada compilación y verificación de la app, o ante cualquier reporte de fallo, se desempaquetan byte a byte y se ejecuta la verificación de hashes MD5 y SHA-256 de los archivos en `src/main/res/` comparándolos con los contenidos en los ZIP originales para certificar su integridad absoluta.
+5. **Gestión de Registro de Cambios (Changelog):**
+   - Cada vez que se genere o publique una nueva versión (actualizando `versionName` y `versionCode`), se DEBE actualizar obligatoriamente el archivo `CHANGELOG.md` documentando los cambios realizados bajo el estándar *Keep a Changelog*.
+   - También se debe reflejar este registro de cambios dentro de la app (por ejemplo, en `ChangelogBottomSheet.kt`).
+   - Adicionalmente, al presentar la respuesta final al usuario, debes proporcionar SIEMPRE un bloque de código markdown (o texto plano) fácil de copiar que contenga las notas de la versión actual, diseñado específicamente para ser copiado y pegado en el "Release" de GitHub.
 

@@ -2910,16 +2910,14 @@ private fun ChartsAndSecurityPage(
 
         val pinCardInteraction = remember { MutableInteractionSource() }
         Card(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                showPinSetupDialog = true
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .expressivePressEffect(interactionSource = pinCardInteraction)
-                .clickable(
-                    interactionSource = pinCardInteraction,
-                    indication = null
-                ) {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    showPinSetupDialog = true
-                },
+                .expressivePressEffect(interactionSource = pinCardInteraction),
+            interactionSource = pinCardInteraction,
             shape = rememberExpressiveMorphShape(
                 defaultRadius = 18.dp,
                 pressedRadius = 10.dp,
@@ -2972,11 +2970,12 @@ private fun ChartsAndSecurityPage(
                 }
 
                 Surface(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        showPinSetupDialog = true
+                    },
                     shape = RoundedCornerShape(10.dp),
-                    color = if (securityEnabled && securityPin.isNotEmpty())
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
                     Text(
@@ -2989,7 +2988,6 @@ private fun ChartsAndSecurityPage(
             }
         }
 
-        var showPinSetupDialog by remember { mutableStateOf(false) }
         var pinSuccessMessage by remember { mutableStateOf(false) }
 
         if (showPinSetupDialog) {

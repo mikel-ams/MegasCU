@@ -32,6 +32,7 @@ fun LinearWavyProgressIndicator(
     modifier: Modifier = Modifier
         .fillMaxWidth()
         .height(10.dp),
+    progress: (() -> Float)? = null,
     color: Color = Color.White,
     trackColor: Color = Color.Transparent,
     strokeWidth: Dp = 3.dp,
@@ -43,14 +44,51 @@ fun LinearWavyProgressIndicator(
         width = with(density) { strokeWidth.toPx() },
         cap = StrokeCap.Round
     )
-    M3LinearWavyProgressIndicator(
+    if (progress != null) {
+        M3LinearWavyProgressIndicator(
+            progress = progress,
+            modifier = modifier,
+            color = color,
+            trackColor = trackColor,
+            stroke = stroke,
+            trackStroke = stroke,
+            amplitude = { 1.0f },
+            wavelength = waveLength
+        )
+    } else {
+        M3LinearWavyProgressIndicator(
+            modifier = modifier,
+            color = color,
+            trackColor = trackColor,
+            stroke = stroke,
+            trackStroke = stroke,
+            amplitude = 1.0f,
+            wavelength = waveLength
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun LinearWavyProgressIndicator(
+    progress: Float,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .height(10.dp),
+    color: Color = Color.White,
+    trackColor: Color = Color.Transparent,
+    strokeWidth: Dp = 3.dp,
+    amplitude: Dp = 2.5.dp,
+    waveLength: Dp = 18.dp
+) {
+    LinearWavyProgressIndicator(
         modifier = modifier,
+        progress = { progress },
         color = color,
         trackColor = trackColor,
-        stroke = stroke,
-        trackStroke = stroke,
-        amplitude = 1.0f,
-        wavelength = waveLength
+        strokeWidth = strokeWidth,
+        amplitude = amplitude,
+        waveLength = waveLength
     )
 }
 

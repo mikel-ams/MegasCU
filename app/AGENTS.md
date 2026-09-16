@@ -6,7 +6,7 @@
    - Antes de subir el archivo, renómbralo siguiendo el formato `MegasCU_<versionName>.apk` (por ejemplo, `MegasCU_0.7.2-beta_(220).apk`).
    - Sube este archivo recién compilado en conjunto a los dos sitios:
      - **Litterbox (Catbox):** `curl -F "reqtype=fileupload" -F "time=72h" -F "fileToUpload=@MegasCU_<versionName>.apk" https://litterbox.catbox.moe/resources/internals/api.php`
-     - **Tempfiles (tmpfiles.org):** `curl -F "file=@MegasCU_<versionName>.apk" -F "expire=28800" https://tmpfiles.org/api/v1/upload` (añadiendo `/dl/` al link de descarga directa).
+     - **Tempfiles (tmpfiles.org):** `curl -s -F "file=@MegasCU_<versionName>.apk" -F "expire=28800" https://tmpfiles.org/api/v1/upload` (para descarga directa resolver el token temporal dinámico mediante `curl -s "<url_tmpfiles>" | grep -o 'https://tmpfiles.org/dl/[^"\' ]*'` ya que la API devuelve la URL de vista y requiere `/dl/<timestamp>.<hash>/<id>/<archivo>` para evitar error 404/redirección).
    - Devuelve en tu respuesta los enlaces de descarga de ambos sitios con el mismo nombre de APK base.
    - Ejecuta `compile_applet` para garantizar que la última versión de desarrollo quede compilada e instalada en la vista previa interactiva (emulador streaming) de Google AI Studio.
 2. **Resumen de Cambios:** Al finalizar cada turno de modificaciones, debes entregar siempre un resumen claro, estructurado y profesional de los cambios realizados.

@@ -44,16 +44,60 @@ data class ChangelogVersion(
 object ChangelogRepository {
     val changelogList = listOf(
         ChangelogVersion(
-            version = "0.7.8-beta_(243)",
-            date = "2026-09-15",
+            version = "0.8.1-beta_(244)",
+            date = "2026-09-16",
             isLatest = true,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.ADDED,
                     items = listOf(
+                        "Gestor de Descarga Integrado (ApkDownloadManager) con descarga de APK en segundo plano y redirecciones HTTP seguras.",
+                        "Barra de progreso Material M3 Expressive Wavy (LinearWavyProgressIndicator) con visualización de MB descargados y porcentaje dinámico.",
+                        "Instalador automático de actualización: al completar la descarga se abre directamente el instalador del sistema.",
+                        "Cálculo y muestra del tamaño de la aplicación y registro de cambios en el diálogo de actualización desde GitHub."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Reubicación de Opciones de Desarrollador en los ajustes de configuración, desplazada al pie de la ventana debajo de Gestión de Datos.",
+                        "Sección de actualizaciones en Ajustes renombrada y enriquecida como Gestor de Descarga y Actualizaciones."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Activación directa de la ventana de PIN al pulsar sobre la tarjeta o píldora de Seguridad y Control en la pantalla de Bienvenida (Paso 7)."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.8.0-beta_(243)",
+            date = "2026-09-15",
+            isLatest = false,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Primera versión pública Pre-release (Beta) para distribución mediante GitHub Releases.",
+                        "Soporte nativo y detección automática de Pre-releases en el actualizador integrado de la app.",
                         "Respuesta háptica táctil expresiva al conmutar el interruptor de actualizaciones automáticas en Ajustes.",
                         "Respuesta háptica táctil en el botón de comprobación manual de actualizaciones en GitHub.",
-                        "Respuesta háptica integrada nativamente en el componente ExpressiveSwitch tanto por toque como por arrastre."
+                        "Respuesta háptica integrada nativamente en el componente ExpressiveSwitch tanto por toque como por arrastre.",
+                        "Actualización de la dirección del repositorio a migue-ams/MegasCU."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Reordenamiento de interfaz en Ajustes: traslado de la sección Opciones de Desarrollador hacia el pie de la ventana, ubicándola debajo de la tarjeta de Gestión de Datos."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Corrección en la Pantalla de Bienvenida (Paso 7: Gráficas y Seguridad): al pulsar sobre el elemento Seguridad y Control Parental se activa la verificación e ingreso de PIN."
                     )
                 )
             )
