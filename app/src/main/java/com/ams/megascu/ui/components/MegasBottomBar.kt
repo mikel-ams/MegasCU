@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -64,13 +65,25 @@ fun MegasBottomBar(
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
+                tonalElevation = 2.dp,
+                shadowElevation = 8.dp,
                 border = androidx.compose.foundation.BorderStroke(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
                 ),
-                modifier = Modifier.testTag("megas_bottom_bar")
+                modifier = Modifier
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = CircleShape,
+                        spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
+                        ambientColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        clip = false
+                    )
+                    .graphicsLayer {
+                        shape = CircleShape
+                        clip = false
+                    }
+                    .testTag("megas_bottom_bar")
             ) {
                 Row(
                     modifier = Modifier

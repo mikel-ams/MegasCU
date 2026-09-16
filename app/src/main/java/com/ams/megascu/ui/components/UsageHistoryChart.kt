@@ -388,21 +388,26 @@ fun TasaConsumoCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Column 1: Consumo Recomendado
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.Start
+                ) {
                     Text(
                         text = "Límite Diario Recomendado",
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         ),
-                        color = textSecondaryColor
+                        color = textSecondaryColor,
+                        maxLines = 2,
+                        softWrap = true
                     )
                     val recText = if (recommendedDailyMb != null) {
                         val currentVal = animatedTargetRecMbInt
                         if (currentVal >= 1024) {
-                            String.format(Locale.US, "%.2fGB/día", currentVal / 1024f)
+                            String.format(Locale.US, "%.2f\u00A0GB/día", currentVal / 1024f)
                         } else {
-                            "$currentVal MB/día"
+                            "$currentVal\u00A0MB/día"
                         }
                     } else {
                         "Sin plan activo"
@@ -413,7 +418,9 @@ fun TasaConsumoCard(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 18.sp
                         ),
-                        color = onContainerColor
+                        color = onContainerColor,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
 
@@ -436,14 +443,16 @@ fun TasaConsumoCard(
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         ),
-                        color = textSecondaryColor
+                        color = textSecondaryColor,
+                        maxLines = 2,
+                        softWrap = true
                     )
                     if (hasUsagePermission) {
                         val currentVal = animatedTodayMbInt
                         val realText = if (currentVal >= 1024) {
-                            String.format(Locale.US, "%.2fGB", currentVal / 1024f)
+                            String.format(Locale.US, "%.2f\u00A0GB", currentVal / 1024f)
                         } else {
-                            "$currentVal MB"
+                            "$currentVal\u00A0MB"
                         }
                         Text(
                             text = realText,
@@ -451,14 +460,16 @@ fun TasaConsumoCard(
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 18.sp
                             ),
-                            color = onContainerColor
+                            color = onContainerColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     } else if (useAlternativeEstimator) {
                         val currentVal = animatedTodayMbInt
                         val estText = if (currentVal >= 1024) {
-                            String.format(Locale.US, "%.2fGB", currentVal / 1024f)
+                            String.format(Locale.US, "%.2f\u00A0GB", currentVal / 1024f)
                         } else {
-                            "$currentVal MB"
+                            "$currentVal\u00A0MB"
                         }
                         Text(
                             text = estText,
@@ -466,7 +477,9 @@ fun TasaConsumoCard(
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 18.sp
                             ),
-                            color = onContainerColor
+                            color = onContainerColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
                         Text(
                             text = "Historial USSD",
@@ -474,7 +487,9 @@ fun TasaConsumoCard(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.5.sp,
                                 color = MaterialTheme.colorScheme.primary
-                            )
+                            ),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     } else {
                         Text(
@@ -483,7 +498,9 @@ fun TasaConsumoCard(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
                             ),
-                            color = MaterialTheme.colorScheme.error
+                            color = MaterialTheme.colorScheme.error,
+                            maxLines = 1,
+                            softWrap = false
                         )
                         Text(
                             text = "Toca p/ Activar",
@@ -491,7 +508,9 @@ fun TasaConsumoCard(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.error
-                            )
+                            ),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -540,10 +559,13 @@ fun TasaConsumoCard(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 11.5.sp
                             ),
-                            color = textSecondaryColor
+                            color = textSecondaryColor,
+                            modifier = Modifier.weight(1f, fill = false),
+                            softWrap = true
                         )
-                        val formattedToday = if (todayMb >= 1024f) String.format(Locale.US, "%.2f GB", todayMb / 1024f) else "${todayMb.roundToInt()} MB"
-                        val formattedRec = if (targetRecMb >= 1024f) String.format(Locale.US, "%.2f GB", targetRecMb / 1024f) else "${targetRecMb.roundToInt()} MB"
+                        Spacer(modifier = Modifier.width(8.dp))
+                        val formattedToday = if (todayMb >= 1024f) String.format(Locale.US, "%.2f\u00A0GB", todayMb / 1024f) else "${todayMb.roundToInt()}\u00A0MB"
+                        val formattedRec = if (targetRecMb >= 1024f) String.format(Locale.US, "%.2f\u00A0GB", targetRecMb / 1024f) else "${targetRecMb.roundToInt()}\u00A0MB"
                         Text(
                             text = "$formattedToday / $formattedRec",
                             style = MaterialTheme.typography.labelSmall.copy(
@@ -551,7 +573,9 @@ fun TasaConsumoCard(
                                 fontSize = 11.5.sp,
                                 fontFamily = CustomMonoFont
                             ),
-                            color = barColor
+                            color = barColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                     Spacer(modifier = Modifier.height(6.dp))

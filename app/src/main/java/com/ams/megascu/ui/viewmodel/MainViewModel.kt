@@ -562,6 +562,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isCheckingUpdate = MutableStateFlow(false)
     val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
 
+    /**
+     * Realiza una comprobación silenciosa en background con el servidor de GitHub al iniciar la app.
+     * Si detecta una nueva versión disponible, despliega automáticamente el diálogo de actualización.
+     */
+    fun checkUpdatesSilentlyOnLaunch() {
+        viewModelScope.launch {
+            try {
+                val prefs = app.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE)
+                val autoCheck = prefs.getBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, true)
+                if (!autoCheck) return@launch
+
+                val result = GitHubUpdateChecker.checkForUpdates(app)
+                if (result.isSuccess && result.isUpdateAvailable) {
+                    val dismissed = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_DISMISSED_VERSION, "")
+                    if (result.latestVersionName != dismissed) {
+                        _updateCheckResult.value = result
+                    }
+                }
+            } catch (e: Exception) {
+                // Comprobación silenciosa: no se interrumpe la navegación del usuario ante fallos de red
+            }
+        }
+    }
+
     fun checkForAppUpdates(force: Boolean = false) {
         viewModelScope.launch {
             val prefs = app.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE)

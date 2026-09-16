@@ -2800,7 +2800,7 @@ fun SettingsBottomSheet(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Comprobar actualización ahora")
+                            Text("Buscar Actualización")
                         }
                     }
                 }

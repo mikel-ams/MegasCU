@@ -34,6 +34,7 @@ import com.ams.megascu.ui.components.AuthDialog
 import com.ams.megascu.ui.components.ShapeMorphingLoadingIndicator
 import com.ams.megascu.ui.components.AuthScreen
 import com.ams.megascu.ui.components.UpdateAvailableDialog
+import com.ams.megascu.ui.components.AppLaunchUpdateChecker
 import com.ams.megascu.utils.GitHubUpdateChecker
 import com.ams.megascu.utils.UpdateCheckResult
 import androidx.fragment.app.FragmentActivity
@@ -505,9 +506,8 @@ fun MegasMainApp(
     val pullRefreshState = rememberPullToRefreshState()
     var isPullRefreshing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.checkForAppUpdates(force = false)
-    }
+    // Comprobación de actualizaciones en background al abrir la aplicación
+    AppLaunchUpdateChecker(viewModel = viewModel)
 
     LaunchedEffect(isRefreshing) {
         if (!isRefreshing) {
@@ -1038,7 +1038,6 @@ fun MegasMainApp(
                     onDismiss = { showQuickActionSelector = false },
                     onSelectCode = { code, label ->
                         viewModel.setQuickAction(code, label)
-                        showQuickActionSelector = false
                     },
                     onProgress = { activeSheetProgress = it }
                 )

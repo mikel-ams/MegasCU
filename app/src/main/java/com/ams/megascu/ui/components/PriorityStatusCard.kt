@@ -281,7 +281,7 @@ fun PriorityStatusCard(
                     val balanceText = buildAnnotatedString {
                         append(String.format(Locale.US, "%.2f", planStatus?.balanceCup ?: 0.0))
                         withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) {
-                            append(" CUP")
+                            append("\u00A0CUP")
                         }
                     }
 
@@ -289,12 +289,12 @@ fun PriorityStatusCard(
                     val dataFormatted = if (totalDataMb >= 1024L) {
                         buildAnnotatedString {
                             append(String.format(Locale.US, "%.2f", totalDataMb.toFloat() / 1024f))
-                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append(" GB") }
+                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append("\u00A0GB") }
                         }
                     } else {
                         buildAnnotatedString {
                             append(String.format(Locale.US, "%.0f", totalDataMb.toFloat()))
-                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append(" MB") }
+                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append("\u00A0MB") }
                         }
                     }
 
@@ -302,12 +302,12 @@ fun PriorityStatusCard(
                     val bonusFormatted = if (bonusMb >= 1024L) {
                         buildAnnotatedString {
                             append(String.format(Locale.US, "%.2f", bonusMb.toFloat() / 1024f))
-                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append(" GB") }
+                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append("\u00A0GB") }
                         }
                     } else {
                         buildAnnotatedString {
                             append(String.format(Locale.US, "%.0f", bonusMb.toFloat()))
-                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append(" MB") }
+                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append("\u00A0MB") }
                         }
                     }
 
@@ -634,7 +634,7 @@ fun PriorityStatusCard(
                             val minText = planStatus?.minutesStr.orEmpty().ifBlank { "00:00:00" }
                             val callsText = buildAnnotatedString {
                                 append(minText)
-                                withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append(" Min") }
+                                withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append("\u00A0Min") }
                             }
                             
                             Row(
@@ -693,7 +693,7 @@ fun PriorityStatusCard(
                             )
                             val smsText = buildAnnotatedString {
                                 append("${planStatus?.smsCount ?: 0}")
-                                withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append(" SMS") }
+                                withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append("\u00A0SMS") }
                             }
                             
                             Row(
@@ -997,12 +997,14 @@ fun SimplePriorityStatusCard(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = String.format(Locale.US, "%.2f CUP", planStatus?.balanceCup ?: 0.0),
+                            text = String.format(Locale.US, "%.2f\u00A0CUP", planStatus?.balanceCup ?: 0.0),
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp
                             ),
-                            color = contentColor
+                            color = contentColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -1059,7 +1061,9 @@ fun SimplePriorityStatusCard(
                                         modifier = Modifier.padding(
                                             horizontal = if (isNarrowOrLargeFont) 6.dp else 8.dp,
                                             vertical = 2.dp
-                                        )
+                                        ),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
                             }
@@ -1068,9 +1072,9 @@ fun SimplePriorityStatusCard(
                         Spacer(modifier = Modifier.height(4.dp))
                         val totalDataMb = (planStatus?.dataMb ?: 0L) + (planStatus?.dataLteMb ?: 0L)
                         val dataFormatted = if (totalDataMb >= 1024L) {
-                            String.format(Locale.US, "%.2f GB", totalDataMb.toFloat() / 1024f)
+                            String.format(Locale.US, "%.2f\u00A0GB", totalDataMb.toFloat() / 1024f)
                         } else {
-                            String.format(Locale.US, "%.0f MB", totalDataMb.toFloat())
+                            String.format(Locale.US, "%.0f\u00A0MB", totalDataMb.toFloat())
                         }
 
                         Text(
@@ -1079,7 +1083,9 @@ fun SimplePriorityStatusCard(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp
                             ),
-                            color = contentColor
+                            color = contentColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -1125,9 +1131,9 @@ fun SimplePriorityStatusCard(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         val bonusFormatted = if (bonusMb >= 1024L) {
-                            String.format(Locale.US, "%.2f GB", bonusMb.toFloat() / 1024f)
+                            String.format(Locale.US, "%.2f\u00A0GB", bonusMb.toFloat() / 1024f)
                         } else {
-                            String.format(Locale.US, "%.0f MB", bonusMb.toFloat())
+                            String.format(Locale.US, "%.0f\u00A0MB", bonusMb.toFloat())
                         }
                         Text(
                             text = bonusFormatted,
@@ -1135,7 +1141,9 @@ fun SimplePriorityStatusCard(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 22.sp
                             ),
-                            color = contentColor
+                            color = contentColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -1192,7 +1200,9 @@ fun SimplePriorityStatusCard(
                                             fontSize = 11.sp
                                         ),
                                         color = contentColor,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
                             }
@@ -1205,7 +1215,9 @@ fun SimplePriorityStatusCard(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 17.sp
                             ),
-                            color = contentColor
+                            color = contentColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -1256,7 +1268,9 @@ fun SimplePriorityStatusCard(
                                             fontSize = 11.sp
                                         ),
                                         color = contentColor,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
                             }
@@ -1264,12 +1278,14 @@ fun SimplePriorityStatusCard(
                         Spacer(modifier = Modifier.height(4.dp))
                         val smsCount = planStatus?.smsCount ?: 0
                         Text(
-                            text = "$smsCount SMS",
+                            text = "$smsCount\u00A0SMS",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 17.sp
                             ),
-                            color = contentColor
+                            color = contentColor,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
