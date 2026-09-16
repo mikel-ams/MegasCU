@@ -7,6 +7,16 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.8.3-beta_(246)] - 2026-09-16
+
+### Corregido
+- Corrección de la dirección del repositorio oficial de GitHub a `mikel-ams/MegasCU` en `GitHubUpdateChecker` y `SettingsBottomSheet`, resolviendo el problema por el cual el actualizador no detectaba las nuevas versiones y releases publicados.
+- Migración automática en tiempo de ejecución de las preferencias guardadas (`pref_github_repo`) hacia la dirección oficial `mikel-ams/MegasCU`.
+- Búsqueda y evaluación multi-candidato de releases en la API de GitHub (`per_page=10`) para comparar y seleccionar con precisión el release con mayor código de compilación y versión semántica disponible.
+- Soporte robusto de patrones de etiquetado en `extractBuildCode` para formatos `v0.8.2-beta_(245)`, `0.8.2-beta_(245)`, `v0.8.2_245`, `v0.8.2-245` y builds con espacios.
+
+---
+
 ## [0.8.2-beta_(245)] - 2026-09-16
 
 ### Añadido
@@ -49,7 +59,7 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 - Respuesta háptica táctil expresiva (`LocalHapticFeedback`) al activar o desactivar el interruptor de comprobación automática de actualizaciones en Ajustes.
 - Respuesta háptica táctil en el botón "Comprobar actualización ahora" en la tarjeta de actualizaciones.
 - Respuesta háptica nativa integrada en el componente `ExpressiveSwitch` tanto en toque directo como en gesto de arrastre horizontal.
-- Actualización de dirección de repositorio a `migue-ams/MegasCU`.
+- Actualización de dirección de repositorio a `mikel-ams/MegasCU`.
 
 ### Cambiado
 - Reordenamiento de la interfaz en la ventana de Ajustes (`SettingsBottomSheet`): traslado de la sección "Opciones de Desarrollador" hacia el pie de la ventana, ubicándola por debajo de la tarjeta de "Gestión de Datos".

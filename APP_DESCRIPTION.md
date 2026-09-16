@@ -17,7 +17,7 @@ Esta versión **v0.8.0-beta_(243)** constituye la primera compilación pública 
 
 #### 1. Sistema Integrado de Actualizaciones OTA (GitHub Releases)
 * **Comprobación Automática en Segundo Plano:** Tarea periódica programada cada 24 horas mediante `WorkManager` con restricciones inteligentes de red para no consumir recursos innecesarios.
-* **Detección de Pre-releases y Releases:** Motor `GitHubUpdateChecker` conectado a la API de GitHub (`migue-ams/MegasCU`) para encontrar al instante nuevas versiones, leer el changelog y calcular el tamaño del paquete.
+* **Detección de Pre-releases y Releases:** Motor `GitHubUpdateChecker` conectado a la API de GitHub (`mikel-ams/MegasCU`) para encontrar al instante nuevas versiones, leer el changelog y calcular el tamaño del paquete.
 * **Diálogo Modal Expresivo (`UpdateAvailableDialog`):** Ventana emergente con comparador visual de versiones, visor de novedades y descarga directa del archivo `.apk` mediante el navegador o gestor de descargas del sistema.
 * **Ajustes de Actualización Personalizables:** Conmutador para activar/desactivar chequeos automáticos, botón para comprobación manual inmediata y visualización del historial de comprobaciones.
 
@@ -65,5 +65,5 @@ Esta versión **v0.8.0-beta_(243)** constituye la primera compilación pública 
 | **Toolkit de UI** | Jetpack Compose con M3 Expressive |
 | **Base de Datos** | Room Database (SQLite) |
 | **Gráficos** | Vico Compose M3 / Canvas Nativo |
-| **Repositorio Oficial** | [https://github.com/migue-ams/MegasCU](https://github.com/migue-ams/MegasCU) |
+| **Repositorio Oficial** | [https://github.com/mikel-ams/MegasCU](https://github.com/mikel-ams/MegasCU) |
 | **Licencia** | Código Abierto |
