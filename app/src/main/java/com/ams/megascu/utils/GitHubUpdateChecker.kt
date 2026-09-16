@@ -35,7 +35,7 @@ data class UpdateCheckResult(
 
 object GitHubUpdateChecker {
 
-    const val DEFAULT_REPO = "migue-ams/MegasCU"
+    const val DEFAULT_REPO = "mikel-ams/MegasCU"
     private const val PREF_NAME = "megas_prefs"
     const val PREF_GITHUB_REPO = "pref_github_repo"
     const val PREF_AUTO_UPDATE_CHECK = "pref_auto_update_check"
@@ -51,8 +51,16 @@ object GitHubUpdateChecker {
 
     suspend fun checkForUpdates(context: Context, repoOwnerAndName: String? = null): UpdateCheckResult = withContext(Dispatchers.IO) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val targetRepo = repoOwnerAndName ?: prefs.getString(PREF_GITHUB_REPO, DEFAULT_REPO)?.ifBlank { DEFAULT_REPO } ?: DEFAULT_REPO
-        val apiUrl = "https://api.github.com/repos/${targetRepo.trim()}/releases?per_page=5"
+        val savedRepo = prefs.getString(PREF_GITHUB_REPO, null)?.trim()
+        val targetRepo = if (repoOwnerAndName != null) {
+            repoOwnerAndName.trim()
+        } else if (savedRepo.isNullOrBlank() || savedRepo.equals("migue-ams/MegasCU", ignoreCase = true) || savedRepo.contains("migue-ams", ignoreCase = true)) {
+            prefs.edit().putString(PREF_GITHUB_REPO, DEFAULT_REPO).apply()
+            DEFAULT_REPO
+        } else {
+            savedRepo
+        }
+        val apiUrl = "https://api.github.com/repos/${targetRepo.trim()}/releases?per_page=10"
 
         try {
             val url = URL(apiUrl)
@@ -71,16 +79,18 @@ object GitHubUpdateChecker {
                 connection.disconnect()
 
                 val trimmedResponse = response.trim()
-                val json: JSONObject? = if (trimmedResponse.startsWith("[")) {
+                val releaseObjects = mutableListOf<JSONObject>()
+                if (trimmedResponse.startsWith("[")) {
                     val array = JSONArray(trimmedResponse)
-                    if (array.length() > 0) array.getJSONObject(0) else null
+                    for (i in 0 until array.length()) {
+                        val obj = array.optJSONObject(i)
+                        if (obj != null) releaseObjects.add(obj)
+                    }
                 } else if (trimmedResponse.startsWith("{")) {
-                    JSONObject(trimmedResponse)
-                } else {
-                    null
+                    releaseObjects.add(JSONObject(trimmedResponse))
                 }
 
-                if (json == null) {
+                if (releaseObjects.isEmpty()) {
                     return@withContext UpdateCheckResult(
                         isSuccess = true,
                         isUpdateAvailable = false,
@@ -89,55 +99,88 @@ object GitHubUpdateChecker {
                     )
                 }
 
-                val tagName = json.optString("tag_name", "").trim()
-                val releaseName = json.optString("name", "").trim()
-                val body = json.optString("body", "").trim()
-                val htmlUrl = json.optString("html_url", "").trim()
-                val publishedAtRaw = json.optString("published_at", "")
-                val isPrerelease = json.optBoolean("prerelease", false)
-
-                var apkDownloadUrl: String? = null
-                var apkSizeBytes: Long = 0L
-
-                val assetsArray = json.optJSONArray("assets")
-                if (assetsArray != null) {
-                    for (i in 0 until assetsArray.length()) {
-                        val asset = assetsArray.getJSONObject(i)
-                        val name = asset.optString("name", "").lowercase(Locale.ROOT)
-                        if (name.endsWith(".apk")) {
-                            apkDownloadUrl = asset.optString("browser_download_url")
-                            apkSizeBytes = asset.optLong("size", 0L)
-                            break
-                        }
-                    }
-                }
-
-                val remoteVersionCode = extractBuildCode(tagName, releaseName)
-                val remoteVersionName = if (releaseName.isNotBlank()) releaseName else tagName
-
-                val isNewer = isVersionNewer(
-                    remoteTag = tagName,
-                    remoteReleaseName = releaseName,
-                    remoteCode = remoteVersionCode,
-                    currentCode = BuildConfig.VERSION_CODE,
-                    currentName = BuildConfig.VERSION_NAME
+                data class ReleaseCandidate(
+                    val tagName: String,
+                    val releaseName: String,
+                    val body: String,
+                    val htmlUrl: String,
+                    val publishedAtRaw: String,
+                    val isPrerelease: Boolean,
+                    val apkDownloadUrl: String?,
+                    val apkSizeBytes: Long,
+                    val remoteVersionCode: Int,
+                    val remoteVersionName: String,
+                    val isNewer: Boolean
                 )
 
-                val formattedDate = formatPublishedDate(publishedAtRaw)
-                val apkSizeMb = if (apkSizeBytes > 0) apkSizeBytes / (1024f * 1024f) else 0f
+                val candidates = releaseObjects.map { json ->
+                    val tagName = json.optString("tag_name", "").trim()
+                    val releaseName = json.optString("name", "").trim()
+                    val body = json.optString("body", "").trim()
+                    val htmlUrl = json.optString("html_url", "").trim()
+                    val publishedAtRaw = json.optString("published_at", "")
+                    val isPrerelease = json.optBoolean("prerelease", false)
+
+                    var apkDownloadUrl: String? = null
+                    var apkSizeBytes: Long = 0L
+
+                    val assetsArray = json.optJSONArray("assets")
+                    if (assetsArray != null) {
+                        for (i in 0 until assetsArray.length()) {
+                            val asset = assetsArray.getJSONObject(i)
+                            val name = asset.optString("name", "").lowercase(Locale.ROOT)
+                            if (name.endsWith(".apk")) {
+                                apkDownloadUrl = asset.optString("browser_download_url")
+                                apkSizeBytes = asset.optLong("size", 0L)
+                                break
+                            }
+                        }
+                    }
+
+                    val remoteVersionCode = extractBuildCode(tagName, releaseName)
+                    val remoteVersionName = if (releaseName.isNotBlank()) releaseName else tagName
+
+                    val isNewer = isVersionNewer(
+                        remoteTag = tagName,
+                        remoteReleaseName = releaseName,
+                        remoteCode = remoteVersionCode,
+                        currentCode = BuildConfig.VERSION_CODE,
+                        currentName = BuildConfig.VERSION_NAME
+                    )
+
+                    ReleaseCandidate(
+                        tagName = tagName,
+                        releaseName = releaseName,
+                        body = body,
+                        htmlUrl = htmlUrl,
+                        publishedAtRaw = publishedAtRaw,
+                        isPrerelease = isPrerelease,
+                        apkDownloadUrl = apkDownloadUrl,
+                        apkSizeBytes = apkSizeBytes,
+                        remoteVersionCode = remoteVersionCode,
+                        remoteVersionName = remoteVersionName,
+                        isNewer = isNewer
+                    )
+                }
+
+                // Seleccionar el candidato más relevante: si hay releases más nuevas, escoger la de mayor versión; de lo contrario la primera
+                val chosen = candidates.firstOrNull { it.isNewer } ?: candidates.first()
+
+                val formattedDate = formatPublishedDate(chosen.publishedAtRaw)
+                val apkSizeMb = if (chosen.apkSizeBytes > 0) chosen.apkSizeBytes / (1024f * 1024f) else 0f
 
                 // Actualizar timestamp y preferencias
                 val now = System.currentTimeMillis()
                 prefs.edit().apply {
                     putLong(PREF_LAST_UPDATE_CHECK_TIME, now)
-                    if (isNewer) {
+                    if (chosen.isNewer) {
                         putBoolean(PREF_UPDATE_AVAILABLE, true)
-                        putString(PREF_UPDATE_VERSION_NAME, remoteVersionName)
-                        putInt(PREF_UPDATE_VERSION_CODE, remoteVersionCode)
-                        putString(PREF_UPDATE_TITLE, if (releaseName.isNotBlank()) releaseName else tagName)
-                        putString(PREF_UPDATE_CHANGELOG, body)
-                        putString(PREF_UPDATE_APK_URL, apkDownloadUrl ?: "")
-                        putString(PREF_UPDATE_RELEASE_URL, htmlUrl)
+                        putString(PREF_UPDATE_VERSION_NAME, chosen.remoteVersionName)
+                        putInt(PREF_UPDATE_VERSION_CODE, chosen.remoteVersionCode)
+                        putString(PREF_UPDATE_TITLE, if (chosen.releaseName.isNotBlank()) chosen.releaseName else chosen.tagName)
+                        putString(PREF_UPDATE_CHANGELOG, chosen.body)
+                        putString(PREF_UPDATE_APK_URL, chosen.apkDownloadUrl ?: "")
+                        putString(PREF_UPDATE_RELEASE_URL, chosen.htmlUrl)
                     } else {
                         putBoolean(PREF_UPDATE_AVAILABLE, false)
                     }
@@ -146,14 +189,14 @@ object GitHubUpdateChecker {
 
                 UpdateCheckResult(
                     isSuccess = true,
-                    isUpdateAvailable = isNewer,
-                    isPrerelease = isPrerelease,
-                    latestVersionName = remoteVersionName,
-                    latestVersionCode = remoteVersionCode,
-                    releaseTitle = if (releaseName.isNotBlank()) releaseName else tagName,
-                    changelog = body,
-                    apkDownloadUrl = apkDownloadUrl,
-                    releaseHtmlUrl = htmlUrl,
+                    isUpdateAvailable = chosen.isNewer,
+                    isPrerelease = chosen.isPrerelease,
+                    latestVersionName = chosen.remoteVersionName,
+                    latestVersionCode = chosen.remoteVersionCode,
+                    releaseTitle = if (chosen.releaseName.isNotBlank()) chosen.releaseName else chosen.tagName,
+                    changelog = chosen.body,
+                    apkDownloadUrl = chosen.apkDownloadUrl,
+                    releaseHtmlUrl = chosen.htmlUrl,
                     publishedAt = formattedDate,
                     apkSizeMb = apkSizeMb
                 )
@@ -178,14 +221,21 @@ object GitHubUpdateChecker {
     }
 
     /**
-     * Extrae el código de build si está presente (ej. 242 de "0.7.8-beta_(242)" o "-242")
+     * Extrae el código de build si está presente (ej. 245 de "v0.8.2-beta_(245)", "0.7.8-beta_(242)" o "-242")
      */
     fun extractBuildCode(tagName: String, releaseName: String): Int {
         val combined = "$tagName $releaseName"
-        // Busca patrones como _(242), (242), _242, -242, Build 242, build 242
-        val buildMatcher = Pattern.compile("(?:_|\\(|-|build\\s+|b)(\\d{2,5})", Pattern.CASE_INSENSITIVE).matcher(combined)
-        if (buildMatcher.find()) {
-            buildMatcher.group(1)?.toIntOrNull()?.let { return it }
+        val patterns = listOf(
+            Pattern.compile("\\((\\d{2,6})\\)"),
+            Pattern.compile("(?:_|\\-)(?:beta|alpha|rc)?_?\\(?(\\d{2,6})\\)?", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("(?:build|ver|b)\\s*(\\d{2,6})", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("(?:_|\\-|\\s)(\\d{2,6})\\b")
+        )
+        for (p in patterns) {
+            val m = p.matcher(combined)
+            if (m.find()) {
+                m.group(1)?.toIntOrNull()?.let { return it }
+            }
         }
         return 0
     }

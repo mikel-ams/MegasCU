@@ -44,9 +44,25 @@ data class ChangelogVersion(
 object ChangelogRepository {
     val changelogList = listOf(
         ChangelogVersion(
-            version = "0.8.2-beta_(245)",
+            version = "0.8.3-beta_(246)",
             date = "2026-09-16",
             isLatest = true,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Corrección de la dirección del repositorio oficial de GitHub a mikel-ams/MegasCU en el actualizador automático y Ajustes.",
+                        "Migración automática de preferencias guardadas hacia el repositorio oficial mikel-ams/MegasCU.",
+                        "Búsqueda y evaluación multi-candidato de releases en la API de GitHub (per_page=10) para seleccionar el release más reciente disponible.",
+                        "Soporte robusto de formatos de etiquetado en GitHub (v0.8.2-beta_(245), 0.8.2-beta_(245), v0.8.2_245, etc.)."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.8.2-beta_(245)",
+            date = "2026-09-16",
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.ADDED,
@@ -113,7 +129,7 @@ object ChangelogRepository {
                         "Respuesta háptica táctil expresiva al conmutar el interruptor de actualizaciones automáticas en Ajustes.",
                         "Respuesta háptica táctil en el botón de comprobación manual de actualizaciones en GitHub.",
                         "Respuesta háptica integrada nativamente en el componente ExpressiveSwitch tanto por toque como por arrastre.",
-                        "Actualización de la dirección del repositorio a migue-ams/MegasCU."
+                        "Actualización de la dirección del repositorio a mikel-ams/MegasCU."
                     )
                 ),
                 ChangelogSection(
