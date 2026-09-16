@@ -44,9 +44,57 @@ data class ChangelogVersion(
 object ChangelogRepository {
     val changelogList = listOf(
         ChangelogVersion(
-            version = "0.8.3-beta_(246)",
+            version = "0.8.5-beta_(248)",
             date = "2026-09-16",
             isLatest = true,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Componente de comprobación silenciosa en background (AppLaunchUpdateChecker): verifica actualizaciones en GitHub cada vez que se abre la app.",
+                        "Animación de cierre suave y retroalimentación háptica en la selección de Acción Rápida (QuickActionSelectorBottomSheet).",
+                        "Sombra de elevación sutil y refinada con bordes redondeados orgánicos en la barra de navegación flotante (MegasBottomBar)."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Cambio de etiqueta en el botón de actualización de Ajustes por 'Buscar Actualización'."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Corrección de saltos de línea indeseados en números e indicadores métricos (GB, MB, SMS, Min, CUP) en la pantalla de inicio con posiciones fijas, espacios indivisibles y textos subordinados multilínea."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.8.4-beta_(247)",
+            date = "2026-09-16",
+            isLatest = false,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Componente de comprobación silenciosa en background (AppLaunchUpdateChecker): verifica actualizaciones en GitHub cada vez que se abre la app.",
+                        "Animación de cierre suave y retroalimentación háptica en la selección de Acción Rápida (QuickActionSelectorBottomSheet).",
+                        "Sombra de elevación sutil y refinada con bordes redondeados orgánicos en la barra de navegación flotante (MegasBottomBar)."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Cambio de etiqueta en el botón de actualización de Ajustes por 'Buscar Actualización'."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.8.3-beta_(246)",
+            date = "2026-09-16",
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.FIXED,

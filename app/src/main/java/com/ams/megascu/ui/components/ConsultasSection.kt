@@ -55,7 +55,7 @@ fun ConsultasSection(
                 icon = Icons.Rounded.MonetizationOn,
                 tag = "consulta_saldo",
                 getValueText = { status ->
-                    status?.let { "${String.format(Locale.US, "%.2f", it.balanceCup)} CUP" }
+                    status?.let { "${String.format(Locale.US, "%.2f", it.balanceCup)}\u00A0CUP" }
                 }
             ),
             ConsultaItem(
@@ -94,7 +94,7 @@ fun ConsultasSection(
                     status?.let {
                         val totalMb = it.dataMb + it.dataLteMb
                         if (totalMb > 0) {
-                            if (totalMb >= 1024) "${String.format(Locale.US, "%.2f", totalMb / 1024.0)} GB" else "$totalMb MB"
+                            if (totalMb >= 1024) "${String.format(Locale.US, "%.2f", totalMb / 1024.0)}\u00A0GB" else "$totalMb\u00A0MB"
                         } else null
                     }
                 }
@@ -107,7 +107,7 @@ fun ConsultasSection(
                 getValueText = { status ->
                     status?.let {
                         if (it.bonusDataMb > 0) {
-                            if (it.bonusDataMb >= 1024) "${String.format(Locale.US, "%.2f", it.bonusDataMb / 1024.0)} GB" else "${it.bonusDataMb} MB"
+                            if (it.bonusDataMb >= 1024) "${String.format(Locale.US, "%.2f", it.bonusDataMb / 1024.0)}\u00A0GB" else "${it.bonusDataMb}\u00A0MB"
                         } else null
                     }
                 }
@@ -118,7 +118,7 @@ fun ConsultasSection(
                 icon = Icons.Rounded.PhoneInTalk,
                 tag = "consulta_llamadas",
                 getValueText = { status ->
-                    status?.let { if (it.minutesStr.isNotEmpty()) "${it.minutesStr} Min" else null }
+                    status?.let { if (it.minutesStr.isNotEmpty()) "${it.minutesStr}\u00A0Min" else null }
                 }
             ),
             ConsultaItem(
@@ -127,7 +127,7 @@ fun ConsultasSection(
                 icon = Icons.AutoMirrored.Rounded.Message,
                 tag = "consulta_mensajeria",
                 getValueText = { status ->
-                    status?.let { if (it.smsCount > 0) "${it.smsCount} SMS" else null }
+                    status?.let { if (it.smsCount > 0) "${it.smsCount}\u00A0SMS" else null }
                 }
             ),
             ConsultaItem(

@@ -17,14 +17,22 @@ import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 data class QuickActionOption(
     val title: String,
@@ -90,6 +98,11 @@ fun QuickActionSelectorBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)
 
+    val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+    var isDismissing by remember { mutableStateOf(false) }
+    var selectedOptionCode by remember { mutableStateOf(currentCode) }
+
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
     ModalBottomSheet(
@@ -153,7 +166,7 @@ fun QuickActionSelectorBottomSheet(
                     }
 
                     items(items) { option ->
-                        val isSelected = option.code == currentCode
+                        val isSelected = option.code == selectedOptionCode
                         val itemInteraction = remember { MutableInteractionSource() }
                         val unselectedBgColor = if (isDark) {
                             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
@@ -169,8 +182,21 @@ fun QuickActionSelectorBottomSheet(
                             color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else unselectedBgColor,
                             border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
                             onClick = {
-                                onSelectCode(option.code, option.title)
-                                onDismiss()
+                                if (!isDismissing) {
+                                    isDismissing = true
+                                    selectedOptionCode = option.code
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    scope.launch {
+                                        try {
+                                            sheetState.hide()
+                                        } catch (_: Exception) {
+                                            // Ignore
+                                        } finally {
+                                            onSelectCode(option.code, option.title)
+                                            onDismiss()
+                                        }
+                                    }
+                                }
                             },
                             interactionSource = itemInteraction,
                             modifier = Modifier

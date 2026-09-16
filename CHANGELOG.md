@@ -7,6 +7,33 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.8.5-beta_(248)] - 2026-09-16
+
+### Añadido
+- Componente de comprobación silenciosa en segundo plano (`AppLaunchUpdateChecker`): realiza una verificación rápida con el servidor de GitHub cada vez que se abre la aplicación y despliega automáticamente la ventana de actualización configurada si existe una versión más reciente.
+- Sombra de elevación sutil y refinada con bordes redondeados orgánicos en la barra de navegación flotante inferior (`MegasBottomBar`), mejorando la jerarquía visual y profundidad bajo Material 3 Expressive.
+- Transición animada suave con retardo coordinado al seleccionar una acción en `QuickActionSelectorBottomSheet`, asegurando un cierre fluido del modal antes del retorno a la pantalla de inicio.
+
+### Cambiado
+- Actualización de la etiqueta del botón de actualización en la sección de Ajustes (`SettingsBottomSheet`) a `"Buscar Actualización"`.
+
+### Corregido
+- Corrección de saltos de línea indeseados en los números e indicadores métricos (GB, MB, SMS, Minutos, CUP) en la pantalla de inicio (`PriorityStatusCard`, `SimplePriorityStatusCard`, `UsageHistoryChart` y `ConsultasSection`): ahora mantienen posiciones fijas, espacios no separables (`\u00A0`), alineación centrada y textos subordinados multilínea para pantallas pequeñas o con baja densidad.
+
+---
+
+## [0.8.4-beta_(247)] - 2026-09-16
+
+### Añadido
+- Componente de comprobación silenciosa en background (`AppLaunchUpdateChecker`): realiza una verificación rápida con el servidor de GitHub cada vez que se abre la aplicación y despliega automáticamente la ventana de actualización configurada si existe una versión más reciente.
+- Animación de cierre suave y retroalimentación háptica en la ventana de configuración de acción rápida (`QuickActionSelectorBottomSheet`), permitiendo una transición fluida hacia la pantalla principal al seleccionar una opción sin saltos bruscos.
+- Sombra de elevación sutil y refinada con bordes redondeados orgánicos en la barra de navegación flotante inferior (`MegasBottomBar`), mejorando la jerarquía visual y profundidad bajo Material 3 Expressive.
+
+### Cambiado
+- Actualización de la etiqueta del botón de actualización en la sección de Ajustes (`SettingsBottomSheet`) a `"Buscar Actualización"`.
+
+---
+
 ## [0.8.3-beta_(246)] - 2026-09-16
 
 ### Corregido
