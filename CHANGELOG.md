@@ -7,12 +7,39 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
-## [0.7.8-beta_(243)] - 2026-09-15
+## [0.8.1-beta_(244)] - 2026-09-16
 
 ### Añadido
+- Gestor de Descarga Integrado (`ApkDownloadManager`): descarga en segundo plano con soporte para redirecciones HTTP seguras y cálculo dinámico de progreso.
+- Barra de progreso Material M3 Expressive Wavy (`LinearWavyProgressIndicator`): visualización fluida del porcentaje y volumen de datos descargados (`MB / MB`).
+- Instalador automático de actualización: al completar la descarga, se invoca automáticamente el instalador de paquetes de Android mediante `FileProvider` y permisos `REQUEST_INSTALL_PACKAGES`.
+- Diálogo de actualización mejorado (`UpdateAvailableDialog`): cálculo y muestra del tamaño de la aplicación, visualización de notas de versión y registro de cambios directamente desde GitHub.
+
+### Cambiado
+- Reubicación de "Opciones de Desarrollador" en los ajustes de configuración (`SettingsBottomSheet`), desplazándola hacia el pie de la ventana justo debajo de la tarjeta de "Gestión de Datos".
+- Actualización de la tarjeta de actualizaciones en Ajustes (`SettingsBottomSheet`) bajo el título "Gestor de Descarga y Actualizaciones".
+
+### Corregido
+- Activación directa y táctil de la ventana de ingreso y configuración de PIN al pulsar sobre la tarjeta o píldora de "Seguridad y Control" en el paso 7 de Gráficas y Seguridad de la pantalla de Bienvenida (`OnboardingScreen`).
+
+---
+
+## [0.8.0-beta_(243)] - 2026-09-15
+
+### Añadido
+- Primera versión pública en fase Pre-release (Beta) para distribución mediante GitHub Releases.
+- Soporte nativo y detección automática de Pre-releases y Releases en `GitHubUpdateChecker` a través de la API REST de GitHub.
+- Etiqueta distintiva `PRE-RELEASE BETA DISPONIBLE` en el diálogo de actualización modal `UpdateAvailableDialog`.
 - Respuesta háptica táctil expresiva (`LocalHapticFeedback`) al activar o desactivar el interruptor de comprobación automática de actualizaciones en Ajustes.
 - Respuesta háptica táctil en el botón "Comprobar actualización ahora" en la tarjeta de actualizaciones.
 - Respuesta háptica nativa integrada en el componente `ExpressiveSwitch` tanto en toque directo como en gesto de arrastre horizontal.
+- Actualización de dirección de repositorio a `migue-ams/MegasCU`.
+
+### Cambiado
+- Reordenamiento de la interfaz en la ventana de Ajustes (`SettingsBottomSheet`): traslado de la sección "Opciones de Desarrollador" hacia el pie de la ventana, ubicándola por debajo de la tarjeta de "Gestión de Datos".
+
+### Corregido
+- Corrección en la Pantalla de Bienvenida (Paso 7: Gráficas y Seguridad): al pulsar sobre el elemento de "Seguridad y Control Parental" se activa correctamente la verificación e ingreso de PIN.
 
 ---
 

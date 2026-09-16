@@ -302,6 +302,9 @@ fun SettingsBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)
 
+    var isDeveloperMode by remember { mutableStateOf(prefs.getBoolean("developer_mode_enabled", false)) }
+    var showDeveloperSheet by remember { mutableStateOf(false) }
+
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     val settingsCardColor = if (isDark) {
         MaterialTheme.colorScheme.surfaceVariant
@@ -1693,65 +1696,9 @@ fun SettingsBottomSheet(
 
             
 
-            var isDeveloperMode by remember { mutableStateOf(prefs.getBoolean("developer_mode_enabled", false)) }
-            var showDeveloperSheet by remember { mutableStateOf(false) }
 
-            // 🧪 Opciones de Prueba (Modo Desarrollador) - Tarjeta disparadora del menú deslizante
-            if (isDeveloperMode) {
-                val devInteraction = remember { MutableInteractionSource() }
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .expressivePressEffect(interactionSource = devInteraction)
-                        .clickable(
-                            interactionSource = devInteraction,
-                            indication = null
-                        ) { showDeveloperSheet = true },
-                    shape = rememberExpressiveMorphShape(
-                        defaultRadius = 24.dp,
-                        pressedRadius = 12.dp,
-                        interactionSource = devInteraction
-                    ),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            modifier = Modifier.weight(1f),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.BugReport,
-                                contentDescription = "Menú Secreto",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = "Opciones de Desarrollador",
-                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = "Herramientas avanzadas de prueba, depuración y personalización del sistema.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                )
-                            }
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = "Abrir",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
+
+
 
                 if (showDeveloperSheet) {
                     val scope = rememberCoroutineScope()
@@ -2710,10 +2657,9 @@ fun SettingsBottomSheet(
                         }
                     }
                 }
-            }
 
             Text(
-                text = "Actualizaciones de la App",
+                text = "Gestor de Descarga y Actualizaciones",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp)
@@ -2751,12 +2697,12 @@ fun SettingsBottomSheet(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Buscar en GitHub",
+                                    text = "Actualizaciones desde GitHub",
                                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Versión actual: v${BuildConfig.VERSION_NAME}",
+                                    text = "Versión instalada: v${BuildConfig.VERSION_NAME}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -2907,43 +2853,103 @@ fun SettingsBottomSheet(
                 }
             }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+            // 🧪 Opciones de Prueba (Modo Desarrollador) - Tarjeta al pie de la ventana, debajo de Gestión de Datos
+            if (isDeveloperMode) {
+                Spacer(modifier = Modifier.height(16.dp))
+                val devInteraction = remember { MutableInteractionSource() }
+                Card(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        showDeveloperSheet = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .expressivePressEffect(interactionSource = devInteraction),
+                    interactionSource = devInteraction,
+                    shape = rememberExpressiveMorphShape(
+                        defaultRadius = 24.dp,
+                        pressedRadius = 12.dp,
+                        interactionSource = devInteraction
+                    ),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.BugReport,
+                                contentDescription = "Menú Secreto",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Opciones de Desarrollador",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    text = "Herramientas avanzadas de prueba, depuración y personalización del sistema.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
+                            }
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = "Abrir",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
-
-                // Top fade overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(16.dp)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surface.copy(alpha = fadeAlpha),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                        .align(Alignment.TopCenter)
-                )
-
-                // Bottom fade overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(20.dp)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    MaterialTheme.colorScheme.surface
-                                )
-                            )
-                        )
-                        .align(Alignment.BottomCenter)
-                )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
+
+        // Top fade overlay
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(16.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface.copy(alpha = fadeAlpha),
+                            Color.Transparent
+                        )
+                    )
+                )
+                .align(Alignment.TopCenter)
+        )
+
+        // Bottom fade overlay
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(20.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
+                .align(Alignment.BottomCenter)
+        )
     }
+}
+}
 }
 
 @Composable

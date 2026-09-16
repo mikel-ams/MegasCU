@@ -1,6 +1,8 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 import java.io.File
+import java.io.FileInputStream
 import java.security.MessageDigest
+import java.util.Properties
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
@@ -21,33 +23,75 @@ android {
     applicationId = "com.ams.megascu"
     minSdk = 30
     targetSdk = 36
-    versionCode = 243
-    versionName = "0.7.8-beta_(243)"
+    versionCode = 244
+    versionName = "0.8.1-beta_(244)"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
   signingConfigs {
-    val candidateKeystores = listOfNotNull(
-      System.getenv("KEYSTORE_PATH")?.let { file(it) },
-      file("${projectDir}/release-key.jks"),
-      file("${rootDir}/release-key.jks"),
-      file("${rootDir}/keystore/release-key.jks"),
-      file("${rootDir}/app/release-key.jks")
-    )
-    val releaseKeystoreFile = candidateKeystores.firstOrNull { it.exists() && it.isFile }
-    val releaseStorePassword = System.getenv("STORE_PASSWORD") ?: System.getenv("RELEASE_STORE_PASSWORD") ?: "Cojalop*9"
-    val releaseKeyAlias = System.getenv("KEY_ALIAS") ?: System.getenv("RELEASE_KEY_ALIAS") ?: "megascu_release"
-    val releaseKeyPassword = System.getenv("KEY_PASSWORD") ?: System.getenv("RELEASE_KEY_PASSWORD") ?: "Cojalop*9"
+    val keystorePropsFile = listOf(
+      file("${rootDir}/keystore.properties"),
+      file("${projectDir}/keystore.properties"),
+      file("${rootDir}/signing.properties"),
+      file("${rootDir}/secrets.properties")
+    ).firstOrNull { it.exists() && it.isFile }
+    val keystoreProps = Properties()
+    if (keystorePropsFile != null) {
+      FileInputStream(keystorePropsFile).use { keystoreProps.load(it) }
+    }
 
-    if (releaseKeystoreFile != null) {
+    val envFile = listOf(
+      file("${rootDir}/.env"),
+      file("${projectDir}/.env")
+    ).firstOrNull { it.exists() && it.isFile }
+    val envProps = Properties()
+    if (envFile != null) {
+      FileInputStream(envFile).use { envProps.load(it) }
+    }
+
+    fun getSecureProperty(key: String, vararg fallbackKeys: String): String? {
+      return System.getenv(key)
+        ?: (project.findProperty(key) as? String)
+        ?: keystoreProps.getProperty(key)
+        ?: envProps.getProperty(key)
+        ?: fallbackKeys.firstNotNullOfOrNull { fallback ->
+          System.getenv(fallback)
+            ?: (project.findProperty(fallback) as? String)
+            ?: keystoreProps.getProperty(fallback)
+            ?: envProps.getProperty(fallback)
+        }
+    }
+
+    val candidatePath = getSecureProperty("RELEASE_KEYSTORE_PATH", "KEYSTORE_PATH")
+    val releaseStoreFile = listOfNotNull(
+      candidatePath?.let { file("${rootDir}/$it") },
+      candidatePath?.let { file("${projectDir}/$it") },
+      candidatePath?.let { file(it) },
+      file("${rootDir}/release-key.jks"),
+      file("${projectDir}/release-key.jks"),
+      file("${rootDir}/app/release-key.jks"),
+      file("${rootDir}/keystore/release-key.jks")
+    ).firstOrNull { it.exists() && it.isFile }
+
+    val releaseStorePassword = getSecureProperty("RELEASE_STORE_PASSWORD", "STORE_PASSWORD")
+    val releaseKeyAlias = getSecureProperty("RELEASE_KEY_ALIAS", "KEY_ALIAS")
+    val releaseKeyPassword = getSecureProperty("RELEASE_KEY_PASSWORD", "KEY_PASSWORD")
+
+    val hasReleaseSigning = releaseStoreFile != null && releaseStoreFile.exists() &&
+      !releaseStorePassword.isNullOrBlank() &&
+      !releaseKeyAlias.isNullOrBlank() &&
+      !releaseKeyPassword.isNullOrBlank()
+
+    if (hasReleaseSigning) {
       create("release") {
-        storeFile = releaseKeystoreFile
+        storeFile = releaseStoreFile
         storePassword = releaseStorePassword
         keyAlias = releaseKeyAlias
         keyPassword = releaseKeyPassword
       }
     }
+
     create("debugConfig") {
       storeFile = file("${rootDir}/debug.keystore")
       storePassword = "android"
