@@ -1713,6 +1713,9 @@ fun SettingsBottomSheet(
                     val scope = rememberCoroutineScope()
                     var showMaterialIconsSheet by remember { mutableStateOf(false) }
                     var showWcagInspectorSheet by remember { mutableStateOf(false) }
+                    var showSimulatedUpdateDialog by remember { mutableStateOf(false) }
+                    var showSimulatedWhatsNewDialog by remember { mutableStateOf(false) }
+                    var showChangelogFromDev by remember { mutableStateOf(false) }
                     var isWcagPaletteActive by remember { mutableStateOf(prefs.getBoolean("pref_use_wcag_palette", false)) }
                     val devView = androidx.compose.ui.platform.LocalView.current
                     SideEffect {
@@ -2619,6 +2622,38 @@ fun SettingsBottomSheet(
                                         Text("Catálogo de Iconos Material M3")
                                     }
 
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    ExpressiveButton(
+                                        onClick = {
+                                            showSimulatedUpdateDialog = true
+                                        },
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                        shape = RoundedCornerShape(14.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                    ) {
+                                        Icon(Icons.Rounded.CloudDownload, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text("Simular Descarga de Nueva Versión")
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    ExpressiveOutlinedButton(
+                                        onClick = {
+                                            showSimulatedWhatsNewDialog = true
+                                        },
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                        shape = RoundedCornerShape(14.dp)
+                                    ) {
+                                        Icon(Icons.Rounded.Celebration, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text("Simular Alerta de Novedades (What's New)")
+                                    }
+
                                     if (showWcagInspectorSheet) {
                                         WcagContrastInspectorBottomSheet(
                                             onDismissRequest = { showWcagInspectorSheet = false }
@@ -2631,6 +2666,42 @@ fun SettingsBottomSheet(
                                         )
                                     }
                                 }
+                            }
+
+                            if (showSimulatedUpdateDialog) {
+                                UpdateAvailableDialog(
+                                    updateResult = UpdateCheckResult(
+                                        isSuccess = true,
+                                        isUpdateAvailable = true,
+                                        latestVersionName = "0.9.0-beta_(250)",
+                                        latestVersionCode = 250,
+                                        releaseTitle = "MegasCU v0.9.0-beta (Build 250)",
+                                        changelog = "• Nuevo simulador interactivo de descargas y actualizaciones en opciones de desarrollo.\n• Optimización integral de márgenes y scroll en ventana de descarga de GitHub.\n• Sistema de alerta 'Novedades de la versión' al iniciar la app tras una actualización.",
+                                        apkDownloadUrl = "https://github.com/mikel-ams/MegasCU/releases/download/v0.9.0-beta/MegasCU_0.9.0-beta_(250).apk",
+                                        releaseHtmlUrl = "https://github.com/mikel-ams/MegasCU/releases",
+                                        apkSizeMb = 14.5f,
+                                        publishedAt = "Hoy",
+                                        isPrerelease = true
+                                    ),
+                                    isSimulation = true,
+                                    onDismiss = { showSimulatedUpdateDialog = false }
+                                )
+                            }
+
+                            if (showSimulatedWhatsNewDialog) {
+                                WhatsNewDialog(
+                                    onDismiss = { showSimulatedWhatsNewDialog = false },
+                                    onViewFullChangelog = {
+                                        showSimulatedWhatsNewDialog = false
+                                        showChangelogFromDev = true
+                                    }
+                                )
+                            }
+
+                            if (showChangelogFromDev) {
+                                ChangelogBottomSheet(
+                                    onDismiss = { showChangelogFromDev = false }
+                                )
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))

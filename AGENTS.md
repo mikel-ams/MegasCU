@@ -16,7 +16,26 @@
    - Estos archivos NUNCA deben modificarse con herramientas de texto, editores de código o convertidores que inserten secuencias de reemplazo (`EF BF BD`) o alteren sus bytes. Deben manejarse estrictamente como binarios puros (byte a byte).
    - En cada compilación y verificación de la app, o ante cualquier reporte de fallo, se desempaquetan byte a byte y se ejecuta la verificación de hashes MD5 y SHA-256 de los archivos en `src/main/res/` comparándolos con los contenidos en los ZIP originales para certificar su integridad absoluta.
 5. **Gestión de Registro de Cambios (Changelog):**
-   - Cada vez que se genere o publique una nueva versión (actualizando `versionName` y `versionCode`), se DEBE actualizar obligatoriamente el archivo `CHANGELOG.md` documentando los cambios realizados bajo el estándar *Keep a Changelog*.
+   - Cada vez que se genere o publique una nueva versión (actualizando `versionName` y `versionCode`), se DEBE actualizar obligatoriamente el archivo `CHANGELOG.md` documentando los cambios realizados bajo el estándar *Keep a Changelog 1.1.0* y *Semantic Versioning 2.0.0*.
+   - El formato exacto para los registros de versión en el changelog y GitHub Releases es:
+     ```markdown
+     ## [X.Y.Z-beta_(W)] - YYYY-MM-DD
+
+     ### Añadido
+     - [Descripción clara de nuevas funcionalidades y componentes]
+
+     ### Cambiado
+     - [Descripción de modificaciones, optimizaciones y refactorizaciones]
+
+     ### Corregido
+     - [Descripción de correcciones de errores y bugs]
+     ```
    - También se debe reflejar este registro de cambios dentro de la app (por ejemplo, en `ChangelogBottomSheet.kt`).
    - Adicionalmente, al presentar la respuesta final al usuario, debes proporcionar SIEMPRE un bloque de código markdown (o texto plano) fácil de copiar que contenga las notas de la versión actual, diseñado específicamente para ser copiado y pegado en el "Release" de GitHub.
+6. **Exclusión de Ajustes de Desarrollo en CHANGELOG:**
+   - Cualquier cambio, añadido, ajuste o eliminación correspondiente a las herramientas internas u Opciones de Desarrollador NO se debe reflejar nunca en los registros de cambios (`CHANGELOG.md`), notas de versión de la app ni publicaciones de GitHub Releases.
+7. **Protección e Inmunidad Estricta de Keystore (`keystore/release-key.jks` y `app/keystore.properties`):**
+   - La carpeta `keystore/` y el archivo de almacén de llaves `keystore/release-key.jks`, así como el archivo de configuración `app/keystore.properties` (o en la raíz), son estrictamente requeridos para la firma oficial de producción de la app.
+   - Queda ESTRICTAMENTE PROHIBIDO eliminar, limpiar, reescribir o mover estos archivos en scripts, comandos `rm` o rutinas automatizadas.
+   - Deben preservarse intactos en el entorno de desarrollo y trabajo en todo momento.
 

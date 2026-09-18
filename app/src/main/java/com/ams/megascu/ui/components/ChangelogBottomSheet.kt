@@ -51,21 +51,24 @@ object ChangelogRepository {
                 ChangelogSection(
                     category = ChangeCategory.ADDED,
                     items = listOf(
-                        "Componente de comprobación silenciosa en background (AppLaunchUpdateChecker): verifica actualizaciones en GitHub cada vez que se abre la app.",
-                        "Animación de cierre suave y retroalimentación háptica en la selección de Acción Rápida (QuickActionSelectorBottomSheet).",
-                        "Sombra de elevación sutil y refinada con bordes redondeados orgánicos en la barra de navegación flotante (MegasBottomBar)."
+                        "Componente de comprobación silenciosa en segundo plano (AppLaunchUpdateChecker): realiza una verificación rápida con el servidor de GitHub cada vez que se abre la aplicación y despliega automáticamente la ventana de actualización configurada si existe una versión más reciente.",
+                        "Sistema de alerta de novedades al primer inicio tras actualizar (WhatsNewDialog): presenta de forma clara y visual los cambios y mejoras incorporados en la nueva versión instalada con acceso directo al registro histórico completo.",
+                        "Sombra de elevación sutil y refinada con bordes redondeados orgánicos en la barra de navegación flotante inferior (MegasBottomBar), mejorando la jerarquía visual y profundidad bajo Material 3 Expressive.",
+                        "Transición animada suave con retardo coordinado al seleccionar una acción en QuickActionSelectorBottomSheet, asegurando un cierre fluido del modal antes del retorno a la pantalla de inicio."
                     )
                 ),
                 ChangelogSection(
                     category = ChangeCategory.CHANGED,
                     items = listOf(
-                        "Cambio de etiqueta en el botón de actualización de Ajustes por 'Buscar Actualización'."
+                        "Actualización de la etiqueta del botón de comprobación en la sección de Ajustes a \"Buscar Actualización\".",
+                        "Optimización visual de las insignias de comparación de versiones en la ventana de actualización, garantizando presentación en una sola línea continua con protección de desbordamiento de texto.",
+                        "Refactorización de superficies y bordes en diálogos modales (Novedades de la Versión y Alerta de Actualización), asegurando contornos suaves y esquinas redondeadas continuas sin cortes de trazo."
                     )
                 ),
                 ChangelogSection(
                     category = ChangeCategory.FIXED,
                     items = listOf(
-                        "Corrección de saltos de línea indeseados en números e indicadores métricos (GB, MB, SMS, Min, CUP) en la pantalla de inicio con posiciones fijas, espacios indivisibles y textos subordinados multilínea."
+                        "Corrección de saltos de línea indeseados en números e indicadores métricos (GB, MB, SMS, Minutos, CUP) en la pantalla de inicio: ahora mantienen posiciones fijas, espacios no separables (\\u00A0), alineación centrada y textos subordinados multilínea para pantallas pequeñas o con baja densidad."
                     )
                 )
             )

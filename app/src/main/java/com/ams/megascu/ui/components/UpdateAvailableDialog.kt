@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -53,12 +54,14 @@ private enum class DownloadStatus {
 @Composable
 fun UpdateAvailableDialog(
     updateResult: UpdateCheckResult,
+    isSimulation: Boolean = false,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
-    val scrollState = rememberScrollState()
+    val dialogScrollState = rememberScrollState()
+    val changelogScrollState = rememberScrollState()
 
     var downloadStatus by remember { mutableStateOf(DownloadStatus.IDLE) }
     var downloadProgress by remember { mutableFloatStateOf(0f) }
@@ -69,6 +72,34 @@ fun UpdateAvailableDialog(
     var downloadJob by remember { mutableStateOf<Job?>(null) }
 
     fun startDownload() {
+        if (isSimulation) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            downloadStatus = DownloadStatus.DOWNLOADING
+            downloadProgress = 0f
+            downloadedBytes = 0L
+            downloadErrorMessage = null
+            val simulatedMb = if (updateResult.apkSizeMb > 0f) updateResult.apkSizeMb else 14.5f
+            val simulatedTotal = (simulatedMb * 1024 * 1024).toLong()
+            totalSizeBytes = simulatedTotal
+
+            downloadJob = coroutineScope.launch {
+                val totalSteps = 35
+                val delayMs = 65L
+                for (step in 1..totalSteps) {
+                    kotlinx.coroutines.delay(delayMs)
+                    val progress = step.toFloat() / totalSteps.toFloat()
+                    downloadProgress = progress
+                    downloadedBytes = (simulatedTotal * progress).toLong()
+                }
+                downloadProgress = 1f
+                downloadedBytes = simulatedTotal
+                downloadStatus = DownloadStatus.COMPLETED
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                Toast.makeText(context, "Simulación: Descarga de actualización completada", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+
         val downloadUrl = updateResult.apkDownloadUrl
         if (downloadUrl.isNullOrBlank()) {
             Toast.makeText(context, "URL de descarga no disponible en este release", Toast.LENGTH_LONG).show()
@@ -135,28 +166,30 @@ fun UpdateAvailableDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.60f))
-                .padding(horizontal = 20.dp, vertical = 24.dp),
+                .background(Color.Black.copy(alpha = 0.65f))
+                .systemBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 20.dp),
             contentAlignment = Alignment.Center
         ) {
+            val dialogShape = RoundedCornerShape(28.dp)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 480.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                        shape = RoundedCornerShape(28.dp)
-                    ),
+                    .widthIn(max = 480.dp),
+                shape = dialogShape,
                 color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                ),
                 tonalElevation = 8.dp,
                 shadowElevation = 14.dp
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(22.dp),
+                        .verticalScroll(dialogScrollState)
+                        .padding(horizontal = 20.dp, vertical = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Header Badge
@@ -165,23 +198,26 @@ fun UpdateAvailableDialog(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .background(
+                                if (isSimulation) MaterialTheme.colorScheme.tertiaryContainer 
+                                else MaterialTheme.colorScheme.primaryContainer
+                            )
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.SystemUpdate,
+                            imageVector = if (isSimulation) Icons.Rounded.DeveloperMode else Icons.Rounded.SystemUpdate,
                             contentDescription = "Actualización",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            tint = if (isSimulation) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (updateResult.isPrerelease) "PRE-RELEASE BETA DETECTADA" else "NUEVA VERSIÓN DETECTADA",
+                            text = if (isSimulation) "SIMULADOR DE ACTUALIZACIÓN" else if (updateResult.isPrerelease) "PRE-RELEASE BETA DETECTADA" else "NUEVA VERSIÓN DETECTADA",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.8.sp
                             ),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = if (isSimulation) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
 
@@ -200,33 +236,61 @@ fun UpdateAvailableDialog(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // Version Comparison Pill
+                    // Version Comparison Badges
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp)
                     ) {
-                        Text(
-                            text = "Instalada: v${BuildConfig.VERSION_NAME}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                            modifier = Modifier.weight(1f, fill = false)
+                        ) {
+                            Text(
+                                text = "Instalada: v${BuildConfig.VERSION_NAME}",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                            )
+                        }
+
                         Spacer(modifier = Modifier.width(6.dp))
+
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(12.dp)
+                            modifier = Modifier.size(13.dp)
                         )
+
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Nueva: v${updateResult.latestVersionName}",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary
-                        )
+
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                            modifier = Modifier.weight(1f, fill = false)
+                        ) {
+                            Text(
+                                text = "Nueva: v${updateResult.latestVersionName}",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp
+                                ),
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                            )
+                        }
                     }
 
                     if (updateResult.publishedAt.isNotBlank()) {
@@ -250,18 +314,19 @@ fun UpdateAvailableDialog(
                             .padding(start = 2.dp, bottom = 6.dp)
                     )
 
+                    val changelogCardShape = RoundedCornerShape(16.dp)
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 80.dp, max = 200.dp)
-                            .clip(RoundedCornerShape(16.dp)),
+                            .heightIn(min = 60.dp, max = 150.dp),
+                        shape = changelogCardShape,
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .verticalScroll(scrollState)
+                                .verticalScroll(changelogScrollState)
                                 .padding(12.dp)
                         ) {
                             val changelogText = if (updateResult.changelog.isNotBlank()) {
@@ -315,7 +380,7 @@ fun UpdateAvailableDialog(
                     // Download Manager Interactive Block
                     when (downloadStatus) {
                         DownloadStatus.IDLE -> {
-                            if (!updateResult.apkDownloadUrl.isNullOrBlank()) {
+                            if (!updateResult.apkDownloadUrl.isNullOrBlank() || isSimulation) {
                                 ExpressiveButton(
                                     onClick = { startDownload() },
                                     colors = ButtonDefaults.buttonColors(
@@ -333,7 +398,7 @@ fun UpdateAvailableDialog(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Descargar e Instalar Actualización",
+                                        text = if (isSimulation) "Simular Descarga e Instalación" else "Descargar e Instalar Actualización",
                                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                                     )
                                 }
@@ -375,8 +440,10 @@ fun UpdateAvailableDialog(
 
                             TextButton(
                                 onClick = {
-                                    val prefs = context.getSharedPreferences("megas_prefs", Context.MODE_PRIVATE)
-                                    prefs.edit().putString(GitHubUpdateChecker.PREF_UPDATE_DISMISSED_VERSION, updateResult.latestVersionName).apply()
+                                    if (!isSimulation) {
+                                        val prefs = context.getSharedPreferences("megas_prefs", Context.MODE_PRIVATE)
+                                        prefs.edit().putString(GitHubUpdateChecker.PREF_UPDATE_DISMISSED_VERSION, updateResult.latestVersionName).apply()
+                                    }
                                     onDismiss()
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -404,7 +471,7 @@ fun UpdateAvailableDialog(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = "Descargando actualización...",
+                                        text = if (isSimulation) "Simulando descarga..." else "Descargando actualización...",
                                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -467,7 +534,7 @@ fun UpdateAvailableDialog(
                         }
 
                         DownloadStatus.COMPLETED -> {
-                            val hasInstallPermission = PermissionUtils.canInstallUnknownApps(context)
+                            val hasInstallPermission = PermissionUtils.canInstallUnknownApps(context) || isSimulation
 
                             Column(
                                 modifier = Modifier
@@ -495,7 +562,7 @@ fun UpdateAvailableDialog(
                                 Spacer(modifier = Modifier.height(10.dp))
 
                                 Text(
-                                    text = "¡Descarga completada con éxito!",
+                                    text = if (isSimulation) "¡Simulación de descarga completada!" else "¡Descarga completada con éxito!",
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface,
                                     textAlign = TextAlign.Center
@@ -504,7 +571,9 @@ fun UpdateAvailableDialog(
                                 Spacer(modifier = Modifier.height(4.dp))
 
                                 Text(
-                                    text = if (hasInstallPermission) {
+                                    text = if (isSimulation) {
+                                        "Se ha simulado la descarga del paquete APK. Pulsa el botón inferior para simular el inicio de instalación."
+                                    } else if (hasInstallPermission) {
                                         "El instalador de Android se ha iniciado. Si la ventana se cerró, pulsa el botón inferior."
                                     } else {
                                         "Para completar la actualización debes conceder el permiso 'Instalar aplicaciones desconocidas'."
@@ -514,7 +583,7 @@ fun UpdateAvailableDialog(
                                     textAlign = TextAlign.Center
                                 )
 
-                                if (!hasInstallPermission) {
+                                if (!hasInstallPermission && !isSimulation) {
                                     Spacer(modifier = Modifier.height(12.dp))
                                     OutlinedButton(
                                         onClick = {
@@ -540,6 +609,12 @@ fun UpdateAvailableDialog(
 
                                 ExpressiveButton(
                                     onClick = {
+                                        if (isSimulation) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            Toast.makeText(context, "Simulación: Lanzando instalador para v${updateResult.latestVersionName}", Toast.LENGTH_LONG).show()
+                                            onDismiss()
+                                            return@ExpressiveButton
+                                        }
                                         downloadedApkFile?.let { file ->
                                             if (PermissionUtils.canInstallUnknownApps(context)) {
                                                 ApkDownloadManager.installApk(context, file)
@@ -560,7 +635,7 @@ fun UpdateAvailableDialog(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = if (hasInstallPermission) "Instalar Actualización Ahora" else "Permitir e Instalar",
+                                        text = if (isSimulation) "Simular Instalación" else if (hasInstallPermission) "Instalar Actualización Ahora" else "Permitir e Instalar",
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -632,6 +707,8 @@ fun UpdateAvailableDialog(
                             }
                         }
                     }
+                    
+                    Spacer(modifier = Modifier.height(6.dp))
                 }
             }
         }

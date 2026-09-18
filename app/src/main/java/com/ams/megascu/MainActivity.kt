@@ -502,12 +502,27 @@ fun MegasMainApp(
     var showChangelogSheet by remember { mutableStateOf(false) }
     var showMatrixTerminal by remember { mutableStateOf(false) }
     var showQuickActionSelector by remember { mutableStateOf(false) }
+    var showWhatsNewDialog by remember { mutableStateOf(false) }
     val hazeState = remember { HazeState() }
     val pullRefreshState = rememberPullToRefreshState()
     var isPullRefreshing by remember { mutableStateOf(false) }
 
     // Comprobación de actualizaciones en background al abrir la aplicación
     AppLaunchUpdateChecker(viewModel = viewModel)
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember(context) { context.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE) }
+
+    LaunchedEffect(Unit) {
+        val lastSeenVersion = prefs.getInt("pref_last_seen_version_code", -1)
+        val currentVersion = com.ams.megascu.BuildConfig.VERSION_CODE
+        if (lastSeenVersion == -1) {
+            prefs.edit().putInt("pref_last_seen_version_code", currentVersion).apply()
+        } else if (currentVersion > lastSeenVersion) {
+            prefs.edit().putInt("pref_last_seen_version_code", currentVersion).apply()
+            showWhatsNewDialog = true
+        }
+    }
 
     LaunchedEffect(isRefreshing) {
         if (!isRefreshing) {
@@ -526,11 +541,9 @@ fun MegasMainApp(
             showChangelogSheet = false
             showMatrixTerminal = false
             showQuickActionSelector = false
+            showWhatsNewDialog = false
         }
     }
-
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val prefs = remember(context) { context.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE) }
     var useWavyProgress by remember {
         val dev = prefs.getBoolean("developer_mode_enabled", false)
         val wavy = prefs.getBoolean("pref_use_wavy_progress", false)
@@ -579,7 +592,7 @@ fun MegasMainApp(
 
     val isUpdateModalOpen = updateCheckResult != null && updateCheckResult!!.isUpdateAvailable
 
-    val isAnyDialogOnlyOpen = showAbout || showMatrixTerminal || showUssdTutorial || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
+    val isAnyDialogOnlyOpen = showAbout || showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
             (ussdState !is UssdUiState.Idle && ussdState !is UssdUiState.Executing)
 
     val dialogBlurFraction by animateFloatAsState(
@@ -593,7 +606,7 @@ fun MegasMainApp(
 
     val effectiveBlurAmount = maxOf(dialogBlurFraction, activeSheetProgress)
     val backgroundBlurRadius = if (disableBlurEffects) 0.dp else (16.dp * effectiveBlurAmount).coerceIn(0.dp, 16.dp)
-    val isDarkScrimDialog = (showMatrixTerminal || showUssdTutorial || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
+    val isDarkScrimDialog = (showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
             (ussdState !is UssdUiState.Idle && ussdState !is UssdUiState.Executing)) && !showAbout
     val backgroundOverlayAlpha = if (isDarkScrimDialog) {
         (0.25f * dialogBlurFraction).coerceIn(0f, 0.25f)
@@ -1148,6 +1161,16 @@ fun MegasMainApp(
                 com.ams.megascu.ui.components.MatrixTerminalDialog(
                     onAmoledChange = { active -> viewModel.setEasterEggAmoledActive(active) },
                     onDismiss = { showMatrixTerminal = false }
+                )
+            }
+
+            if (showWhatsNewDialog) {
+                com.ams.megascu.ui.components.WhatsNewDialog(
+                    onDismiss = { showWhatsNewDialog = false },
+                    onViewFullChangelog = {
+                        showWhatsNewDialog = false
+                        showChangelogSheet = true
+                    }
                 )
             }
 
