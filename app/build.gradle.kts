@@ -31,6 +31,7 @@ android {
 
   signingConfigs {
     val keystorePropsFile = listOf(
+      file("${rootDir}/keystore/keystore.properties"),
       file("${rootDir}/keystore.properties"),
       file("${projectDir}/keystore.properties"),
       file("${rootDir}/signing.properties"),

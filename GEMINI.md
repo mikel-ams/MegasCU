@@ -38,4 +38,3 @@
    - La carpeta `keystore/` y el archivo de almacén de llaves `keystore/release-key.jks`, así como el archivo de configuración `app/keystore.properties` (o en la raíz), son estrictamente requeridos para la firma oficial de producción de la app.
    - Queda ESTRICTAMENTE PROHIBIDO eliminar, limpiar, reescribir o mover estos archivos en scripts, comandos `rm` o rutinas automatizadas.
    - Deben preservarse intactos en el entorno de desarrollo y trabajo en todo momento.
-
