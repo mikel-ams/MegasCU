@@ -122,8 +122,8 @@ fun Modifier.bounceClick(
 }
 
 /**
- * Material 3 Expressive click modifier with spring corner morphing, elastic flex distortion,
- * haptic vibration, and ripple feedback (eliminating static scale-down sinking).
+ * Material 3 Expressive click modifier with spring corner morphing,
+ * haptic vibration, and ripple feedback (without distorting label scaling).
  */
 fun Modifier.expressiveClick(
     targetScale: Float = 0.93f,
@@ -132,24 +132,6 @@ fun Modifier.expressiveClick(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val haptic = LocalHapticFeedback.current
-
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.030f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "expressiveClickFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.970f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "expressiveClickFlexY"
-    )
 
     val cornerRadius by animateDpAsState(
         targetValue = if (isPressed) 8.dp else 18.dp,
@@ -167,10 +149,6 @@ fun Modifier.expressiveClick(
     }
 
     this
-        .graphicsLayer {
-            scaleX = flexX
-            scaleY = flexY
-        }
         .clip(RoundedCornerShape(cornerRadius))
         .clickable(
             interactionSource = interactionSource,
@@ -180,8 +158,7 @@ fun Modifier.expressiveClick(
 }
 
 /**
- * Expressive M3 Morphic press effect modifier replacing traditional scale-down ("hundimiento")
- * with fluid elastic morphing and haptic vibration.
+ * Expressive M3 Morphic press effect modifier with haptic vibration.
  */
 fun Modifier.expressivePressEffect(
     targetScale: Float = 0.94f,
@@ -191,39 +168,18 @@ fun Modifier.expressivePressEffect(
     val isPressed by source.collectIsPressedAsState()
     val haptic = LocalHapticFeedback.current
 
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.028f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "expressiveMorphicFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.972f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "expressiveMorphicFlexY"
-    )
-
     LaunchedEffect(isPressed) {
         if (isPressed) {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         }
     }
 
-    this.graphicsLayer {
-        scaleX = flexX
-        scaleY = flexY
-    }
+    this
 }
 
 /**
- * Material 3 Expressive Morphic Button components with corner morphing, elastic flex,
- * and haptic feedback on touch (no sinking/scale-down "hundimiento").
+ * Material 3 Expressive Morphic Button components with corner shape morphing
+ * and haptic feedback on touch (pure shape morphing without stretching label/content).
  */
 @Composable
 fun ExpressiveButton(
@@ -256,33 +212,12 @@ fun ExpressiveButton(
         RoundedCornerShape(cornerRadius)
     }
 
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.028f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicButtonFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.972f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicButtonFlexY"
-    )
-
     Button(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onClick()
         },
-        modifier = modifier.graphicsLayer {
-            scaleX = flexX
-            scaleY = flexY
-        },
+        modifier = modifier,
         enabled = enabled,
         shape = effectiveShape,
         colors = colors,
@@ -319,33 +254,12 @@ fun ExpressiveTextButton(
         label = "morphicTextButtonCorner"
     )
 
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.025f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicTextButtonFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.975f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicTextButtonFlexY"
-    )
-
     TextButton(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onClick()
         },
-        modifier = modifier.graphicsLayer {
-            scaleX = flexX
-            scaleY = flexY
-        },
+        modifier = modifier,
         enabled = enabled,
         shape = RoundedCornerShape(cornerRadius),
         colors = colors,
@@ -382,33 +296,12 @@ fun ExpressiveOutlinedButton(
         label = "morphicOutlinedButtonCorner"
     )
 
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.025f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicOutlinedButtonFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.975f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicOutlinedButtonFlexY"
-    )
-
     OutlinedButton(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onClick()
         },
-        modifier = modifier.graphicsLayer {
-            scaleX = flexX
-            scaleY = flexY
-        },
+        modifier = modifier,
         enabled = enabled,
         shape = RoundedCornerShape(cornerRadius),
         colors = colors,
@@ -445,33 +338,12 @@ fun ExpressiveFilledTonalButton(
         label = "morphicFilledTonalButtonCorner"
     )
 
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.028f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicFilledTonalButtonFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.972f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicFilledTonalButtonFlexY"
-    )
-
     FilledTonalButton(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onClick()
         },
-        modifier = modifier.graphicsLayer {
-            scaleX = flexX
-            scaleY = flexY
-        },
+        modifier = modifier,
         enabled = enabled,
         shape = RoundedCornerShape(cornerRadius),
         colors = colors,
@@ -504,34 +376,12 @@ fun ExpressiveIconButton(
         label = "morphicIconButtonCorner"
     )
 
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.05f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicIconButtonFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicIconButtonFlexY"
-    )
-
     IconButton(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onClick()
         },
         modifier = modifier
-            .graphicsLayer {
-                scaleX = flexX
-                scaleY = flexY
-            }
             .clip(RoundedCornerShape(cornerRadius)),
         enabled = enabled,
         colors = colors,
@@ -561,34 +411,12 @@ fun ExpressiveFilledTonalIconButton(
         label = "morphicFilledTonalIconButtonCorner"
     )
 
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.05f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicFilledTonalIconButtonFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicFilledTonalIconButtonFlexY"
-    )
-
     FilledTonalIconButton(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onClick()
         },
-        modifier = modifier
-            .graphicsLayer {
-                scaleX = flexX
-                scaleY = flexY
-            },
+        modifier = modifier,
         enabled = enabled,
         shape = RoundedCornerShape(cornerRadius),
         colors = colors,
@@ -620,33 +448,12 @@ fun ExpressiveFloatingActionButton(
         label = "morphicFabCorner"
     )
 
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.04f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicFabFlexX"
-    )
-
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "morphicFabFlexY"
-    )
-
     FloatingActionButton(
         onClick = {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onClick()
         },
-        modifier = modifier.graphicsLayer {
-            scaleX = flexX
-            scaleY = flexY
-        },
+        modifier = modifier,
         shape = RoundedCornerShape(cornerRadius),
         containerColor = containerColor,
         contentColor = contentColor,
