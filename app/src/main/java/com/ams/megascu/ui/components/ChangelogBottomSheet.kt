@@ -44,9 +44,36 @@ data class ChangelogVersion(
 object ChangelogRepository {
     val changelogList = listOf(
         ChangelogVersion(
+            version = "0.8.6-beta_(249)",
+            date = "2026-09-18",
+            isLatest = true,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Soporte nativo de Markdown (MarkdownChangelog) en la ventana de actualización (UpdateAvailableDialog), renderizando con formato estructurado (encabezados, viñetas, bloques de código, negritas, cursivas y citas) las notas de versión recibidas desde GitHub."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Sustitución de las etiquetas de texto \"Instalada\" y \"Nueva\" por iconos vectoriales Material Symbols (PhoneAndroid y CloudDownload) en las insignias de comparación de la ventana de actualización (UpdateAvailableDialog).",
+                        "Desactivación predeterminada del \"Estimador Alternativo de Consumo\" en nuevas instalaciones, priorizando la medición directa de la red del sistema.",
+                        "Refactorización de la animación táctil en botones expresivos (ExpressiveButton, ExpressiveTextButton, ExpressiveOutlinedButton, ExpressiveFilledTonalButton, ExpressiveIconButton, ExpressiveFloatingActionButton) y modificadores de pulsación (expressiveClick, expressivePressEffect): se eliminó la distorsión y ensanchamiento de las etiquetas de texto, manteniendo intacta la metamorfosis dinámica de esquinas (shape morphing) y la respuesta háptica táctil."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Corrección de la legibilidad y escala tipográfica en botones interactivos al ser presionados, evitando el efecto de deformación en el texto interior durante la pulsación."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
             version = "0.8.5-beta_(248)",
             date = "2026-09-16",
-            isLatest = true,
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.ADDED,

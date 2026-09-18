@@ -7,6 +7,21 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.8.6-beta_(249)] - 2026-09-18
+
+### Añadido
+- Soporte nativo de Markdown (`MarkdownChangelog`) en la ventana de actualización (`UpdateAvailableDialog`), renderizando con formato estructurado (encabezados, viñetas, bloques de código, negritas, cursivas y citas) las notas de versión recibidas desde GitHub.
+
+### Cambiado
+- Sustitución de las etiquetas textuales "Instalada" y "Nueva" por iconos vectoriales Material Symbols (`PhoneAndroid` y `CloudDownload`) en las insignias de comparación de versiones de la ventana de actualización (`UpdateAvailableDialog`), logrando una interfaz más compacta, limpia y moderna.
+- Desactivación predeterminada del "Estimador Alternativo de Consumo" en nuevas instalaciones, priorizando la medición directa de la red del sistema.
+- Refactorización de la animación táctil en botones expresivos (`ExpressiveButton`, `ExpressiveTextButton`, `ExpressiveOutlinedButton`, `ExpressiveFilledTonalButton`, `ExpressiveIconButton`, `ExpressiveFloatingActionButton`) y modificadores de pulsación (`expressiveClick`, `expressivePressEffect`): se eliminó la distorsión y ensanchamiento de las etiquetas de texto (`scaleX`/`scaleY`), manteniendo intacta la metamorfosis dinámica de esquinas (shape morphing) y la respuesta háptica táctil.
+
+### Corregido
+- Corrección de la legibilidad y escala tipográfica en botones interactivos al ser presionados, evitando el efecto de deformación en el texto interior durante la pulsación.
+
+---
+
 ## [0.8.5-beta_(248)] - 2026-09-16
 
 ### Añadido

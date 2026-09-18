@@ -90,7 +90,7 @@ class MegasRepository(
     private val _isSimpleMode = MutableStateFlow(prefs.getBoolean("pref_is_simple_mode", false))
     val isSimpleMode: StateFlow<Boolean> = _isSimpleMode
 
-    private val _useAlternativeUsageEstimator = MutableStateFlow(prefs.getBoolean("pref_use_alternative_usage_estimator", true))
+    private val _useAlternativeUsageEstimator = MutableStateFlow(prefs.getBoolean("pref_use_alternative_usage_estimator", false))
     val useAlternativeUsageEstimator: StateFlow<Boolean> = _useAlternativeUsageEstimator
 
     fun setUseAlternativeUsageEstimator(enabled: Boolean) {
