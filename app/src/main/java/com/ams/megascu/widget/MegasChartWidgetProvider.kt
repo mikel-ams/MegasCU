@@ -11,12 +11,12 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.RemoteViews
 import com.ams.megascu.MainActivity
+import com.ams.megascu.MegasApplication
 import com.ams.megascu.R
 import com.ams.megascu.data.db.MegasDatabase
 import com.ams.megascu.utils.PermissionUtils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -29,9 +29,18 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        Log.d("MegasChartWidgetProvider", "onUpdate triggered for ${appWidgetIds.size} widgets: ${appWidgetIds.joinToString()}")
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+        val app = context.applicationContext as? MegasApplication ?: return
+        val pendingResult = goAsync()
+        app.appScope.launch(Dispatchers.IO) {
+            try {
+                for (appWidgetId in appWidgetIds) {
+                    updateAppWidgetInternal(context, appWidgetManager, appWidgetId)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Widget onUpdate failed", e)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 
@@ -41,20 +50,41 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
         appWidgetId: Int,
         newOptions: Bundle?
     ) {
-        Log.d("MegasChartWidgetProvider", "onAppWidgetOptionsChanged triggered for widget $appWidgetId")
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-        updateAppWidget(context, appWidgetManager, appWidgetId)
+        val app = context.applicationContext as? MegasApplication ?: return
+        val pendingResult = goAsync()
+        app.appScope.launch(Dispatchers.IO) {
+            try {
+                updateAppWidgetInternal(context, appWidgetManager, appWidgetId)
+            } catch (e: Exception) {
+                Log.e(TAG, "Widget options update failed", e)
+            } finally {
+                pendingResult.finish()
+            }
+        }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         val action = intent.action
-        Log.d("MegasChartWidgetProvider", "onReceive triggered with action=$action")
-        if (action == ACTION_UPDATE_CHART_WIDGET || action == MegasWidgetProvider.ACTION_WIDGET_REFRESH) {
-            val appWidgetManager = AppWidgetManager.getInstance(context)
-            val thisWidget = ComponentName(context, MegasChartWidgetProvider::class.java)
-            val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
-            onUpdate(context, appWidgetManager, appWidgetIds)
+        Log.d(TAG, "onReceive triggered with action=$action")
+        if (action != ACTION_UPDATE_CHART_WIDGET && action != MegasWidgetProvider.ACTION_WIDGET_REFRESH) return
+
+        val app = context.applicationContext as? MegasApplication ?: return
+        val pendingResult = goAsync()
+        app.appScope.launch(Dispatchers.IO) {
+            try {
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                val thisWidget = ComponentName(context, MegasChartWidgetProvider::class.java)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
+                for (appWidgetId in appWidgetIds) {
+                    updateAppWidgetInternal(context, appWidgetManager, appWidgetId)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Widget refresh failed", e)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 
@@ -62,12 +92,11 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
         const val ACTION_UPDATE_CHART_WIDGET = "com.ams.megascu.ACTION_UPDATE_WIDGET"
         private const val TAG = "MegasChartWidgetProvider"
 
-        fun updateAppWidget(
+        internal suspend fun updateAppWidgetInternal(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
-            CoroutineScope(Dispatchers.IO).launch {
                 try {
                     Log.d(TAG, "Starting updateAppWidget for ID=$appWidgetId")
                     val widgetPrefs = context.getSharedPreferences("megas_widget_prefs", Context.MODE_PRIVATE)
@@ -170,6 +199,17 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
                 } catch (e: Exception) {
                     Log.e(TAG, "Error updating chart widget $appWidgetId: ${e.message}", e)
                 }
+
+        }
+
+        fun updateAppWidget(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int
+        ) {
+            val app = context.applicationContext as? MegasApplication ?: return
+            app.appScope.launch(Dispatchers.IO) {
+                updateAppWidgetInternal(context, appWidgetManager, appWidgetId)
             }
         }
 
@@ -469,7 +509,7 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
                     results.add(dateLabel to gbUsed)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
             }
             return results
         }

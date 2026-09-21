@@ -15,11 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -44,8 +41,6 @@ fun MegasBottomBar(
     disableBlur: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    val haptic = LocalHapticFeedback.current
-
     val primaryColor = MaterialTheme.colorScheme.primary
 
     val navBottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -66,62 +61,42 @@ fun MegasBottomBar(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 2.dp,
-                shadowElevation = 8.dp,
+                shadowElevation = 6.dp,
                 border = androidx.compose.foundation.BorderStroke(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
                 ),
-                modifier = Modifier
-                    .shadow(
-                        elevation = 8.dp,
-                        shape = CircleShape,
-                        spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
-                        ambientColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                        clip = false
-                    )
-                    .graphicsLayer {
-                        shape = CircleShape
-                        clip = false
-                    }
-                    .testTag("megas_bottom_bar")
+                modifier = Modifier.testTag("megas_bottom_bar")
             ) {
                 Row(
                     modifier = Modifier
-                        .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Left - Comprar button
                     val comprarInteraction = remember { MutableInteractionSource() }
                     ExpressiveButton(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            onOpenPlanes()
-                        },
+                        onClick = onOpenPlanes,
                         interactionSource = comprarInteraction,
+                        shape = CircleShape,
                         modifier = Modifier
                             .width(114.dp)
-                            .height(40.dp)
-                            .testTag("bottom_nav_planes_button")
-                            .expressivePressEffect(interactionSource = comprarInteraction),
-                        shape = rememberExpressiveMorphShape(
-                            defaultRadius = 20.dp,
-                            pressedRadius = 10.dp,
-                            interactionSource = comprarInteraction
-                        ),
+                            .height(48.dp)
+                            .testTag("bottom_nav_planes_button"),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant,
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.ShoppingCart,
-                            contentDescription = "Comprar",
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Comprar",
                             maxLines = 1,
@@ -138,20 +113,12 @@ fun MegasBottomBar(
                     ) {
                         val refreshInteraction = remember { MutableInteractionSource() }
                         Surface(
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                onRefresh()
-                            },
+                            onClick = onRefresh,
                             interactionSource = refreshInteraction,
                             modifier = Modifier
                                 .testTag("bottom_nav_refresh_button")
-                                .expressivePressEffect(interactionSource = refreshInteraction)
                                 .size(52.dp),
-                            shape = rememberExpressiveMorphShape(
-                                defaultRadius = 26.dp,
-                                pressedRadius = 14.dp,
-                                interactionSource = refreshInteraction
-                            ),
+                            shape = CircleShape,
                             color = MaterialTheme.colorScheme.primary,
                             contentColor = Color.White,
                             shadowElevation = 0.dp
@@ -162,10 +129,10 @@ fun MegasBottomBar(
                             ) {
                                 if (isRefreshing) {
                                     if (!useWavyProgress) {
-                                        CircularWavyProgressIndicator(
+                                        CircularProgressIndicator(
                                             color = Color.White,
-                                            trackColor = Color.White.copy(alpha = 0.25f),
-                                            modifier = Modifier.size(26.dp)
+                                            modifier = Modifier.size(26.dp),
+                                            strokeWidth = 3.dp
                                         )
                                     } else {
                                         when (refreshIndicatorType) {
@@ -207,34 +174,26 @@ fun MegasBottomBar(
                     // Right - Consejos button
                     val consejosInteraction = remember { MutableInteractionSource() }
                     ExpressiveButton(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            onOpenGuide()
-                        },
+                        onClick = onOpenGuide,
                         interactionSource = consejosInteraction,
+                        shape = CircleShape,
                         modifier = Modifier
                             .width(114.dp)
-                            .height(40.dp)
-                            .testTag("bottom_nav_guide_button")
-                            .expressivePressEffect(interactionSource = consejosInteraction),
-                        shape = rememberExpressiveMorphShape(
-                            defaultRadius = 20.dp,
-                            pressedRadius = 10.dp,
-                            interactionSource = consejosInteraction
-                        ),
+                            .height(48.dp)
+                            .testTag("bottom_nav_guide_button"),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant,
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp)
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.HelpOutline,
-                            contentDescription = "Consejos",
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Consejos",
                             maxLines = 1,

@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ams.megascu.ui.components
 
 import androidx.compose.animation.*
@@ -58,7 +60,7 @@ fun <T> ConnectedSegmentedGroup(
                 SegmentedButton(
                     selected = isSelected,
                     onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         onItemSelected(item.value)
                     },
                     shape = SegmentedButtonDefaults.itemShape(index = index, count = items.size),
@@ -88,208 +90,103 @@ fun <T> ConnectedSegmentedGroup(
             }
         }
     } else {
-        // Material 3 Expressive Connected Button Group con metamorfosis de forma dinámica
+        // Material 3 Expressive Connected Button Group con componentes nativos ToggleButton y formas oficiales
+        val total = items.size
         Row(
             modifier = modifier
                 .fillMaxWidth()
                 .height(height),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val density = LocalDensity.current.density
-            val total = items.size
-            val largeRadius = 24.dp
-            val smallRadius = 6.dp
-
-            val interactionSources = remember(total) { List(total) { MutableInteractionSource() } }
-            val pressStates = interactionSources.map { source -> source.collectIsPressedAsState().value }
+            val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+            val isAmoled = MaterialTheme.colorScheme.background == Color.Black || MaterialTheme.colorScheme.surface == Color.Black
+            val unselectedBg = if (isAmoled) {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+            } else if (isDark) {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
+            }
 
             items.forEachIndexed { index, item ->
                 val isSelected = item.value == selectedValue
-                val interactionSource = interactionSources[index]
-                val isPressed = pressStates[index]
-
-                // Determine if adjacent neighbors (index - 1 or index + 1) are currently pressed
-                val isLeftNeighborPressed = index > 0 && pressStates[index - 1]
-                val isRightNeighborPressed = index < total - 1 && pressStates[index + 1]
-
-                val targetPushOffset by animateFloatAsState(
-                    targetValue = when {
-                        isLeftNeighborPressed -> 6f // pushed right
-                        isRightNeighborPressed -> -6f // pushed left
-                        else -> 0f
-                    },
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    ),
-                    label = "adjacent_push_$index"
-                )
-
-                val targetScale by animateFloatAsState(
-                    targetValue = if (isPressed) 0.93f else 1.0f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    ),
-                    label = "btn_scale_$index"
-                )
-
-                // Cálculo dinámico de esquinas con transición de forma expresiva
-                val targetTopStart = if (isSelected || isPressed) largeRadius else if (index == 0) largeRadius else smallRadius
-                val targetBottomStart = if (isSelected || isPressed) largeRadius else if (index == 0) largeRadius else smallRadius
-                val targetTopEnd = if (isSelected || isPressed) largeRadius else if (index == total - 1) largeRadius else smallRadius
-                val targetBottomEnd = if (isSelected || isPressed) largeRadius else if (index == total - 1) largeRadius else smallRadius
-
-                val cornerSpringSpec = spring<Dp>(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                )
-
-                val topStart by animateDpAsState(targetTopStart, cornerSpringSpec, label = "shape_ts_$index")
-                val topEnd by animateDpAsState(targetTopEnd, cornerSpringSpec, label = "shape_te_$index")
-                val bottomStart by animateDpAsState(targetBottomStart, cornerSpringSpec, label = "shape_bs_$index")
-                val bottomEnd by animateDpAsState(targetBottomEnd, cornerSpringSpec, label = "shape_be_$index")
-
                 val targetWeight = if (isSelected) 1.38f else 1.0f
                 val animatedWeight by animateFloatAsState(
                     targetValue = targetWeight,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    ),
+                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
                     label = "btn_weight_$index"
                 )
 
-                val dynamicShape = RoundedCornerShape(
-                    topStart = topStart,
-                    topEnd = topEnd,
-                    bottomEnd = bottomEnd,
-                    bottomStart = bottomStart
-                )
-
-                val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-                val isAmoled = MaterialTheme.colorScheme.background == Color.Black || MaterialTheme.colorScheme.surface == Color.Black
-                val targetBgColor = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    if (isAmoled) {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
-                    } else if (isDark) {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
-                    }
+                val buttonShapes = when {
+                    total == 1 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    index == total - 1 -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                 }
 
-                val targetContentColor = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-
-                val animatedBgColor by animateColorAsState(
-                    targetValue = targetBgColor,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    ),
-                    label = "btn_bg_$index"
-                )
-
-                val animatedContentColor by animateColorAsState(
-                    targetValue = targetContentColor,
-                    animationSpec = tween(160),
-                    label = "btn_content_$index"
-                )
-
-                val unselectedBorderModifier = if (!isSelected) {
-                    Modifier.border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.50f else 0.35f),
-                        shape = dynamicShape
-                    )
-                } else {
-                    Modifier
-                }
-
-                Box(
+                ToggleButton(
+                    checked = isSelected,
+                    onCheckedChange = {
+                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        onItemSelected(item.value)
+                    },
                     modifier = Modifier
                         .weight(animatedWeight)
-                        .fillMaxHeight()
-                        .graphicsLayer {
-                            translationX = targetPushOffset * density
-                            scaleX = targetScale
-                            scaleY = targetScale
-                        }
-                        .clip(dynamicShape)
-                        .background(animatedBgColor)
-                        .then(unselectedBorderModifier)
-                        .clickable(
-                            interactionSource = interactionSource,
-                            indication = ripple(),
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                onItemSelected(item.value)
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
+                        .fillMaxHeight(),
+                    shapes = buttonShapes,
+                    colors = ToggleButtonDefaults.colors(
+                        containerColor = unselectedBg,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(horizontal = 6.dp)
-                    ) {
-                        // Expressive Animated Dot indicator (•)
-                        if (showDotIndicator) {
-                            AnimatedVisibility(
-                                visible = isSelected,
-                                enter = (scaleIn(
-                                    initialScale = 0f,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessMediumLow
-                                    )
-                                ) + fadeIn(animationSpec = tween(150))),
-                                exit = (scaleOut(
-                                    targetScale = 0f,
-                                    animationSpec = tween(120)
-                                ) + fadeOut(animationSpec = tween(100)))
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "•",
-                                        fontWeight = FontWeight.Black,
-                                        fontSize = (fontSize.value + 4).sp,
-                                        color = animatedContentColor,
-                                        lineHeight = (fontSize.value + 4).sp
-                                    )
-                                    Spacer(modifier = Modifier.width(3.dp))
-                                }
+                    // Expressive Animated Dot indicator (•)
+                    if (showDotIndicator) {
+                        AnimatedVisibility(
+                            visible = isSelected,
+                            enter = (scaleIn(
+                                initialScale = 0f,
+                                animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                            ) + fadeIn(animationSpec = tween(150))),
+                            exit = (scaleOut(
+                                targetScale = 0f,
+                                animationSpec = tween(120)
+                            ) + fadeOut(animationSpec = tween(100)))
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "•",
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = (fontSize.value + 4).sp,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    lineHeight = (fontSize.value + 4).sp
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
                             }
                         }
-
-                        if (item.icon != null) {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = null,
-                                tint = animatedContentColor,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                        }
-
-                        Text(
-                            text = item.label,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                fontSize = fontSize,
-                                color = animatedContentColor
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
                     }
+
+                    if (item.icon != null) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+
+                    Text(
+                        text = item.label,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = fontSize
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }

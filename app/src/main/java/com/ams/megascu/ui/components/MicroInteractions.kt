@@ -1,6 +1,7 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ams.megascu.ui.components
 
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -8,9 +9,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -21,30 +19,28 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.FloatingActionButtonElevation
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 
 /**
- * Modifier that subtly flexes the component elastically when pressed, providing
- * fluid M3 Expressive micro-interaction feedback without pure sinking.
+ * Lightweight press-scale feedback driven by the app's Material 3 Expressive motion scheme.
+ * The scale is uniform, so content is never stretched on one axis.
  */
 fun Modifier.pressScale(
     targetScale: Float = 0.96f,
@@ -52,141 +48,97 @@ fun Modifier.pressScale(
 ): Modifier = composed {
     val source = interactionSource ?: remember { MutableInteractionSource() }
     val isPressed by source.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    LaunchedEffect(isPressed) {
-        if (isPressed) {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
-    }
-
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.028f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "microPressFlexX"
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) targetScale else 1f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "pressScale"
     )
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.972f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "microPressFlexY"
-    )
-
-    this.graphicsLayer {
-        scaleX = flexX
-        scaleY = flexY
+    graphicsLayer {
+        scaleX = scale
+        scaleY = scale
     }
 }
 
-/**
- * Modifier that adds both a click action and a spring bounce micro-interaction.
- */
+fun Modifier.pressScale(
+    targetScale: Float = 0.96f,
+    onClick: () -> Unit
+): Modifier = composed {
+    val interactionSource = remember { MutableInteractionSource() }
+    this.pressScale(targetScale, interactionSource)
+        .clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick
+        )
+}
+
 fun Modifier.bounceClick(
-    targetScale: Float = 0.94f,
+    targetScale: Float = 0.96f,
+    interactionSource: MutableInteractionSource? = null
+): Modifier = pressScale(targetScale, interactionSource)
+
+fun Modifier.bounceClick(
+    targetScale: Float = 0.96f,
     onClick: () -> Unit
-): Modifier = composed {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val flexX by animateFloatAsState(
-        targetValue = if (isPressed) 1.032f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "bounceClickFlexX"
-    )
-    val flexY by animateFloatAsState(
-        targetValue = if (isPressed) 0.968f else 1f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 400f
-        ),
-        label = "bounceClickFlexY"
-    )
+): Modifier = pressScale(targetScale, onClick)
 
-    this
-        .graphicsLayer {
-            scaleX = flexX
-            scaleY = flexY
-        }
-        .clickable(
-            interactionSource = interactionSource,
-            indication = androidx.compose.material3.ripple(),
-            onClick = onClick
-        )
-}
-
-/**
- * Material 3 Expressive click modifier with spring corner morphing,
- * haptic vibration, and ripple feedback (without distorting label scaling).
- */
 fun Modifier.expressiveClick(
-    targetScale: Float = 0.93f,
+    interactionSource: MutableInteractionSource,
+    cornerRadius: Dp = 18.dp
+): Modifier = composed {
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "expressiveClickScale"
+    )
+    graphicsLayer {
+        scaleX = scale
+        scaleY = scale
+    }
+}
+
+fun Modifier.expressiveClick(
+    cornerRadius: Dp = 18.dp,
     onClick: () -> Unit
 ): Modifier = composed {
     val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 8.dp else 18.dp,
-        animationSpec = spring(
-            dampingRatio = 0.52f,
-            stiffness = 380f
-        ),
-        label = "expressiveClickCorner"
-    )
-
-    LaunchedEffect(isPressed) {
-        if (isPressed) {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
-    }
-
-    this
-        .clip(RoundedCornerShape(cornerRadius))
+    this.expressiveClick(interactionSource, cornerRadius)
         .clickable(
             interactionSource = interactionSource,
-            indication = androidx.compose.material3.ripple(),
+            indication = null,
             onClick = onClick
         )
 }
 
+fun Modifier.expressiveClick(
+    onClick: () -> Unit
+): Modifier = expressiveClick(18.dp, onClick)
+
 /**
- * Expressive M3 Morphic press effect modifier with haptic vibration.
+ * Kept as a compatibility modifier for existing call sites. Visual press feedback is provided
+ * by the Material component/ripple and the component-level motion scheme; this modifier itself
+ * intentionally has no side effects or shape changes.
  */
 fun Modifier.expressivePressEffect(
-    targetScale: Float = 0.94f,
     interactionSource: MutableInteractionSource? = null
-): Modifier = composed {
-    val source = interactionSource ?: remember { MutableInteractionSource() }
-    val isPressed by source.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
+): Modifier = this
 
-    LaunchedEffect(isPressed) {
-        if (isPressed) {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
+private fun expressiveButtonShape(requested: Shape): Shape = requested
+
+private fun expressivePressedShape(requested: Shape): Shape =
+    when (requested) {
+        CircleShape -> RoundedCornerShape(12.dp)
+        is RoundedCornerShape -> RoundedCornerShape(12.dp)
+        else -> RoundedCornerShape(12.dp)
     }
 
-    this
-}
-
-/**
- * Material 3 Expressive Morphic Button components with corner shape morphing
- * and haptic feedback on touch (pure shape morphing without stretching label/content).
- */
 @Composable
 fun ExpressiveButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    shape: androidx.compose.ui.graphics.Shape = ButtonDefaults.shape,
+    shape: Shape = ButtonDefaults.shape,
     colors: ButtonColors = ButtonDefaults.buttonColors(),
     elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
     border: BorderStroke? = null,
@@ -194,32 +146,14 @@ fun ExpressiveButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable RowScope.() -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    val isPillOrCircle = shape == CircleShape || shape == RoundedCornerShape(percent = 50) || shape == RoundedCornerShape(50)
-    val effectiveShape = if (isPillOrCircle) {
-        CircleShape
-    } else {
-        val cornerRadius by animateDpAsState(
-            targetValue = if (isPressed) 8.dp else 18.dp,
-            animationSpec = spring(
-                dampingRatio = 0.52f,
-                stiffness = 380f
-            ),
-            label = "morphicButtonCorner"
-        )
-        RoundedCornerShape(cornerRadius)
-    }
-
     Button(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
+        onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        shape = effectiveShape,
+        shapes = ButtonDefaults.shapes(
+            shape = expressiveButtonShape(shape),
+            pressedShape = expressivePressedShape(shape)
+        ),
         colors = colors,
         elevation = elevation,
         border = border,
@@ -234,7 +168,7 @@ fun ExpressiveTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    shape: androidx.compose.ui.graphics.Shape = ButtonDefaults.shape,
+    shape: Shape = ButtonDefaults.textShape,
     colors: ButtonColors = ButtonDefaults.textButtonColors(),
     elevation: ButtonElevation? = null,
     border: BorderStroke? = null,
@@ -242,26 +176,14 @@ fun ExpressiveTextButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable RowScope.() -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 6.dp else 16.dp,
-        animationSpec = spring(
-            dampingRatio = 0.52f,
-            stiffness = 380f
-        ),
-        label = "morphicTextButtonCorner"
-    )
-
     TextButton(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
+        onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        shape = RoundedCornerShape(cornerRadius),
+        shapes = ButtonDefaults.shapes(
+            shape = expressiveButtonShape(shape),
+            pressedShape = expressivePressedShape(shape)
+        ),
         colors = colors,
         elevation = elevation,
         border = border,
@@ -276,7 +198,7 @@ fun ExpressiveOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    shape: androidx.compose.ui.graphics.Shape = ButtonDefaults.outlinedShape,
+    shape: Shape = ButtonDefaults.outlinedShape,
     colors: ButtonColors = ButtonDefaults.outlinedButtonColors(),
     elevation: ButtonElevation? = null,
     border: BorderStroke? = ButtonDefaults.outlinedButtonBorder(enabled),
@@ -284,26 +206,14 @@ fun ExpressiveOutlinedButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable RowScope.() -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 8.dp else 18.dp,
-        animationSpec = spring(
-            dampingRatio = 0.52f,
-            stiffness = 380f
-        ),
-        label = "morphicOutlinedButtonCorner"
-    )
-
     OutlinedButton(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
+        onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        shape = RoundedCornerShape(cornerRadius),
+        shapes = ButtonDefaults.shapes(
+            shape = expressiveButtonShape(shape),
+            pressedShape = expressivePressedShape(shape)
+        ),
         colors = colors,
         elevation = elevation,
         border = border,
@@ -318,7 +228,7 @@ fun ExpressiveFilledTonalButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    shape: androidx.compose.ui.graphics.Shape = ButtonDefaults.filledTonalShape,
+    shape: Shape = ButtonDefaults.filledTonalShape,
     colors: ButtonColors = ButtonDefaults.filledTonalButtonColors(),
     elevation: ButtonElevation? = ButtonDefaults.filledTonalButtonElevation(),
     border: BorderStroke? = null,
@@ -326,26 +236,14 @@ fun ExpressiveFilledTonalButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable RowScope.() -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 8.dp else 18.dp,
-        animationSpec = spring(
-            dampingRatio = 0.52f,
-            stiffness = 380f
-        ),
-        label = "morphicFilledTonalButtonCorner"
-    )
-
     FilledTonalButton(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
+        onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        shape = RoundedCornerShape(cornerRadius),
+        shapes = ButtonDefaults.shapes(
+            shape = expressiveButtonShape(shape),
+            pressedShape = expressivePressedShape(shape)
+        ),
         colors = colors,
         elevation = elevation,
         border = border,
@@ -364,27 +262,15 @@ fun ExpressiveIconButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable () -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 10.dp else 24.dp,
-        animationSpec = spring(
-            dampingRatio = 0.52f,
-            stiffness = 380f
-        ),
-        label = "morphicIconButtonCorner"
-    )
-
     IconButton(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
-        modifier = modifier
-            .clip(RoundedCornerShape(cornerRadius)),
+        onClick = onClick,
+        modifier = modifier,
         enabled = enabled,
         colors = colors,
+        shapes = IconButtonDefaults.shapes(
+            shape = RoundedCornerShape(18.dp),
+            pressedShape = RoundedCornerShape(12.dp)
+        ),
         interactionSource = interactionSource,
         content = content
     )
@@ -399,27 +285,15 @@ fun ExpressiveFilledTonalIconButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable () -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 10.dp else 24.dp,
-        animationSpec = spring(
-            dampingRatio = 0.52f,
-            stiffness = 380f
-        ),
-        label = "morphicFilledTonalIconButtonCorner"
-    )
-
     FilledTonalIconButton(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
+        onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        shape = RoundedCornerShape(cornerRadius),
         colors = colors,
+        shapes = IconButtonDefaults.shapes(
+            shape = RoundedCornerShape(18.dp),
+            pressedShape = RoundedCornerShape(12.dp)
+        ),
         interactionSource = interactionSource,
         content = content
     )
@@ -429,32 +303,17 @@ fun ExpressiveFilledTonalIconButton(
 fun ExpressiveFloatingActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    shape: androidx.compose.ui.graphics.Shape = FloatingActionButtonDefaults.shape,
+    shape: Shape = FloatingActionButtonDefaults.shape,
     containerColor: androidx.compose.ui.graphics.Color = FloatingActionButtonDefaults.containerColor,
     contentColor: androidx.compose.ui.graphics.Color = androidx.compose.material3.contentColorFor(containerColor),
-    elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
+    elevation: androidx.compose.material3.FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable () -> Unit
 ) {
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val haptic = LocalHapticFeedback.current
-
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isPressed) 8.dp else 16.dp,
-        animationSpec = spring(
-            dampingRatio = 0.52f,
-            stiffness = 380f
-        ),
-        label = "morphicFabCorner"
-    )
-
     FloatingActionButton(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onClick()
-        },
+        onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(cornerRadius),
+        shape = expressiveButtonShape(shape),
         containerColor = containerColor,
         contentColor = contentColor,
         elevation = elevation,
@@ -466,61 +325,36 @@ fun ExpressiveFloatingActionButton(
 @Composable
 fun rememberExpressiveMorphShape(
     defaultRadius: Dp = 18.dp,
-    pressedRadius: Dp = 8.dp,
+    pressedRadius: Dp = 12.dp,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
-): androidx.compose.ui.graphics.Shape {
+): Shape {
     val isPressed by interactionSource.collectIsPressedAsState()
     val radius by animateDpAsState(
         targetValue = if (isPressed) pressedRadius else defaultRadius,
-        animationSpec = spring(
-            dampingRatio = 0.52f,
-            stiffness = 380f
-        ),
+        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
         label = "expressiveMorphShape"
     )
     return RoundedCornerShape(radius)
 }
 
-/**
- * M3 Expressive Motion entrance animation for Modal Windows and Alerts.
- * Applies a bouncy scale pop, soft fade, and vertical spring slide.
- */
 @Composable
-fun Modifier.expressiveModalEntrance(): Modifier = composed {
-    var animateIn by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        animateIn = true
-    }
-
+fun Modifier.expressiveModalEntrance(): Modifier {
     val scale by animateFloatAsState(
-        targetValue = if (animateIn) 1f else 0.78f,
-        animationSpec = spring(
-            dampingRatio = 0.62f, // Bouncy M3 expressive spring
-            stiffness = 340f
-        ),
+        targetValue = 1f,
+        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
         label = "expressiveModalScale"
     )
-
     val alpha by animateFloatAsState(
-        targetValue = if (animateIn) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = 1.0f,
-            stiffness = 380f
-        ),
+        targetValue = 1f,
+        animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
         label = "expressiveModalAlpha"
     )
-
     val offsetY by animateDpAsState(
-        targetValue = if (animateIn) 0.dp else 28.dp,
-        animationSpec = spring(
-            dampingRatio = 0.68f,
-            stiffness = 360f
-        ),
+        targetValue = 0.dp,
+        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
         label = "expressiveModalOffsetY"
     )
-
-    this.graphicsLayer {
+    return graphicsLayer {
         scaleX = scale
         scaleY = scale
         this.alpha = alpha
@@ -528,84 +362,29 @@ fun Modifier.expressiveModalEntrance(): Modifier = composed {
     }
 }
 
-/**
- * Container wrapper for Modal Windows and Alerts with M3 Expressive entrance physics.
- */
 @Composable
 fun ExpressiveModalContainer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    Box(
+    androidx.compose.foundation.layout.Box(
         modifier = modifier.expressiveModalEntrance()
     ) {
         content()
     }
 }
 
-const val BOUNCY_DAMPING_RATIO = 0.58f
-const val BOUNCY_STIFFNESS = 320f
+const val BOUNCY_DAMPING_RATIO = 0.8f
+const val BOUNCY_STIFFNESS = 400f
 
 @Composable
 fun bouncyDialogEntrance(
     damping: Float = BOUNCY_DAMPING_RATIO,
     stiffness: Float = BOUNCY_STIFFNESS
-): Modifier {
-    var isVisible by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        isVisible = true
-    }
-    val scale by animateFloatAsState(
-        targetValue = if (isVisible) 1f else 0.7f,
-        animationSpec = spring(
-            dampingRatio = damping,
-            stiffness = stiffness
-        ),
-        label = "bouncyDialogScale"
-    )
-    val alpha by animateFloatAsState(
-        targetValue = if (isVisible) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "bouncyDialogAlpha"
-    )
-    return Modifier.graphicsLayer {
-        scaleX = scale
-        scaleY = scale
-        this.alpha = alpha
-    }
-}
+): Modifier = Modifier.expressiveModalEntrance()
 
 @Composable
 fun bouncySheetSlideUp(
     damping: Float = BOUNCY_DAMPING_RATIO,
     stiffness: Float = BOUNCY_STIFFNESS
-): Modifier {
-    var isVisible by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        isVisible = true
-    }
-    val offsetY by animateFloatAsState(
-        targetValue = if (isVisible) 0f else 400f,
-        animationSpec = spring(
-            dampingRatio = damping,
-            stiffness = stiffness
-        ),
-        label = "bouncySheetOffsetY"
-    )
-    val alpha by animateFloatAsState(
-        targetValue = if (isVisible) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "bouncySheetAlpha"
-    )
-    return Modifier.graphicsLayer {
-        translationY = offsetY
-        this.alpha = alpha
-    }
-}
-
+): Modifier = Modifier.expressiveModalEntrance()

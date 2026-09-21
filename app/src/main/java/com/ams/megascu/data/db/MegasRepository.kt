@@ -1,5 +1,6 @@
 package com.ams.megascu.data.db
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 import android.content.Context
@@ -12,6 +13,8 @@ import androidx.work.WorkManager
 import com.ams.megascu.data.ussd.ParsedPlanData
 import com.ams.megascu.data.ussd.SimOperatorUtils
 import com.ams.megascu.service.SyncWorker
+import com.ams.megascu.security.PinVault
+import com.ams.megascu.MegasApplication
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -103,7 +106,7 @@ class MegasRepository(
     private val _securityEnabled = MutableStateFlow(prefs.getBoolean("pref_security_enabled", false))
     val securityEnabled: StateFlow<Boolean> = _securityEnabled
 
-    private val _securityPin = MutableStateFlow(prefs.getString("pref_security_pin", "") ?: "")
+    private val _securityPin = MutableStateFlow(PinVault.migrateLegacyPin(context, prefs))
     val securityPin: StateFlow<String> = _securityPin
 
     private val _biometricsEnabled = MutableStateFlow(prefs.getBoolean("pref_biometrics_enabled", false))
@@ -134,8 +137,8 @@ class MegasRepository(
     }
 
     fun setSecurityPin(pin: String) {
-        prefs.edit().putString("pref_security_pin", pin).apply()
-        _securityPin.value = pin
+        PinVault.setPin(context, pin)
+        _securityPin.value = PinVault.getStoredPin(context)
     }
 
     fun setBiometricsEnabled(enabled: Boolean) {
@@ -211,11 +214,12 @@ class MegasRepository(
 
     init {
         scheduleSyncWorker(_syncIntervalHours.value)
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        val appScope = (context.applicationContext as MegasApplication).appScope
+        appScope.launch(Dispatchers.IO) {
             try {
                 checkAndUpdateMidnightDays()
             } catch (e: Exception) {
-                // Silencioso si la BD se cierra durante el ciclo de vida o tests
+                android.util.Log.w("MegasRepository", "Midnight day refresh failed", e)
             }
         }
     }
@@ -272,6 +276,7 @@ class MegasRepository(
 
     fun resetAllSettings() {
         prefs.edit().clear().apply()
+        PinVault.setPin(context, "")
         _onboardingComplete.value = false
         _securityEnabled.value = false
         _securityPin.value = ""
@@ -408,7 +413,7 @@ class MegasRepository(
                 syncRequest
             )
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
     }
 
@@ -482,7 +487,7 @@ class MegasRepository(
             nextRechargeDateStr = newNextRecharge,
             nextRechargeDays = newNextRechargeDays,
             lastUpdatedTimestamp = now,
-            rawLastResponse = rawResponse
+            rawLastResponse = ""
         )
         planDao.insertOrUpdatePlanStatus(updatedEntity)
 
@@ -503,7 +508,7 @@ class MegasRepository(
             com.ams.megascu.widget.MegasWidgetProvider.updateAllWidgets(context)
             com.ams.megascu.service.DailyLimitAlertManager.checkAndNotify(context)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
     }
 
@@ -526,7 +531,7 @@ class MegasRepository(
         val currentStatus = planDao.getPlanStatusDirect(simSlot)
         if (currentStatus != null) {
             val updatedEntity = currentStatus.copy(
-                rawLastResponse = messageBody
+                rawLastResponse = ""
             )
             planDao.insertOrUpdatePlanStatus(updatedEntity)
         }

@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -182,6 +183,51 @@ fun AnimatedAnnotatedText(
             softWrap = false,
             modifier = modifier
         )
+    }
+}
+
+@Composable
+fun ExpressiveDaysChip(
+    days: Int,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+    suffix: String = "d"
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(6.dp),
+        color = containerColor,
+        contentColor = contentColor
+    ) {
+        Text(
+            text = "$days$suffix",
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = 10.5.sp,
+                fontFamily = FontFamily.Monospace
+            ),
+            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.5.dp),
+            maxLines = 1,
+            softWrap = false
+        )
+    }
+}
+
+private fun getDaysBadgeColors(
+    days: Int,
+    isDark: Boolean,
+    defaultBg: Color,
+    defaultText: Color
+): Pair<Color, Color> {
+    return when {
+        days <= 0 -> {
+            (if (isDark) Color(0x33FF8A80) else Color(0x22B91C1C)) to (if (isDark) Color(0xFFFF8A80) else Color(0xFFB91C1C))
+        }
+        days in 1..3 -> {
+            (if (isDark) Color(0x33FFD54F) else Color(0x24B45309)) to (if (isDark) Color(0xFFFFD54F) else Color(0xFFB45309))
+        }
+        else -> defaultBg to defaultText
     }
 }
 
@@ -343,25 +389,11 @@ fun PriorityStatusCard(
 
                                 if ((planStatus?.dataDays ?: 0) > 0) {
                                     Spacer(modifier = Modifier.width(if (isNarrowOrLargeFont) 4.dp else 6.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(daysBadgeBg)
-                                            .padding(
-                                                horizontal = if (isNarrowOrLargeFont) 4.dp else 6.dp,
-                                                vertical = if (isNarrowOrLargeFont) 1.5.dp else 2.dp
-                                            )
-                                    ) {
-                                        Text(
-                                            text = "${planStatus?.dataDays}d",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                color = daysBadgeText,
-                                                fontSize = if (isNarrowOrLargeFont) 9.5.sp else 11.sp,
-                                                fontWeight = FontWeight.Bold
-                                            ),
-                                            maxLines = 1
-                                        )
-                                    }
+                                    ExpressiveDaysChip(
+                                        days = planStatus?.dataDays ?: 0,
+                                        containerColor = daysBadgeBg,
+                                        contentColor = daysBadgeText
+                                    )
                                 }
                             }
                         }
@@ -436,22 +468,11 @@ fun PriorityStatusCard(
 
                                     if ((planStatus?.dataDays ?: 0) > 0 && bonusMb > 0) {
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(badgeBgColor)
-                                                .padding(horizontal = 4.dp, vertical = 1.dp)
-                                        ) {
-                                            Text(
-                                                text = "${planStatus?.dataDays}d",
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    color = contentColor,
-                                                    fontSize = 9.5.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                maxLines = 1
-                                            )
-                                        }
+                                        ExpressiveDaysChip(
+                                            days = planStatus?.dataDays ?: 0,
+                                            containerColor = daysBadgeBg,
+                                            contentColor = daysBadgeText
+                                        )
                                     }
                                 }
                             }
@@ -523,25 +544,11 @@ fun PriorityStatusCard(
 
                                     if ((planStatus?.dataDays ?: 0) > 0) {
                                         Spacer(modifier = Modifier.width(if (isNarrowOrLargeFont) 3.dp else 4.dp))
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(daysBadgeBg)
-                                                .padding(
-                                                    horizontal = if (isNarrowOrLargeFont) 3.dp else 4.dp,
-                                                    vertical = 1.dp
-                                                )
-                                        ) {
-                                            Text(
-                                                text = "${planStatus?.dataDays}d",
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    color = daysBadgeText,
-                                                    fontSize = if (isNarrowOrLargeFont) 8.5.sp else 9.5.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                maxLines = 1
-                                            )
-                                        }
+                                        ExpressiveDaysChip(
+                                            days = planStatus?.dataDays ?: 0,
+                                            containerColor = daysBadgeBg,
+                                            contentColor = daysBadgeText
+                                        )
                                     }
                                 }
                             }
@@ -581,25 +588,11 @@ fun PriorityStatusCard(
 
                                     if ((planStatus?.dataDays ?: 0) > 0 && bonusMb > 0) {
                                         Spacer(modifier = Modifier.width(if (isNarrowOrLargeFont) 3.dp else 4.dp))
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(daysBadgeBg)
-                                                .padding(
-                                                    horizontal = if (isNarrowOrLargeFont) 3.dp else 4.dp,
-                                                    vertical = 1.dp
-                                                )
-                                        ) {
-                                            Text(
-                                                text = "${planStatus?.dataDays}d",
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    color = daysBadgeText,
-                                                    fontSize = if (isNarrowOrLargeFont) 8.5.sp else 9.5.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                maxLines = 1
-                                            )
-                                        }
+                                        ExpressiveDaysChip(
+                                            days = planStatus?.dataDays ?: 0,
+                                            containerColor = daysBadgeBg,
+                                            contentColor = daysBadgeText
+                                        )
                                     }
                                 }
                             }
@@ -651,24 +644,15 @@ fun PriorityStatusCard(
                                     modifier = Modifier.weight(1f, fill = false)
                                 )
 
-                                if ((planStatus?.minutesDays ?: 0) > 0) {
+                                val minDays = planStatus?.minutesDays ?: 0
+                                if (minDays > 0) {
+                                    val (minBadgeBg, minBadgeText) = getDaysBadgeColors(minDays, isDark, badgeBgColor, contentColor)
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(badgeBgColor)
-                                            .padding(horizontal = 4.dp, vertical = 1.dp)
-                                    ) {
-                                        Text(
-                                            text = "${planStatus?.minutesDays}d",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                color = contentColor,
-                                                fontSize = 9.5.sp,
-                                                fontWeight = FontWeight.Bold
-                                            ),
-                                            maxLines = 1
-                                        )
-                                    }
+                                    ExpressiveDaysChip(
+                                        days = minDays,
+                                        containerColor = minBadgeBg,
+                                        contentColor = minBadgeText
+                                    )
                                 }
                             }
                         }
@@ -711,24 +695,15 @@ fun PriorityStatusCard(
                                     modifier = Modifier.weight(1f, fill = false)
                                 )
 
-                                if ((planStatus?.smsDays ?: 0) > 0) {
+                                val smsDays = planStatus?.smsDays ?: 0
+                                if (smsDays > 0) {
+                                    val (smsBadgeBg, smsBadgeText) = getDaysBadgeColors(smsDays, isDark, badgeBgColor, contentColor)
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(badgeBgColor)
-                                            .padding(horizontal = 4.dp, vertical = 1.dp)
-                                    ) {
-                                        Text(
-                                            text = "${planStatus?.smsDays}d",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                color = contentColor,
-                                                fontSize = 9.5.sp,
-                                                fontWeight = FontWeight.Bold
-                                            ),
-                                            maxLines = 1
-                                        )
-                                    }
+                                    ExpressiveDaysChip(
+                                        days = smsDays,
+                                        containerColor = smsBadgeBg,
+                                        contentColor = smsBadgeText
+                                    )
                                 }
                             }
                         }
@@ -757,26 +732,14 @@ fun PriorityStatusCard(
                                 )
                             )
 
-                            if ((planStatus?.nextRechargeDays ?: 0) > 0) {
+                            val rechargeDays = planStatus?.nextRechargeDays ?: 0
+                            if (rechargeDays > 0) {
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(badgeBgColor)
-                                        .padding(horizontal = 4.dp, vertical = 1.dp)
-                                ) {
-                                    val days = planStatus?.nextRechargeDays ?: 0
-                                    val textDays = if (days == 1) "1d" else "${days}d"
-                                    Text(
-                                        text = textDays,
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            color = contentColor,
-                                            fontSize = 9.5.sp,
-                                            fontWeight = FontWeight.Bold
-                                        ),
-                                        maxLines = 1
-                                    )
-                                }
+                                ExpressiveDaysChip(
+                                    days = rechargeDays,
+                                    containerColor = badgeBgColor,
+                                    contentColor = contentColor
+                                )
                             }
                         }
                     }
@@ -1047,25 +1010,11 @@ fun SimplePriorityStatusCard(
 
                             val dataDays = planStatus?.dataDays ?: 0
                             if (dataDays > 0) {
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = daysBadgeBg
-                                ) {
-                                    Text(
-                                        text = "${dataDays}d",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = if (isNarrowOrLargeFont) 10.5.sp else 12.sp
-                                        ),
-                                        color = daysBadgeText,
-                                        modifier = Modifier.padding(
-                                            horizontal = if (isNarrowOrLargeFont) 6.dp else 8.dp,
-                                            vertical = 2.dp
-                                        ),
-                                        maxLines = 1,
-                                        softWrap = false
-                                    )
-                                }
+                                ExpressiveDaysChip(
+                                    days = dataDays,
+                                    containerColor = daysBadgeBg,
+                                    contentColor = daysBadgeText
+                                )
                             }
                         }
 
@@ -1189,22 +1138,12 @@ fun SimplePriorityStatusCard(
                             }
                             val minutesDays = planStatus?.minutesDays ?: 0
                             if (minutesDays > 0) {
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = badgeBgColor
-                                ) {
-                                    Text(
-                                        text = "${minutesDays}d",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 11.sp
-                                        ),
-                                        color = contentColor,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        maxLines = 1,
-                                        softWrap = false
-                                    )
-                                }
+                                val (minBadgeBg, minBadgeText) = getDaysBadgeColors(minutesDays, isDark, badgeBgColor, contentColor)
+                                ExpressiveDaysChip(
+                                    days = minutesDays,
+                                    containerColor = minBadgeBg,
+                                    contentColor = minBadgeText
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -1257,22 +1196,12 @@ fun SimplePriorityStatusCard(
                             }
                             val smsDays = planStatus?.smsDays ?: 0
                             if (smsDays > 0) {
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = badgeBgColor
-                                ) {
-                                    Text(
-                                        text = "${smsDays}d",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 11.sp
-                                        ),
-                                        color = contentColor,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        maxLines = 1,
-                                        softWrap = false
-                                    )
-                                }
+                                val (smsBadgeBg, smsBadgeText) = getDaysBadgeColors(smsDays, isDark, badgeBgColor, contentColor)
+                                ExpressiveDaysChip(
+                                    days = smsDays,
+                                    containerColor = smsBadgeBg,
+                                    contentColor = smsBadgeText
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))

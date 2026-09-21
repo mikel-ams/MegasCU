@@ -23,7 +23,7 @@ object PermissionUtils {
                 Manifest.permission.READ_PHONE_STATE
             ) == PackageManager.PERMISSION_GRANTED
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
             false
         }
     }
@@ -38,7 +38,7 @@ object PermissionUtils {
                 Manifest.permission.CALL_PHONE
             ) == PackageManager.PERMISSION_GRANTED
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
             false
         }
     }
@@ -54,7 +54,7 @@ object PermissionUtils {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
                 false
             }
         } else {
@@ -86,7 +86,7 @@ object PermissionUtils {
             }
             mode == AppOpsManager.MODE_ALLOWED
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
             false
         }
     }
@@ -104,7 +104,7 @@ object PermissionUtils {
             }
             context.startActivity(intent)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
     }
 
@@ -129,7 +129,7 @@ object PermissionUtils {
                 context.startActivity(intentDirect)
                 return
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
             }
         }
 
@@ -141,7 +141,7 @@ object PermissionUtils {
             context.startActivity(intentGeneral)
             return
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
 
         // Intento 3: Ajustes generales del sistema como último fallback absoluto
@@ -151,7 +151,7 @@ object PermissionUtils {
             }
             context.startActivity(intentSettings)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
     }
 
@@ -164,7 +164,7 @@ object PermissionUtils {
             try {
                 context.packageManager.canRequestPackageInstalls()
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
                 false
             }
         } else {
@@ -186,7 +186,7 @@ object PermissionUtils {
                 context.startActivity(intent)
                 return
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
             }
 
             try {
@@ -196,7 +196,7 @@ object PermissionUtils {
                 context.startActivity(intentGeneral)
                 return
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
             }
         }
 

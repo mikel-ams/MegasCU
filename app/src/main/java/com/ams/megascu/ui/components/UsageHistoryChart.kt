@@ -81,7 +81,7 @@ fun UsageHistoryChart(
                         systemDailyTrends = trends
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    android.util.Log.e("MegasCU", "Unhandled exception", e)
                 }
             }
         } else {
@@ -260,7 +260,7 @@ fun TasaConsumoCard(
                         realDataUsedToday = used
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    android.util.Log.e("MegasCU", "Unhandled exception", e)
                 }
             }
         } else {
@@ -586,7 +586,8 @@ fun TasaConsumoCard(
                             .height(8.dp)
                             .clip(RoundedCornerShape(4.dp)),
                         color = barColor,
-                        trackColor = onContainerColor.copy(alpha = 0.15f)
+                        trackColor = onContainerColor.copy(alpha = 0.15f),
+                        drawStopIndicator = {}
                     )
                 }
             }
@@ -1311,16 +1312,16 @@ fun getMobileDataUsageToday(context: Context, subscriptionId: Int? = null): Long
         val bucket = networkStatsManager.querySummaryForDevice(ConnectivityManager.TYPE_MOBILE, subscriberId, startTime, endTime)
         bucket.rxBytes + bucket.txBytes
     } catch (e: SecurityException) {
-        e.printStackTrace()
+        android.util.Log.e("MegasCU", "Unhandled exception", e)
         0L
     } catch (e: IllegalStateException) {
-        e.printStackTrace()
+        android.util.Log.e("MegasCU", "Unhandled exception", e)
         0L
     } catch (e: NullPointerException) {
-        e.printStackTrace()
+        android.util.Log.e("MegasCU", "Unhandled exception", e)
         0L
     } catch (e: Exception) {
-        e.printStackTrace()
+        android.util.Log.e("MegasCU", "Unhandled exception", e)
         0L
     }
 }
@@ -1375,11 +1376,11 @@ fun getDailyMobileDataUsageLast7Days(context: Context, subscriptionId: Int? = nu
             results.add(dateLabel to gbUsed)
         }
     } catch (e: SecurityException) {
-        e.printStackTrace()
+        android.util.Log.e("MegasCU", "Unhandled exception", e)
     } catch (e: IllegalStateException) {
-        e.printStackTrace()
+        android.util.Log.e("MegasCU", "Unhandled exception", e)
     } catch (e: Exception) {
-        e.printStackTrace()
+        android.util.Log.e("MegasCU", "Unhandled exception", e)
     }
 
     return results

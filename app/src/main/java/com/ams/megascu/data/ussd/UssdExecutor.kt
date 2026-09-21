@@ -12,6 +12,7 @@ import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import com.ams.megascu.utils.PermissionUtils
+import com.ams.megascu.MegasApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,7 +52,7 @@ interface UssdCallback {
 class UssdExecutor(private val context: Context) {
 
     private val timeoutMs = 10000L // 10 seconds timeout
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val appScope: CoroutineScope = (context.applicationContext as MegasApplication).appScope
 
     companion object {
         // Mutex to strictly serialize modem radio access across coroutines and threads
@@ -116,12 +117,13 @@ class UssdExecutor(private val context: Context) {
                 cleanCode.all { it.isDigit() || it == '*' || it == '#' }
         if (!isValidSyntax) return
 
-        if (isEmulator()) {
+        val isRobolectricTest = android.os.Build.FINGERPRINT?.lowercase()?.contains("robolectric") == true
+        if (isEmulator() && !isRobolectricTest) {
             val simResponse = simulateUssdResponse(cleanCode)
             android.os.Handler(android.os.Looper.getMainLooper()).post {
                 android.widget.Toast.makeText(context, "Simulación Compra (SIM $simSlot):\n$simResponse", android.widget.Toast.LENGTH_LONG).show()
             }
-            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            appScope.launch(Dispatchers.IO) {
                 try {
                     val db = com.ams.megascu.data.db.MegasDatabase.getDatabase(context)
                     val subId = SimOperatorUtils.getSubscriptionIdForSlot(context, simSlot)
@@ -129,9 +131,10 @@ class UssdExecutor(private val context: Context) {
                     val updated = applySimulatedPurchaseToEntity(current, cleanCode)
                     db.planDao().insertOrUpdatePlanStatus(updated)
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    android.util.Log.e("MegasCU", "Unhandled exception", e)
                 }
             }
+            return
         }
 
         dialUssdCode(cleanCode, simSlot, forceDialer = true)
@@ -500,7 +503,7 @@ class UssdExecutor(private val context: Context) {
         allowDialFallback: Boolean = false,
         callback: UssdCallback
     ) {
-        CoroutineScope(Dispatchers.Main).launch {
+        appScope.launch(Dispatchers.Main) {
             when (val result = executeUssdSuspend(ussdCode, simSlot, allowDialFallback)) {
                 is UssdResult.Success -> callback.onSuccess(result.response)
                 is UssdResult.Error -> {
@@ -519,7 +522,7 @@ class UssdExecutor(private val context: Context) {
         telephonyManager: TelephonyManager,
         simDetails: SimOperatorDetails
     ): Boolean {
-        val simOpCode = (telephonyManager.simOperator ?: telephonyManager.networkOperator ?: "").trim()
+        val simOpCode = telephonyManager.simOperator.trim()
         if (simOpCode.isNotBlank() && !simOpCode.startsWith("368")) {
             return true
         }
@@ -606,7 +609,7 @@ class UssdExecutor(private val context: Context) {
             }
             context.startActivity(viewIntent)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
     }
 

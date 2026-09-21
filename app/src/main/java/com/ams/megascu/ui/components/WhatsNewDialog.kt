@@ -32,10 +32,12 @@ fun WhatsNewDialog(
     onDismiss: () -> Unit,
     onViewFullChangelog: () -> Unit
 ) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val latestChangelog = remember {
-        ChangelogRepository.changelogList.firstOrNull { it.isLatest }
-            ?: ChangelogRepository.changelogList.firstOrNull()
+    val changelogList = remember(context) { ChangelogRepository.getChangelogList(context) }
+    val latestChangelog = remember(changelogList) {
+        changelogList.firstOrNull { it.isLatest }
+            ?: changelogList.firstOrNull()
     }
 
     Dialog(
@@ -173,32 +175,32 @@ fun WhatsNewDialog(
                             if (latestChangelog != null && latestChangelog.sections.isNotEmpty()) {
                                 latestChangelog.sections.forEach { section ->
                                     val (catColor, catBgColor, catIcon) = when (section.category) {
-                                        ChangeCategory.ADDED -> Triple(
+                                        ChangeCategory.ADDED -> Triple<Color, Color, ImageVector>(
                                             Color(0xFF2E7D32),
                                             Color(0xFFE8F5E9),
                                             Icons.Rounded.AddCircleOutline
                                         )
-                                        ChangeCategory.CHANGED -> Triple(
+                                        ChangeCategory.CHANGED -> Triple<Color, Color, ImageVector>(
                                             Color(0xFFE65100),
                                             Color(0xFFFFF3E0),
                                             Icons.Rounded.ChangeCircle
                                         )
-                                        ChangeCategory.FIXED -> Triple(
+                                        ChangeCategory.FIXED -> Triple<Color, Color, ImageVector>(
                                             Color(0xFF1565C0),
                                             Color(0xFFE3F2FD),
                                             Icons.Rounded.CheckCircleOutline
                                         )
-                                        ChangeCategory.SECURITY -> Triple(
+                                        ChangeCategory.SECURITY -> Triple<Color, Color, ImageVector>(
                                             Color(0xFF6A1B9A),
                                             Color(0xFFF3E5F5),
                                             Icons.Rounded.Security
                                         )
-                                        ChangeCategory.DEPRECATED -> Triple(
+                                        ChangeCategory.DEPRECATED -> Triple<Color, Color, ImageVector>(
                                             Color(0xFFC2185B),
                                             Color(0xFFFCE4EC),
                                             Icons.Rounded.WarningAmber
                                         )
-                                        ChangeCategory.REMOVED -> Triple(
+                                        ChangeCategory.REMOVED -> Triple<Color, Color, ImageVector>(
                                             Color(0xFFC62828),
                                             Color(0xFFFFEBEE),
                                             Icons.Rounded.RemoveCircleOutline
@@ -249,7 +251,12 @@ fun WhatsNewDialog(
                                                     modifier = Modifier.padding(end = 6.dp)
                                                 )
                                                 Text(
-                                                    text = item,
+                                                    text = parseMarkdownInline(
+                                                        text = item,
+                                                        primaryColor = MaterialTheme.colorScheme.primary,
+                                                        codeBgColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f),
+                                                        codeTextColor = MaterialTheme.colorScheme.primary
+                                                    ),
                                                     style = MaterialTheme.typography.bodySmall.copy(
                                                         lineHeight = 17.sp,
                                                         fontSize = 12.sp

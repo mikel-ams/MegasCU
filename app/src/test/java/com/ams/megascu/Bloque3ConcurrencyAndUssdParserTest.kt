@@ -63,6 +63,50 @@ class Bloque3ConcurrencyAndUssdParserTest {
     }
 
     @Test
+    fun testParseUssdResponse_neverUsesPackagePriceAsBalance() {
+        val parsed = EtecsaUssdParser.parseUssdResponse(
+            "Paquete 300 CUP: 4 GB LTE. Saldo: 25.00 CUP",
+            "*222#"
+        )
+        assertEquals(25.0, parsed.balanceCup ?: 0.0, 0.001)
+    }
+
+    @Test
+    fun testParseUssdResponse_avoidsMinuteAndSmsFalsePositives() {
+        val minutes = EtecsaUssdParser.parseUssdResponse(
+            "Adelanto 100 minimo. Dispone de 45 minutos.",
+            "*222*869#"
+        )
+        assertEquals("45", minutes.minutesStr)
+
+        val sms = EtecsaUssdParser.parseUssdResponse(
+            "Recibirá 2 mensajes de confirmación. Paquete vigente: 100 SMS.",
+            "*222*767#"
+        )
+        assertEquals(100, sms.sms)
+    }
+
+    @Test
+    fun testParseUssdResponse_associatesDaysWithTheCorrectSection() {
+        val parsed = EtecsaUssdParser.parseUssdResponse(
+            "Datos: 4 GB, vence en 30 días. Bono: 500 MB, 5 días",
+            "*222*328#"
+        )
+        assertEquals(4096L, parsed.dataMb)
+        assertEquals(500L, parsed.bonusMb)
+        assertEquals(30, parsed.dataDays)
+    }
+
+    @Test
+    fun testParseUssdResponse_roundsFractionalMegabytes() {
+        val parsed = EtecsaUssdParser.parseUssdResponse(
+            "Dispone de 0.5 MB.",
+            "*222*328#"
+        )
+        assertEquals(1L, parsed.dataMb)
+    }
+
+    @Test
     fun testParseUssdResponse_dataMbAndGbConversions() {
         val respGb = "Usted dispone de 1.5 GB de datos y 2.0 GB LTE. Vence en 30 dias."
         val parsedGb = EtecsaUssdParser.parseUssdResponse(respGb, "*222*328#")

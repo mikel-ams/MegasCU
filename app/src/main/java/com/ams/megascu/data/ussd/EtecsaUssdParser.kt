@@ -4,6 +4,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.regex.Pattern
+import kotlin.math.abs
+import kotlin.math.roundToLong
 
 data class ParsedPlanData(
     val balanceCup: Double? = null,
@@ -23,22 +25,27 @@ data class ParsedPlanData(
 object EtecsaUssdParser {
 
     private val GENERAL_DATE_REGEX = Pattern.compile(
-        "(\\d{2}[-/.][\\d]{2}[-/.][\\d]{2,4})",
+        """\b(\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4})\b""",
         Pattern.CASE_INSENSITIVE
     )
-    
+
     private val MINUTES_REGEX = Pattern.compile(
-        "([0-9:]+)\\s*(?:MIN|minutos?|mins?\\.?|min\\.?)",
+        """\b(\d{1,4}(?::\d{2})?)\s*(?:minutos?|mins?|min)\b""",
         Pattern.CASE_INSENSITIVE
     )
-    
+
     private val SMS_REGEX = Pattern.compile(
-        "([0-9]+)\\s*(?:SMS|sms|mensajes?|msgs?\\.?)",
+        """\b(\d{1,5})\s*(?:sms|mensajes?)\b(?!\s+de\s+confirm)""",
         Pattern.CASE_INSENSITIVE
     )
 
     private val CUP_BALANCE_REGEX = Pattern.compile(
-        "(?:(?:Su\\s+)?Saldo(?:\\s+principal|\\s+actual|\\s+disponible)?|CUP|saldo)(?:\\s+(?:es\\s+de|es))?[:\\s]*([0-9]+(?:[.,][0-9]+)?)\\s*(?:CUP)?",
+        """(?:su\s+)?saldo(?:\s+(?:principal|actual|disponible))?(?:\s+(?:es\s+de|es))?\s*[:=]?\s*(\d+(?:[.,]\d+)?)\s*(?:CUP\b)?""",
+        Pattern.CASE_INSENSITIVE
+    )
+
+    private val CUP_PREFIX_BALANCE_REGEX = Pattern.compile(
+        """(?:^|\bCUP)\s*[:=]\s*(\d+(?:[.,]\d+)?)\s*CUP\b""",
         Pattern.CASE_INSENSITIVE
     )
 
@@ -69,6 +76,11 @@ object EtecsaUssdParser {
         val balanceMatcher = CUP_BALANCE_REGEX.matcher(response)
         if (balanceMatcher.find()) {
             balance = balanceMatcher.group(1)?.replace(',', '.')?.toDoubleOrNull()
+        } else {
+            val cupPrefixMatcher = CUP_PREFIX_BALANCE_REGEX.matcher(response)
+            if (cupPrefixMatcher.find()) {
+                balance = cupPrefixMatcher.group(1)?.replace(',', '.')?.toDoubleOrNull()
+            }
         }
         
         val minutesMatcher = MINUTES_REGEX.matcher(response)
@@ -86,7 +98,7 @@ object EtecsaUssdParser {
             val amountStr = dataMatcher.group(1) ?: continue
             val unit = dataMatcher.group(2)?.uppercase() ?: "MB"
             val rawValue = amountStr.replace(',', '.').toDoubleOrNull() ?: continue
-            val mbValue = if (unit == "GB") (rawValue * 1024).toLong() else rawValue.toLong()
+            val mbValue = if (unit == "GB") (rawValue * 1024.0).toLong() else rawValue.roundToLong()
             
             val matchStart = dataMatcher.start()
             val matchEnd = dataMatcher.end()
@@ -109,43 +121,40 @@ object EtecsaUssdParser {
             }
         }
         
-        val daysMatcher = DAYS_REGEX.matcher(response)
-        val extractedDays = if (daysMatcher.find()) daysMatcher.group(1)?.toIntOrNull() else null
-
         val genDateMatcher = GENERAL_DATE_REGEX.matcher(response)
         val extractedDate = if (genDateMatcher.find()) genDateMatcher.group(1) else null
 
+        val dayMatcher = DAYS_REGEX.matcher(response)
+        var firstDays: Int? = null
+        if (dayMatcher.find()) {
+            firstDays = dayMatcher.group(1)?.toIntOrNull()
+        }
+
         when (ussdCode) {
             "*222*869#" -> {
-                minutesDays = extractedDays
-                if (minutesStr == null) minutesStr = "0"
+                minutesDays = firstDays ?: extractDaysForKeywordSection(response, "min(?:utos)?")
             }
             "*222*767#" -> {
-                smsDays = extractedDays
-                if (sms == null) sms = 0
+                smsDays = firstDays ?: extractDaysForKeywordSection(response, "sms|mensajes")
             }
             "*222*328#" -> {
-                dataDays = extractedDays
-                if (dataMb == null) dataMb = 0L
-                if (dataLteMb == null) dataLteMb = 0L
+                dataDays = firstDays ?: extractDaysForDataSection(response)
             }
             "*222*266#" -> {
-                bonusDays = extractedDays
-                if (bonusMb == null) bonusMb = 0L
+                bonusDays = firstDays ?: extractDaysForKeywordSection(response, "bono|bonus")
             }
             "*222*732#" -> {
                 if (extractedDate != null) {
                     val (effectiveDateStr, daysRem) = calculateRechargeAvailability(extractedDate)
                     nextRechargeDateStr = effectiveDateStr
-                    if (daysRem != null) {
-                        nextRechargeDays = daysRem.toInt()
-                    }
+                    if (daysRem != null) nextRechargeDays = daysRem.toInt()
                 }
             }
-        }
-
-        if (dataDays == null && extractedDays != null && ussdCode != "*222*869#" && ussdCode != "*222*767#" && ussdCode != "*222*266#") {
-            dataDays = extractedDays
+            else -> {
+                if (dataDays == null && (dataMb != null || dataLteMb != null || response.contains("datos", ignoreCase = true) || response.contains("paquete", ignoreCase = true) || response.contains("vence", ignoreCase = true))) {
+                    dataDays = firstDays
+                }
+            }
         }
 
         return ParsedPlanData(
@@ -164,6 +173,60 @@ object EtecsaUssdParser {
         )
     }
 
+    private fun extractDaysForKeywordSection(response: String, keywordRegex: String): Int? {
+        val keywordMatcher = Pattern.compile(keywordRegex, Pattern.CASE_INSENSITIVE).matcher(response)
+        var bestDistance = Int.MAX_VALUE
+        var bestDays: Int? = null
+        while (keywordMatcher.find()) {
+            val segment = sentenceSegment(response, keywordMatcher.start())
+            val dayMatcher = DAYS_REGEX.matcher(segment.text)
+            while (dayMatcher.find()) {
+                val days = dayMatcher.group(1)?.toIntOrNull() ?: continue
+                val absoluteDayPosition = segment.start + dayMatcher.start()
+                val distance = abs(absoluteDayPosition - keywordMatcher.start())
+                if (distance < bestDistance) {
+                    bestDistance = distance
+                    bestDays = days
+                }
+            }
+        }
+        return bestDays
+    }
+
+    private fun extractDaysForDataSection(response: String): Int? {
+        val matcher = DATA_MB_REGEX.matcher(response)
+        var bestDistance = Int.MAX_VALUE
+        var bestDays: Int? = null
+        while (matcher.find()) {
+            val segment = sentenceSegment(response, matcher.start())
+            val lower = segment.text.lowercase()
+            if (Regex("""\b(bono|bonus)\b""", RegexOption.IGNORE_CASE).containsMatchIn(lower)) continue
+
+            val dayMatcher = DAYS_REGEX.matcher(segment.text)
+            while (dayMatcher.find()) {
+                val days = dayMatcher.group(1)?.toIntOrNull() ?: continue
+                val absoluteDayPosition = segment.start + dayMatcher.start()
+                val distance = abs(absoluteDayPosition - matcher.start())
+                if (distance < bestDistance) {
+                    bestDistance = distance
+                    bestDays = days
+                }
+            }
+        }
+        return bestDays
+    }
+
+    private data class TextSegment(val start: Int, val text: String)
+
+    private fun sentenceSegment(response: String, anchor: Int): TextSegment {
+        val delimiters = setOf('.', '!', '?', ';', '\n', '\r')
+        var start = anchor
+        while (start > 0 && response[start - 1] !in delimiters) start--
+        var end = anchor
+        while (end < response.length && response[end] !in delimiters) end++
+        return TextSegment(start, response.substring(start, end))
+    }
+
     fun calculateRechargeAvailability(dateStr: String?): Pair<String, Long?> {
         if (dateStr.isNullOrBlank()) {
             return Pair("", null)
@@ -179,6 +242,7 @@ object EtecsaUssdParser {
             if (year < 100) {
                 year += 2000
             }
+            if (day !in 1..31 || month !in 1..12) return Pair(dateStr, null)
             val originalDate = LocalDate.of(year, month, day)
             // ETECSA message specifies recharge can be done after the indicated date (+1 day)
             val allowedRechargeDate = originalDate.plusDays(1)

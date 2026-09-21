@@ -187,6 +187,8 @@ fun PlanesBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 680.dp)
+                .align(Alignment.CenterHorizontally)
                 .navigationBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
                 .testTag("planes_bottom_sheet")

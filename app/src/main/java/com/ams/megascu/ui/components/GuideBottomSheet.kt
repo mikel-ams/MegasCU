@@ -71,6 +71,8 @@ fun GuideBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 680.dp)
+                .align(Alignment.CenterHorizontally)
                 .navigationBarsPadding()
         ) {
             Row(

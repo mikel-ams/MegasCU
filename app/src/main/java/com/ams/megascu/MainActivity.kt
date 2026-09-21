@@ -815,10 +815,16 @@ fun MegasMainApp(
                 },
                 containerColor = MaterialTheme.colorScheme.background
             ) { innerPadding ->
-                Column(
-                    modifier = Modifier.fillMaxSize()
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    if (isSimpleMode) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .widthIn(max = 680.dp)
+                    ) {
+                        if (isSimpleMode) {
                         // MODO SIMPLE: Solo bloque principal con tipografía grande y sin distracciones
                         Column(
                             modifier = Modifier
@@ -999,6 +1005,7 @@ fun MegasMainApp(
                             )
                         }
                     }
+                }
                 }
             }
         }

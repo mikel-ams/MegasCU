@@ -359,7 +359,7 @@ object SimOperatorUtils {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
 
         return false
@@ -375,7 +375,7 @@ object SimOperatorUtils {
                 return activeList.size
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
         return 1
     }

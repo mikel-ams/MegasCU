@@ -35,7 +35,7 @@ class EtecsaMonitoringService : Service() {
             if (simSlot == 1) {
                 try {
                     stopForeground(STOP_FOREGROUND_REMOVE)
-                } catch (_: Exception) {}
+                } catch (e: Exception) { android.util.Log.w("EtecsaMonitoringService", "No se pudo detener foreground service", e) }
                 stopSelf()
             }
             return START_NOT_STICKY
@@ -187,7 +187,7 @@ class EtecsaMonitoringService : Service() {
                     val notificationId = getNotificationId(simSlot, subscriptionId)
                     notificationManager?.notify(notificationId, notification)
                 } catch (ne: Exception) {
-                    ne.printStackTrace()
+                    android.util.Log.e("MegasCU", "Unhandled exception", ne)
                 }
             }
         }
@@ -209,7 +209,7 @@ class EtecsaMonitoringService : Service() {
                     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
                     notificationManager?.cancel(notificationId)
                 } catch (ne: Exception) {
-                    ne.printStackTrace()
+                    android.util.Log.e("MegasCU", "Unhandled exception", ne)
                 }
             }
         }
