@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [PlanStatusEntity::class, SmsLogEntity::class, UsageHistoryEntity::class], version = 7, exportSchema = false)
+@Database(entities = [PlanStatusEntity::class, SmsLogEntity::class, UsageHistoryEntity::class], version = 8, exportSchema = true)
 abstract class MegasDatabase : RoomDatabase() {
     abstract fun planDao(): PlanDao
     abstract fun smsLogDao(): SmsLogDao
@@ -38,18 +38,23 @@ abstract class MegasDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Retain parsed values while erasing previously stored raw USSD responses.
+                db.execSQL("UPDATE plan_status SET rawLastResponse = ''")
+            }
+        }
+
         fun getDatabase(context: Context): MegasDatabase {
             return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
+                INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     MegasDatabase::class.java,
                     "megascu_database"
                 )
-                .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
-                .fallbackToDestructiveMigration(dropAllTables = true)
+                .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 .build()
-                INSTANCE = instance
-                instance
+                .also { INSTANCE = it }
             }
         }
     }

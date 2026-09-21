@@ -104,7 +104,7 @@ object DailyLimitAlertManager {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
     }
 
@@ -141,7 +141,7 @@ object DailyLimitAlertManager {
         try {
             notificationManager.notify(notificationId, notification)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
         }
     }
 }

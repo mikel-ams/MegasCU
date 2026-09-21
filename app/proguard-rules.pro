@@ -25,6 +25,13 @@
 # Optimization passes
 -repackageclasses ''
 -allowaccessmodification
+-optimizationpasses 5
+
+# Strip unused attributes
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontskipnonpubliclibraryclassmembers
+
 
 # Strip debug logging in optimized builds
 -assumenosideeffects class android.util.Log {

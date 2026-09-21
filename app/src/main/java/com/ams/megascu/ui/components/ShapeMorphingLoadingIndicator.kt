@@ -1,117 +1,24 @@
 package com.ams.megascu.ui.components
 
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
 
 /**
- * Material 3 Expressive Shape Morphing Loading Indicator.
- * Smoothly morphs between Circle -> 6-Crest Hexagonal Wave -> Rounded Hexagon -> 6-Point Star -> 8-Lobe Flower while rotating.
+ * Uses the official Material 3 Expressive loading morph instead of a custom infinite Canvas.
+ * The API keeps the existing call signature so callers do not need to change.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ShapeMorphingLoadingIndicator(
-    modifier: Modifier = Modifier.size(24.dp),
-    color: Color = Color.White,
-    strokeWidth: Dp = 2.5.dp
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    strokeWidth: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "ShapeMorphingLoading")
-
-    // Continuous rotation
-    val rotationAngle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1400, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
+    LoadingIndicator(
+        modifier = modifier,
+        color = color
     )
-
-    // Morph cycle parameter (0 to 5)
-    val morphProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "morphProgress"
-    )
-
-    Canvas(modifier = modifier) {
-        val strokeWidthPx = strokeWidth.toPx()
-        val center = size.minDimension / 2f
-        val baseRadius = (center - strokeWidthPx / 2f - 1.5.dp.toPx()).coerceAtLeast(1f)
-
-        val currentIdx = morphProgress.toInt() % 5
-        val nextIdx = (currentIdx + 1) % 5
-        val rawFraction = morphProgress - morphProgress.toInt()
-        
-        // Easing for smooth morph transition
-        val morphFraction = FastOutSlowInEasing.transform(rawFraction)
-
-        fun radiusForShape(shapeIdx: Int, theta: Double): Double {
-            return when (shapeIdx) {
-                0 -> 1.0 // Circle
-                1 -> 0.78 + 0.22 * cos(6.0 * theta) // 6-crest hexagonal wave
-                2 -> {
-                    // Smooth Rounded Hexagon with pronounced crests
-                    val cos6 = cos(6.0 * theta)
-                    0.80 + 0.20 * cos6 + 0.04 * cos(12.0 * theta)
-                }
-                3 -> 0.76 + 0.24 * cos(6.0 * theta) // Pronounced 6-point hexagonal star
-                4 -> 0.78 + 0.22 * cos(8.0 * theta) // 8-crest expressive wave
-                else -> 1.0
-            }
-        }
-
-        val path = Path()
-        val steps = 180
-
-        for (i in 0..steps) {
-            val theta = (i.toDouble() / steps) * 2.0 * PI
-            val r1 = radiusForShape(currentIdx, theta)
-            val r2 = radiusForShape(nextIdx, theta)
-            val interpolatedRadiusRatio = r1 * (1.0 - morphFraction) + r2 * morphFraction
-
-            val r = baseRadius * interpolatedRadiusRatio
-            val x = center + (r * cos(theta)).toFloat()
-            val y = center + (r * sin(theta)).toFloat()
-
-            if (i == 0) {
-                path.moveTo(x, y)
-            } else {
-                path.lineTo(x, y)
-            }
-        }
-        path.close()
-
-        rotate(degrees = rotationAngle, pivot = androidx.compose.ui.geometry.Offset(center, center)) {
-            drawPath(
-                path = path,
-                color = color,
-                style = Stroke(
-                    width = strokeWidthPx,
-                    cap = StrokeCap.Round,
-                    join = StrokeJoin.Round
-                )
-            )
-        }
-    }
 }

@@ -27,12 +27,12 @@ class ResourceIntegrityTest {
             "6a367d177f91835c02d6f27b466489ec"
         ),
         "modo_normal.webp" to Pair(
-            "30d7de368840486be8b9116f7a6ea70a3950defc49331670b8fd32c9a723ff23",
-            "d7cf220e3b4174330cf79a49969082db"
+            "372d64ec2908174a28dac6ef1fed3a4a76bf2f1ec725458bba2db961ee026ca8",
+            "ee3a2bb6ae980d7d3b361e2d2178aebb"
         ),
         "modo_simple.webp" to Pair(
-            "ee8414c0372f6268accbb2af2545881a05fa4461cd253b7fb1dd89141a1498f0",
-            "15a8b4e5d30d9829d6c127202e9ef77f"
+            "df41f561348918b771bbe4624494cee9232d1bff341fb191066b2a1812b341c1",
+            "81da0b8eb93c37329e3328e8104ed7e9"
         )
     )
 

@@ -338,6 +338,8 @@ fun SettingsBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 680.dp)
+                .align(Alignment.CenterHorizontally)
                 .navigationBarsPadding()
         ) {
             Row(
@@ -1051,7 +1053,7 @@ fun SettingsBottomSheet(
                         // 2. Estimador Alternativo de Consumo (Middle Card)
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                            shape = RoundedCornerShape(4.dp),
                             colors = CardDefaults.cardColors(containerColor = settingsCardColor)
                         ) {
                             Row(
@@ -1157,7 +1159,7 @@ fun SettingsBottomSheet(
                 Box(modifier = Modifier.fillMaxWidth()) {
                     // Badge "Experimental" posicionado en la esquina superior derecha
                     Surface(
-                        shape = RoundedCornerShape(topEnd = 24.dp, bottomStart = 10.dp),
+                        shape = RoundedCornerShape(18.dp),
                         color = MaterialTheme.colorScheme.tertiary.copy(alpha = if (isDark) 0.30f else 0.22f),
                         modifier = Modifier.align(Alignment.TopEnd)
                     ) {

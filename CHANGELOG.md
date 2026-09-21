@@ -7,18 +7,35 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
-## [0.8.6-beta_(249)] - 2026-09-18
+## [0.9.0-beta_(255)] - 2026-09-20
 
 ### Añadido
-- Soporte nativo de Markdown (`MarkdownChangelog`) en la ventana de actualización (`UpdateAvailableDialog`), renderizando con formato estructurado (encabezados, viñetas, bloques de código, negritas, cursivas y citas) las notas de versión recibidas desde GitHub.
+- **Componentes y Sistema Visual Material 3 Expressive:** Integración del tema expresivo nativo (`MaterialExpressiveTheme` y `MotionScheme.expressive()`), chips dinámicos de vigencia (`ExpressiveDaysChip`), indicadores de progreso lineales y recursos visuales WebP en alta definición para la selección de modo en la pantalla de bienvenida.
+- **Animaciones Expressive de Cambio de Forma:** Integración nativa de interpolación de forma (`ButtonShapes` con `pressedShape`) en los botones de navegación de la pantalla de Bienvenida y componentes expresivos, transformando dinámicamente la forma al pulsarlos y recuperándola fluidamente al soltar.
+- **Soporte Markdown en Actualizaciones:** Renderizado nativo de Markdown estructurado (`MarkdownChangelog`) en la ventana de actualización (`UpdateAvailableDialog`) para visualizar notas de versión completas.
+- **Gestos Predictivos y Adaptabilidad Multidispositivo:** Integración de gestos predictivos de retroceso (`Predictive Back Gestures`) con `SheetProgressTracker` y `BackHandler`, junto con límites de ancho responsivos (`widthIn(max = 680.dp)`) adaptados a teléfonos, plegables y tablets.
+- **Analizador USSD Extendido:** Soporte para formatos de tiempo con minutos y segundos (`MM:SS`), duraciones compuestas y valores numéricos decimales.
 
 ### Cambiado
-- Sustitución de las etiquetas textuales "Instalada" y "Nueva" por iconos vectoriales Material Symbols (`PhoneAndroid` y `CloudDownload`) en las insignias de comparación de versiones de la ventana de actualización (`UpdateAvailableDialog`), logrando una interfaz más compacta, limpia y moderna.
-- Desactivación predeterminada del "Estimador Alternativo de Consumo" en nuevas instalaciones, priorizando la medición directa de la red del sistema.
-- Refactorización de la animación táctil en botones expresivos (`ExpressiveButton`, `ExpressiveTextButton`, `ExpressiveOutlinedButton`, `ExpressiveFilledTonalButton`, `ExpressiveIconButton`, `ExpressiveFloatingActionButton`) y modificadores de pulsación (`expressiveClick`, `expressivePressEffect`): se eliminó la distorsión y ensanchamiento de las etiquetas de texto (`scaleX`/`scaleY`), manteniendo intacta la metamorfosis dinámica de esquinas (shape morphing) y la respuesta háptica táctil.
+- **Estandarización de Interfaz y Zonas Táctiles:** Normalización y simetría de márgenes en la barra de navegación flotante (`MegasBottomBar`), grupos de tarjetas segmentadas (`ConnectedSegmentedGroup`) y áreas de interacción táctil con mínimo de 48dp x 48dp conforme a WCAG 2.2.
+- **Ajuste Tipográfico en Pantalla Final de Bienvenida:** Incremento de tamaño (+2sp / 14.5sp) en los textos informativos de las tarjetas de permisos y privacidad en la pantalla 8.
+- **Difuminado Progresivo en Historial de Cambios:** Implementación de cabecera fija y contenedor de difuminado inferior en la ventana de Ajuste de Cambios (`ChangelogBottomSheet`), eliminando cortes visuales al pie de página de forma idéntica a Ajustes y demás BottomSheets.
+- **Iconos de Aplicación Nativos Centrados:** Regeneración y centrado de los recursos `ic_launcher.webp` e `ic_launcher_round.webp` ajustados a los bordes de imagen en todas las densidades de pantalla.
+- **Optimización de Compilación y Rendimiento:** Activación de optimización R8 en Full Mode, compresión DEX y saneamiento integral de dependencias en Gradle Version Catalog, reduciendo el tamaño del APK a ~2.3 MB.
+- **Almacenamiento y Esquema de Base de Datos:** Migración de base de datos a versión 8, optimizando el esquema interno sin persistencia redundante de respuestas USSD en texto plano.
+- **Insignias Visuales:** Sustitución de etiquetas de texto en el diálogo de actualización por iconos vectoriales Material Symbols (`PhoneAndroid` y `CloudDownload`).
 
 ### Corregido
-- Corrección de la legibilidad y escala tipográfica en botones interactivos al ser presionados, evitando el efecto de deformación en el texto interior durante la pulsación.
+- **Consistencia Visual en Tarjetas:** Corrección de alineación y espaciado en los chips de días restantes y etiquetas métricas en las tarjetas de estado de la pantalla principal.
+- **Transición y Difuminado en Bienvenida:** Corrección de la altura y gradiente de difuminado (`ProgressiveFadedBox`) en la pantalla 6 ("Alerta y Sincronización") y pantallas de configuración, evitando cortes abruptos en bordes superior e inferior durante el desplazamiento.
+- **Resolución SIM y Análisis USSD:** Corrección en la detección de ranuras SIM y procesamiento de respuestas USSD con formatos no estándar.
+- **Estabilidad de Botones Interactivos:** Corrección de la escala tipográfica en botones durante la pulsación, manteniendo la respuesta háptica táctil y la fluidez en transiciones.
+
+### Seguridad
+- **Firma Oficial de Producción:** Firma criptográfica con almacén oficial de claves (`release-key.jks`) con cifrado RSA de 4096 bits y esquemas duales v1 y v2.
+- **Validación Criptográfica de Actualizaciones:** Módulo `ApkSecurityValidator` para verificación previa de hashes SHA-256 de GitHub Releases, dominios HTTPS autorizados y correspondencia de certificados antes de proceder con la instalación.
+- **Protección de PIN y Bloqueo por Keystore:** Almacenamiento seguro de credenciales y control de intentos fallidos respaldado por hardware mediante Android Keystore.
+- **Privacidad y Eliminación de Telemetría:** Retiro total de librerías y componentes innecesarios, garantizando procesamiento local de datos 100% privado en el dispositivo.
 
 ---
 

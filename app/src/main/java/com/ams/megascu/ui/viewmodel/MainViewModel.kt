@@ -201,7 +201,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 repository.checkAndUpdateMidnightDays()
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
             }
         }
     }
@@ -509,7 +509,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: kotlinx.coroutines.CancellationException) {
                 // Cancelled gracefully
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
             } finally {
                 _isRefreshing.value = false
             }
@@ -609,7 +609,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         releaseTitle = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_TITLE, "") ?: "",
                         changelog = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_CHANGELOG, "") ?: "",
                         apkDownloadUrl = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_APK_URL, null),
-                        releaseHtmlUrl = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_RELEASE_URL, "") ?: ""
+                        releaseHtmlUrl = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_RELEASE_URL, "") ?: "",
+                        sha256Checksum = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_SHA256, null)
                     )
                 }
                 return@launch

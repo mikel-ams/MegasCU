@@ -8,13 +8,12 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import com.ams.megascu.MainActivity
+import com.ams.megascu.MegasApplication
 import com.ams.megascu.R
-import kotlinx.coroutines.withContext
 import com.ams.megascu.data.db.MegasDatabase
 import com.ams.megascu.data.db.PlanStatusEntity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -25,76 +24,79 @@ open class MegasWidgetProvider(
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        val action = intent.action
-        android.util.Log.d("MegasWidgetProvider", "onReceive triggered with action=$action")
-        if (action == ACTION_WIDGET_REFRESH) {
-            val appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                val pendingResult = goAsync()
-                CoroutineScope(Dispatchers.IO).launch {
-                    val widgetPrefs = context.getSharedPreferences("megas_widget_prefs", Context.MODE_PRIVATE)
-                    val type = widgetPrefs.getString("widget_${appWidgetId}_type", "megas") ?: "megas"
-                    val simSlot = widgetPrefs.getInt("widget_${appWidgetId}_sim_slot", 1).coerceIn(1, 2)
-                    val ussdCode = when (type) {
-                        "saldo" -> "*222#"
-                        "megas" -> "*222*328#"
-                        "llamadas" -> "*222*869#"
-                        "mensajes" -> "*222*767#"
-                        "bono" -> "*222*266#"
-                        else -> "*222*328#"
-                    }
-                    val latch = java.util.concurrent.CountDownLatch(1)
-                    var responseText = ""
-                    val ussdExecutor = com.ams.megascu.data.ussd.UssdExecutor(context)
-                    withContext(Dispatchers.Main) {
-                        ussdExecutor.executeUssd(ussdCode, simSlot = simSlot, allowDialFallback = false, callback = object : com.ams.megascu.data.ussd.UssdCallback {
-                            override fun onSuccess(response: String) {
-                                responseText = response
-                                latch.countDown()
-                            }
-                            override fun onError(errorMessage: String) {
-                                latch.countDown()
-                            }
-                        })
-                    }
-                    try {
-                        latch.await(12, java.util.concurrent.TimeUnit.SECONDS)
-                    } catch (e: Exception) {}
+        if (intent.action != ACTION_WIDGET_REFRESH) return
 
-                    if (responseText.isNotBlank()) {
-                        val parsed = com.ams.megascu.data.ussd.EtecsaUssdParser.parseUssdResponse(responseText, ussdCode)
-                        val db = MegasDatabase.getDatabase(context)
-                        val planDao = db.planDao()
-                        val currentSubId = com.ams.megascu.data.ussd.SimOperatorUtils.getSubscriptionIdForSlot(context, simSlot)
-                        var currentStatus = planDao.getPlanStatusDirect(simSlot)
-                        if (currentStatus != null && currentSubId != null && currentStatus.subscriptionId != null && currentStatus.subscriptionId != currentSubId) {
-                            currentStatus = PlanStatusEntity(id = simSlot, subscriptionId = currentSubId)
-                        } else if (currentStatus == null) {
-                            currentStatus = PlanStatusEntity(id = simSlot, subscriptionId = currentSubId)
-                        }
-                        val updatedEntity = currentStatus.copy(
-                            id = simSlot,
-                            subscriptionId = currentSubId ?: currentStatus.subscriptionId,
-                            balanceCup = parsed.balanceCup ?: currentStatus.balanceCup,
-                            dataMb = parsed.dataMb ?: currentStatus.dataMb,
-                            dataLteMb = parsed.dataLteMb ?: currentStatus.dataLteMb,
-                            bonusDataMb = parsed.bonusMb ?: currentStatus.bonusDataMb,
-                            minutesStr = parsed.minutesStr ?: currentStatus.minutesStr,
-                            smsCount = parsed.sms ?: currentStatus.smsCount,
-                            dataDays = parsed.dataDays ?: currentStatus.dataDays,
-                            minutesDays = parsed.minutesDays ?: currentStatus.minutesDays,
-                            smsDays = parsed.smsDays ?: currentStatus.smsDays,
-                            nextRechargeDateStr = parsed.nextRechargeDateStr ?: currentStatus.nextRechargeDateStr,
-                            nextRechargeDays = parsed.nextRechargeDays ?: currentStatus.nextRechargeDays,
-                            lastUpdatedTimestamp = System.currentTimeMillis()
-                        )
-                        planDao.insertOrUpdatePlanStatus(updatedEntity)
-                    }
-                    updateAllWidgets(context)
-                    pendingResult.finish()
+        val appWidgetId = intent.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        )
+        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            updateAllWidgets(context)
+            return
+        }
+
+        val app = context.applicationContext as? MegasApplication ?: return
+        val pendingResult = goAsync()
+        app.appScope.launch(Dispatchers.IO) {
+            try {
+                val widgetPrefs = context.getSharedPreferences("megas_widget_prefs", Context.MODE_PRIVATE)
+                val type = widgetPrefs.getString("widget_${appWidgetId}_type", "megas") ?: "megas"
+                val simSlot = widgetPrefs.getInt("widget_${appWidgetId}_sim_slot", 1).coerceIn(1, 2)
+                val ussdCode = when (type) {
+                    "saldo" -> "*222#"
+                    "megas" -> "*222*328#"
+                    "llamadas" -> "*222*869#"
+                    "mensajes" -> "*222*767#"
+                    "bono" -> "*222*266#"
+                    else -> "*222*328#"
                 }
-            } else {
-                updateAllWidgets(context)
+
+                val result = com.ams.megascu.data.ussd.UssdExecutor(context)
+                    .executeUssdSuspend(ussdCode, simSlot = simSlot, allowDialFallback = false)
+
+                val responseText = when (result) {
+                    is com.ams.megascu.data.ussd.UssdResult.Success -> result.response
+                    is com.ams.megascu.data.ussd.UssdResult.Error -> {
+                        android.util.Log.w("MegasWidgetProvider", "Widget USSD failed: ${result.errorType}")
+                        ""
+                    }
+                }
+
+                if (responseText.isNotBlank()) {
+                    val parsed = com.ams.megascu.data.ussd.EtecsaUssdParser.parseUssdResponse(responseText, ussdCode)
+                    val db = MegasDatabase.getDatabase(context)
+                    val planDao = db.planDao()
+                    val currentSubId = com.ams.megascu.data.ussd.SimOperatorUtils.getSubscriptionIdForSlot(context, simSlot)
+                    var currentStatus = planDao.getPlanStatusDirect(simSlot)
+                    if (currentStatus != null && currentSubId != null && currentStatus.subscriptionId != null && currentStatus.subscriptionId != currentSubId) {
+                        currentStatus = PlanStatusEntity(id = simSlot, subscriptionId = currentSubId)
+                    } else if (currentStatus == null) {
+                        currentStatus = PlanStatusEntity(id = simSlot, subscriptionId = currentSubId)
+                    }
+                    val updatedEntity = currentStatus.copy(
+                        id = simSlot,
+                        subscriptionId = currentSubId ?: currentStatus.subscriptionId,
+                        balanceCup = parsed.balanceCup ?: currentStatus.balanceCup,
+                        dataMb = parsed.dataMb ?: currentStatus.dataMb,
+                        dataLteMb = parsed.dataLteMb ?: currentStatus.dataLteMb,
+                        bonusDataMb = parsed.bonusMb ?: currentStatus.bonusDataMb,
+                        minutesStr = parsed.minutesStr ?: currentStatus.minutesStr,
+                        smsCount = parsed.sms ?: currentStatus.smsCount,
+                        dataDays = parsed.dataDays ?: currentStatus.dataDays,
+                        minutesDays = parsed.minutesDays ?: currentStatus.minutesDays,
+                        smsDays = parsed.smsDays ?: currentStatus.smsDays,
+                        nextRechargeDateStr = parsed.nextRechargeDateStr ?: currentStatus.nextRechargeDateStr,
+                        nextRechargeDays = parsed.nextRechargeDays ?: currentStatus.nextRechargeDays,
+                        lastUpdatedTimestamp = System.currentTimeMillis()
+                    )
+                    planDao.insertOrUpdatePlanStatus(updatedEntity)
+                }
+
+                updateAllWidgetsSuspend(context)
+            } catch (e: Exception) {
+                android.util.Log.e("MegasWidgetProvider", "Widget refresh failed", e)
+            } finally {
+                pendingResult.finish()
             }
         }
     }
@@ -104,9 +106,18 @@ open class MegasWidgetProvider(
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        android.util.Log.d("MegasWidgetProvider", "onUpdate triggered for ${appWidgetIds.size} widgets (layoutResId=$layoutResId): ${appWidgetIds.joinToString()}")
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId, layoutResId)
+        val app = context.applicationContext as? MegasApplication ?: return
+        val pendingResult = goAsync()
+        app.appScope.launch(Dispatchers.IO) {
+            try {
+                for (appWidgetId in appWidgetIds) {
+                    updateAppWidgetInternal(context, appWidgetManager, appWidgetId, layoutResId)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MegasWidgetProvider", "Widget onUpdate failed", e)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 
@@ -116,9 +127,18 @@ open class MegasWidgetProvider(
         appWidgetId: Int,
         newOptions: android.os.Bundle?
     ) {
-        android.util.Log.d("MegasWidgetProvider", "onAppWidgetOptionsChanged triggered for widget $appWidgetId")
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-        updateAppWidget(context, appWidgetManager, appWidgetId, layoutResId)
+        val app = context.applicationContext as? MegasApplication ?: return
+        val pendingResult = goAsync()
+        app.appScope.launch(Dispatchers.IO) {
+            try {
+                updateAppWidgetInternal(context, appWidgetManager, appWidgetId, layoutResId)
+            } catch (e: Exception) {
+                android.util.Log.e("MegasWidgetProvider", "Widget options update failed", e)
+            } finally {
+                pendingResult.finish()
+            }
+        }
     }
 
     companion object {
@@ -287,13 +307,12 @@ open class MegasWidgetProvider(
             )
         }
 
-        fun updateAppWidget(
+        private suspend fun updateAppWidgetInternal(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int,
             layoutResId: Int = R.layout.widget_megas_4x2
         ) {
-            CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val widgetPrefs = context.getSharedPreferences("megas_widget_prefs", Context.MODE_PRIVATE)
                     val simSlot = widgetPrefs.getInt("widget_${appWidgetId}_sim_slot", 1).coerceIn(1, 2)
@@ -440,27 +459,50 @@ open class MegasWidgetProvider(
 
                     appWidgetManager.updateAppWidget(appWidgetId, views)
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    android.util.Log.e("MegasCU", "Unhandled exception", e)
                 }
+
+        }
+
+        fun updateAppWidget(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int,
+            layoutResId: Int = R.layout.widget_megas_4x2
+        ) {
+            val app = context.applicationContext as? MegasApplication ?: return
+            app.appScope.launch(Dispatchers.IO) {
+                updateAppWidgetInternal(context, appWidgetManager, appWidgetId, layoutResId)
             }
         }
 
-        fun updateAllWidgets(context: Context) {
+        private suspend fun updateAllWidgetsSuspend(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
 
             val standardComp = ComponentName(context, MegasWidgetProvider::class.java)
             for (id in appWidgetManager.getAppWidgetIds(standardComp)) {
-                updateAppWidget(context, appWidgetManager, id, R.layout.widget_megas_4x2)
+                updateAppWidgetInternal(context, appWidgetManager, id, R.layout.widget_megas_4x2)
             }
 
             val widget2x1Comp = ComponentName(context, MegasWidget2x1Provider::class.java)
             for (id in appWidgetManager.getAppWidgetIds(widget2x1Comp)) {
-                updateAppWidget(context, appWidgetManager, id, R.layout.widget_megas_2x1)
+                updateAppWidgetInternal(context, appWidgetManager, id, R.layout.widget_megas_2x1)
             }
 
             val chartComp = ComponentName(context, MegasChartWidgetProvider::class.java)
             for (id in appWidgetManager.getAppWidgetIds(chartComp)) {
-                MegasChartWidgetProvider.updateAppWidget(context, appWidgetManager, id)
+                MegasChartWidgetProvider.updateAppWidgetInternal(context, appWidgetManager, id)
+            }
+        }
+
+        fun updateAllWidgets(context: Context) {
+            val app = context.applicationContext as? MegasApplication ?: return
+            app.appScope.launch(Dispatchers.IO) {
+                try {
+                    updateAllWidgetsSuspend(context)
+                } catch (e: Exception) {
+                    android.util.Log.e("MegasWidgetProvider", "Failed to update all widgets", e)
+                }
             }
         }
     }
@@ -472,19 +514,19 @@ class MegasWidget2x1Provider : MegasWidgetProvider(R.layout.widget_megas_2x1)
 private fun RemoteViews.setTextSafely(viewId: Int, text: CharSequence?) {
     try {
         setTextViewText(viewId, text)
-    } catch (_: Exception) {}
+    } catch (e: Exception) { android.util.Log.w("MegasWidgetProvider", "RemoteViews operation ignored", e) }
 }
 
 private fun RemoteViews.setVisibilitySafely(viewId: Int, visibility: Int) {
     try {
         setViewVisibility(viewId, visibility)
-    } catch (_: Exception) {}
+    } catch (e: Exception) { android.util.Log.w("MegasWidgetProvider", "RemoteViews operation ignored", e) }
 }
 
 private fun RemoteViews.setProgressBarSafely(viewId: Int, max: Int, progress: Int, indeterminate: Boolean) {
     try {
         setProgressBar(viewId, max, progress, indeterminate)
-    } catch (_: Exception) {}
+    } catch (e: Exception) { android.util.Log.w("MegasWidgetProvider", "RemoteViews operation ignored", e) }
 }
 
 private fun RemoteViews.setBadgeSafely(viewId: Int, days: Int) {
@@ -495,5 +537,5 @@ private fun RemoteViews.setBadgeSafely(viewId: Int, days: Int) {
         } else {
             setViewVisibility(viewId, android.view.View.GONE)
         }
-    } catch (_: Exception) {}
+    } catch (e: Exception) { android.util.Log.w("MegasWidgetProvider", "RemoteViews operation ignored", e) }
 }

@@ -64,7 +64,7 @@ class SyncWorker(
             try {
                 MegasWidgetProvider.updateAllWidgets(applicationContext)
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MegasCU", "Unhandled exception", e)
             }
 
             // Verificar alertas de expiración y límites para cada SIM sincronizada
@@ -95,7 +95,7 @@ class SyncWorker(
 
             Result.success()
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("MegasCU", "Unhandled exception", e)
             if (runAttemptCount < 3) Result.retry() else Result.failure()
         }
     }
@@ -167,7 +167,7 @@ class SyncWorker(
                     nextRechargeDateStr = newNextRecharge,
                     nextRechargeDays = newNextRechargeDays,
                     lastUpdatedTimestamp = now,
-                    rawLastResponse = responseText
+                    rawLastResponse = ""
                 )
                 planDao.insertOrUpdatePlanStatus(updatedEntity)
 

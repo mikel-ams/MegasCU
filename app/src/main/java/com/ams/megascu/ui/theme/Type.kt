@@ -9,12 +9,8 @@ import androidx.compose.ui.unit.sp
 import com.ams.megascu.R
 
 val SpaceMono = FontFamily(
-    Font(R.font.space_mono_regular, FontWeight.Light),
     Font(R.font.space_mono_regular, FontWeight.Normal),
-    Font(R.font.space_mono_regular, FontWeight.Medium),
-    Font(R.font.space_mono_bold, FontWeight.SemiBold),
-    Font(R.font.space_mono_bold, FontWeight.Bold),
-    Font(R.font.space_mono_bold, FontWeight.ExtraBold)
+    Font(R.font.space_mono_bold, FontWeight.Bold)
 )
 
 val CustomMonoFont = SpaceMono
@@ -127,23 +123,32 @@ val TypographyDefault = Typography(
     )
 )
 
+private fun TextStyle.withMonoFamily(fontFamily: FontFamily): TextStyle = copy(
+    fontFamily = fontFamily,
+    fontWeight = if ((fontWeight?.weight ?: FontWeight.Normal.weight) >= FontWeight.SemiBold.weight) {
+        FontWeight.Bold
+    } else {
+        FontWeight.Normal
+    }
+)
+
 fun Typography.withFontFamily(fontFamily: FontFamily): Typography {
     return Typography(
-        displayLarge = displayLarge.copy(fontFamily = fontFamily),
-        displayMedium = displayMedium.copy(fontFamily = fontFamily),
-        displaySmall = displaySmall.copy(fontFamily = fontFamily),
-        headlineLarge = headlineLarge.copy(fontFamily = fontFamily),
-        headlineMedium = headlineMedium.copy(fontFamily = fontFamily),
-        headlineSmall = headlineSmall.copy(fontFamily = fontFamily),
-        titleLarge = titleLarge.copy(fontFamily = fontFamily),
-        titleMedium = titleMedium.copy(fontFamily = fontFamily),
-        titleSmall = titleSmall.copy(fontFamily = fontFamily),
-        bodyLarge = bodyLarge.copy(fontFamily = fontFamily),
-        bodyMedium = bodyMedium.copy(fontFamily = fontFamily),
-        bodySmall = bodySmall.copy(fontFamily = fontFamily),
-        labelLarge = labelLarge.copy(fontFamily = fontFamily),
-        labelMedium = labelMedium.copy(fontFamily = fontFamily),
-        labelSmall = labelSmall.copy(fontFamily = fontFamily)
+        displayLarge = displayLarge.withMonoFamily(fontFamily),
+        displayMedium = displayMedium.withMonoFamily(fontFamily),
+        displaySmall = displaySmall.withMonoFamily(fontFamily),
+        headlineLarge = headlineLarge.withMonoFamily(fontFamily),
+        headlineMedium = headlineMedium.withMonoFamily(fontFamily),
+        headlineSmall = headlineSmall.withMonoFamily(fontFamily),
+        titleLarge = titleLarge.withMonoFamily(fontFamily),
+        titleMedium = titleMedium.withMonoFamily(fontFamily),
+        titleSmall = titleSmall.withMonoFamily(fontFamily),
+        bodyLarge = bodyLarge.withMonoFamily(fontFamily),
+        bodyMedium = bodyMedium.withMonoFamily(fontFamily),
+        bodySmall = bodySmall.withMonoFamily(fontFamily),
+        labelLarge = labelLarge.withMonoFamily(fontFamily),
+        labelMedium = labelMedium.withMonoFamily(fontFamily),
+        labelSmall = labelSmall.withMonoFamily(fontFamily)
     )
 }
 

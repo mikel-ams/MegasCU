@@ -1,6 +1,6 @@
 package com.ams.megascu.ui.components
 
-import android.os.CountDownTimer
+import com.ams.megascu.security.PinVault
 import androidx.biometric.BiometricPrompt
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import kotlinx.coroutines.delay
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -44,20 +43,33 @@ fun AuthScreen(
     onResetApp: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val initialLockout = remember(context) { PinVault.lockoutState(context) }
+
     var enteredPin by remember { mutableStateOf("") }
     var error by remember { mutableStateOf(false) }
-    var failedAttempts by remember { mutableStateOf(0) }
-    var lockoutTimeLeft by remember { mutableStateOf(0) }
+    var failedAttempts by remember { mutableIntStateOf(initialLockout.failedAttempts) }
+    var lockoutTimeLeft by remember { mutableIntStateOf((initialLockout.remainingMillis / 1000L).toInt()) }
     var showPinMode by remember { mutableStateOf(!biometricsEnabled) }
     var showResetConfirmDialog by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val flashErrorColor = remember { Animatable(0f) }
 
-    // Failsafe: if PIN is empty, do not block the app
-    LaunchedEffect(correctPin) {
-        if (correctPin.isEmpty()) {
+    fun syncLockoutState() {
+        val state = PinVault.lockoutState(context)
+        failedAttempts = state.failedAttempts
+        lockoutTimeLeft = (state.remainingMillis / 1000L).toInt()
+    }
+
+    LaunchedEffect(Unit) {
+        syncLockoutState()
+        if (correctPin.isBlank()) {
             onAuthSuccess()
+            return@LaunchedEffect
+        }
+        while (true) {
+            delay(1000L)
+            syncLockoutState()
         }
     }
 
@@ -72,44 +84,37 @@ fun AuthScreen(
         return null
     }
 
-    LaunchedEffect(lockoutTimeLeft) {
-        if (lockoutTimeLeft > 0) {
-            delay(1000)
-            lockoutTimeLeft--
-        }
-    }
-
     LaunchedEffect(error) {
         if (error) {
-            delay(5000)
+            delay(5000L)
             error = false
         }
     }
 
-    LaunchedEffect(enteredPin) {
-        if (enteredPin.isNotEmpty() && error) {
-            error = false
-        }
-        if (enteredPin.length == 4) {
-            if (enteredPin == correctPin) {
+    LaunchedEffect(enteredPin, lockoutTimeLeft, correctPin) {
+        if (enteredPin.isNotEmpty() && error) error = false
+        if (enteredPin.length == 4 && lockoutTimeLeft == 0 && correctPin.isNotBlank()) {
+            if (PinVault.verify(context, enteredPin, correctPin)) {
                 error = false
+                PinVault.clearFailures(context)
                 failedAttempts = 0
+                lockoutTimeLeft = 0
                 onAuthSuccess()
             } else {
                 error = true
-                failedAttempts++
+                val state = PinVault.registerFailedAttempt(context)
+                failedAttempts = state.failedAttempts
+                lockoutTimeLeft = (state.remainingMillis / 1000L).toInt()
 
                 coroutineScope.launch {
                     flashErrorColor.snapTo(1f)
                     flashErrorColor.animateTo(0f, animationSpec = tween(400))
                 }
 
-                delay(200)
+                delay(200L)
                 enteredPin = ""
                 if (failedAttempts >= 10) {
                     showResetConfirmDialog = true
-                } else if (failedAttempts % 3 == 0) {
-                    lockoutTimeLeft = 30
                 }
             }
         }
@@ -125,24 +130,26 @@ fun AuthScreen(
                 object : BiometricPrompt.AuthenticationCallback() {
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         super.onAuthenticationSucceeded(result)
+                        PinVault.clearFailures(context)
                         failedAttempts = 0
+                        lockoutTimeLeft = 0
                         onAuthSuccess()
                     }
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                         super.onAuthenticationError(errorCode, errString)
                         if (errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
-                            failedAttempts++
-                            if (failedAttempts >= 10) {
-                                showResetConfirmDialog = true
-                            }
+                            val state = PinVault.registerFailedAttempt(context)
+                            failedAttempts = state.failedAttempts
+                            lockoutTimeLeft = (state.remainingMillis / 1000L).toInt()
+                            if (failedAttempts >= 10) showResetConfirmDialog = true
                         }
                     }
                     override fun onAuthenticationFailed() {
                         super.onAuthenticationFailed()
-                        failedAttempts++
-                        if (failedAttempts >= 10) {
-                            showResetConfirmDialog = true
-                        }
+                        val state = PinVault.registerFailedAttempt(context)
+                        failedAttempts = state.failedAttempts
+                        lockoutTimeLeft = (state.remainingMillis / 1000L).toInt()
+                        if (failedAttempts >= 10) showResetConfirmDialog = true
                     }
                 })
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
@@ -164,13 +171,18 @@ fun AuthScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 480.dp)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
             if (biometricsEnabled && !showPinMode) {
                 // Biometric First Unlock Screen
                 Surface(
@@ -324,6 +336,7 @@ fun AuthScreen(
                                         )
                                         Surface(
                                             onClick = {
+                                                if (lockoutTimeLeft > 0) return@Surface
                                                 if (key == "DEL") {
                                                     if (enteredPin.isNotEmpty()) enteredPin = enteredPin.dropLast(1)
                                                 } else if (key == "BIO") {
@@ -405,6 +418,7 @@ fun AuthScreen(
                 }
             }
         }
+        }
 
         if (showResetConfirmDialog) {
             AlertDialog(
@@ -437,7 +451,9 @@ fun AuthScreen(
                     ExpressiveButton(
                         onClick = {
                             showResetConfirmDialog = false
+                            PinVault.clearFailures(context)
                             failedAttempts = 0
+                            lockoutTimeLeft = 0
                             onResetApp?.invoke()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),

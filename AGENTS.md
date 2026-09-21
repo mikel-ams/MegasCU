@@ -7,7 +7,7 @@
    - Sube este archivo recién compilado en conjunto a los dos sitios:
      - **Litterbox (Catbox):** `curl -F "reqtype=fileupload" -F "time=72h" -F "fileToUpload=@MegasCU_<versionName>.apk" https://litterbox.catbox.moe/resources/internals/api.php`
      - **Tempfiles (tmpfiles.org):** `curl -s -F "file=@MegasCU_<versionName>.apk" -F "expire=28800" https://tmpfiles.org/api/v1/upload` (para descarga directa resolver el token temporal dinámico mediante `curl -s "<url_tmpfiles>" | grep -o 'https://tmpfiles.org/dl/[^"\' ]*'` ya que la API devuelve la URL de vista y requiere `/dl/<timestamp>.<hash>/<id>/<archivo>` para evitar error 404/redirección).
-   - Devuelve en tu respuesta los enlaces de descarga de ambos sitios con el mismo nombre de APK base.
+   - Devuelve en tu respuesta los tres enlaces de descarga (Litterbox, Tempfiles página de vista y Tempfiles enlace de descarga directa) con el mismo nombre de APK base.
    - Ejecuta `compile_applet` para garantizar que la última versión de desarrollo quede compilada e instalada en la vista previa interactiva (emulador streaming) de Google AI Studio.
 2. **Resumen de Cambios:** Al finalizar cada turno de modificaciones, debes entregar siempre un resumen claro, estructurado y profesional de los cambios realizados.
 3. **Sistema de Versionado:** Al actualizar la versión, el `versionName` debe usar el formato `X.Y.Z-beta_(W)`, donde `W` debe coincidir exactamente con el valor del `versionCode`.
@@ -38,4 +38,6 @@
    - La carpeta `keystore/` y el archivo de almacén de llaves `keystore/release-key.jks`, así como el archivo de configuración `app/keystore.properties` (o en la raíz), son estrictamente requeridos para la firma oficial de producción de la app.
    - Queda ESTRICTAMENTE PROHIBIDO eliminar, limpiar, reescribir o mover estos archivos en scripts, comandos `rm` o rutinas automatizadas.
    - Deben preservarse intactos en el entorno de desarrollo y trabajo en todo momento.
+8. **Actualización de Insignias y Recursos en README.md:**
+   - Cada vez que se actualice la versión de la aplicación, se DEBE actualizar la insignia de versión en `README.md` (`[![Version: X.Y.Z-beta_(W)](https://img.shields.io/badge/Version-X.Y.Z--beta__(W)-007ACC?style=flat&logo=android&logoColor=white)](CHANGELOG.md)`), garantizando que refleje fielmente el estado actual del repositorio, junto con la cabecera visual que incluye el icono de la aplicación.
 

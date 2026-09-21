@@ -232,8 +232,8 @@ fun OnboardingScreen(
         val defaultFooterX = screenWidthPx - with(density) { 24.dp.toPx() } - defaultFooterW
         val defaultFooterY = screenHeightPx - with(density) { 66.dp.toPx() }
 
-        val defaultFinishW = with(density) { 250.dp.toPx() }
-        val defaultFinishH = with(density) { 56.dp.toPx() }
+        val defaultFinishW = with(density) { 256.dp.toPx() }
+        val defaultFinishH = with(density) { 62.dp.toPx() }
         val defaultFinishX = (screenWidthPx - defaultFinishW) / 2f
         val defaultFinishY = with(density) { 340.dp.toPx() }
 
@@ -353,13 +353,13 @@ fun OnboardingScreen(
                     }
                 }
 
-                // Estado Pantalla 8: Comenzar Experiencia MegasCU
+                // Estado Pantalla 8: Comenzar Experiencia MegasCU con márgenes internos aumentados (+3dp)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 24.dp)
+                        .padding(horizontal = 27.dp, vertical = 3.dp)
                         .graphicsLayer {
                             val p = ((morphProgress - 0.5f) / 0.5f).coerceIn(0f, 1f)
                             alpha = p
@@ -390,7 +390,7 @@ fun OnboardingScreen(
 private fun ProgressiveFadedBox(
     scrollState: ScrollState,
     modifier: Modifier = Modifier,
-    fadeHeight: Dp = 22.dp,
+    fadeHeight: Dp = 36.dp,
     fadeColor: Color = MaterialTheme.colorScheme.background,
     showScrollIndicator: Boolean = true,
     content: @Composable BoxScope.() -> Unit
@@ -402,7 +402,7 @@ private fun ProgressiveFadedBox(
         val topAlpha by remember {
             derivedStateOf {
                 if (scrollState.maxValue > 0) {
-                    (scrollState.value.toFloat() / 40f).coerceIn(0f, 1f)
+                    (scrollState.value.toFloat() / 30f).coerceIn(0f, 1f)
                 } else {
                     0f
                 }
@@ -418,7 +418,8 @@ private fun ProgressiveFadedBox(
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                fadeColor.copy(alpha = 0.90f),
+                                fadeColor,
+                                fadeColor.copy(alpha = 0.85f),
                                 fadeColor.copy(alpha = 0.40f),
                                 Color.Transparent
                             )
@@ -432,7 +433,7 @@ private fun ProgressiveFadedBox(
         val bottomAlpha by remember {
             derivedStateOf {
                 if (scrollState.maxValue > 0) {
-                    ((scrollState.maxValue - scrollState.value).toFloat() / 40f).coerceIn(0f, 1f)
+                    ((scrollState.maxValue - scrollState.value).toFloat() / 30f).coerceIn(0f, 1f)
                 } else {
                     0f
                 }
@@ -450,7 +451,8 @@ private fun ProgressiveFadedBox(
                             listOf(
                                 Color.Transparent,
                                 fadeColor.copy(alpha = 0.40f),
-                                fadeColor.copy(alpha = 0.90f)
+                                fadeColor.copy(alpha = 0.85f),
+                                fadeColor
                             )
                         )
                     )
@@ -544,23 +546,19 @@ private fun TopOnboardingHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Step Badge (se mantiene totalmente fijo en posición y tamaño sin saltos verticales)
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-            modifier = Modifier.height(32.dp)
+        Badge(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.height(32.dp).padding(horizontal = 4.dp)
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            ) {
-                Text(
-                    text = "Paso ${currentPage + 1} de $totalPages",
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
-            }
+            Text(
+                text = "Paso ${currentPage + 1} de $totalPages",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
         }
 
         // Skip Button con desvanecimiento fluido y sin alterar la altura del contenedor
@@ -642,9 +640,18 @@ private fun BottomNavigationFooter(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (currentPage > 0) {
+            AnimatedVisibility(
+                visible = currentPage > 0,
+                enter = fadeIn(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)) +
+                        scaleIn(initialScale = 0.85f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)) +
+                        slideInHorizontally(initialOffsetX = { -it / 2 }, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)),
+                exit = fadeOut(animationSpec = tween(150)) +
+                       scaleOut(targetScale = 0.85f, animationSpec = tween(150)) +
+                       slideOutHorizontally(targetOffsetX = { -it / 2 }, animationSpec = tween(150))
+            ) {
                 ExpressiveOutlinedButton(
                     onClick = onPrev,
+                    shape = CircleShape,
                     contentPadding = PaddingValues(horizontal = 22.dp, vertical = 14.dp),
                     modifier = Modifier.height(50.dp)
                 ) {
@@ -656,7 +663,9 @@ private fun BottomNavigationFooter(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Atrás", fontWeight = FontWeight.Bold)
                 }
-            } else {
+            }
+
+            if (currentPage == 0) {
                 Spacer(modifier = Modifier.width(1.dp))
             }
 
@@ -1654,7 +1663,7 @@ private fun ThemeCardOption(
             }
             if (badge != null) {
                 Surface(
-                    shape = RoundedCornerShape(topEnd = 16.dp, bottomStart = 10.dp),
+                    shape = RoundedCornerShape(16.dp),
                     color = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
@@ -1783,7 +1792,7 @@ private fun FinishPage(
                                 text = if (hasAllPermissions) "Permisos totalmente concedidos" else "Puedes conceder permisos más tarde en Ajustes",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 12.5.sp
+                                    fontSize = 14.5.sp
                                 ),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -1815,7 +1824,7 @@ private fun FinishPage(
                                 text = "Procesamiento 100% privado en el dispositivo",
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 12.5.sp
+                                    fontSize = 14.5.sp
                                 ),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -1830,7 +1839,7 @@ private fun FinishPage(
                 Box(
                     modifier = Modifier
                         .wrapContentWidth()
-                        .height(56.dp)
+                        .height(62.dp)
                         .onGloballyPositioned { coords ->
                             if (coords.isAttached) {
                                 onFinishSlotPositioned(coords.positionInRoot(), coords.size)
@@ -1845,7 +1854,7 @@ private fun FinishPage(
                         textAlign = TextAlign.Center,
                         lineHeight = 19.sp,
                         modifier = Modifier
-                            .padding(horizontal = 34.dp)
+                            .padding(horizontal = 37.dp, vertical = 3.dp)
                             .graphicsLayer { alpha = 0f }
                     )
                 }
@@ -1927,7 +1936,7 @@ private fun SimpleModePage(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
@@ -1950,7 +1959,7 @@ private fun SimpleModePage(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
@@ -2439,7 +2448,7 @@ private fun AlertsAndSyncPage(
                     .fillMaxWidth()
                     .heightIn(min = minHeight)
                     .verticalScroll(scrollState)
-                    .padding(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 20.dp),
+                    .padding(start = 24.dp, top = 20.dp, end = 24.dp, bottom = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -2759,7 +2768,7 @@ private fun ChartsAndSecurityPage(
                     .fillMaxWidth()
                     .heightIn(min = minHeight)
                     .verticalScroll(scrollState)
-                    .padding(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 20.dp),
+                    .padding(start = 24.dp, top = 20.dp, end = 24.dp, bottom = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {

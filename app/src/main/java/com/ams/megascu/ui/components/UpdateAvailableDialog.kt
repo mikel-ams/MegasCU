@@ -124,7 +124,8 @@ fun UpdateAvailableDialog(
                 context = context,
                 downloadUrl = downloadUrl,
                 versionName = updateResult.latestVersionName,
-                estimatedSizeBytes = estimatedBytes
+                estimatedSizeBytes = estimatedBytes,
+                expectedSha256 = updateResult.sha256Checksum
             ) { downloaded, total, progress ->
                 downloadedBytes = downloaded
                 if (total > 0) totalSizeBytes = total
@@ -140,7 +141,7 @@ fun UpdateAvailableDialog(
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     // Launch installer automatically if permission is already granted
                     if (PermissionUtils.canInstallUnknownApps(context)) {
-                        ApkDownloadManager.installApk(context, file)
+                        ApkDownloadManager.installApk(context, file, updateResult.sha256Checksum.orEmpty())
                     }
                 },
                 onFailure = { error ->
@@ -393,6 +394,27 @@ fun UpdateAvailableDialog(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.VerifiedUser,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (!updateResult.sha256Checksum.isNullOrBlank()) "Validación OTA criptográfica y SHA-256 activa" else "Validación de firma oficial y paquete activa",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(18.dp))
 
                     // Download Manager Interactive Block
@@ -586,20 +608,30 @@ fun UpdateAvailableDialog(
                                     textAlign = TextAlign.Center
                                 )
 
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
 
-                                Text(
-                                    text = if (isSimulation) {
-                                        "Se ha simulado la descarga del paquete APK. Pulsa el botón inferior para simular el inicio de instalación."
-                                    } else if (hasInstallPermission) {
-                                        "El instalador de Android se ha iniciado. Si la ventana se cerró, pulsa el botón inferior."
-                                    } else {
-                                        "Para completar la actualización debes conceder el permiso 'Instalar aplicaciones desconocidas'."
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
+                                Surface(
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Shield,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "Firma oficial e integridad verificadas",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                }
 
                                 if (!hasInstallPermission && !isSimulation) {
                                     Spacer(modifier = Modifier.height(12.dp))
@@ -635,7 +667,7 @@ fun UpdateAvailableDialog(
                                         }
                                         downloadedApkFile?.let { file ->
                                             if (PermissionUtils.canInstallUnknownApps(context)) {
-                                                ApkDownloadManager.installApk(context, file)
+                                                ApkDownloadManager.installApk(context, file, updateResult.sha256Checksum.orEmpty())
                                             } else {
                                                 Toast.makeText(context, "Por favor autoriza la instalación de aplicaciones desconocidas", Toast.LENGTH_LONG).show()
                                                 PermissionUtils.openInstallUnknownAppsSettings(context)

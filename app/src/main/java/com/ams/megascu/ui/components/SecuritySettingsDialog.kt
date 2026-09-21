@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ams.megascu.ui.viewmodel.MainViewModel
 
 import androidx.compose.foundation.text.KeyboardOptions
@@ -69,10 +70,10 @@ fun SecuritySettingsBottomSheet(
     
     val activity = getFragmentActivity(context)
 
-    val securityEnabled by viewModel.securityEnabled.collectAsState()
-    val securityPin by viewModel.securityPin.collectAsState()
-    val biometricsEnabled by viewModel.biometricsEnabled.collectAsState()
-    val protectionScope by viewModel.protectionScope.collectAsState()
+    val securityEnabled by viewModel.securityEnabled.collectAsStateWithLifecycle()
+    val securityPin by viewModel.securityPin.collectAsStateWithLifecycle()
+    val biometricsEnabled by viewModel.biometricsEnabled.collectAsStateWithLifecycle()
+    val protectionScope by viewModel.protectionScope.collectAsStateWithLifecycle()
 
     var showPinSetupDialog by remember { mutableStateOf(false) }
     var showVerifyPinForDisable by remember { mutableStateOf(false) }
@@ -229,7 +230,7 @@ fun SecuritySettingsBottomSheet(
                             // Segmento 1: PIN de Seguridad
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 6.dp, bottomEnd = 6.dp),
+                                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 Row(
@@ -268,7 +269,7 @@ fun SecuritySettingsBottomSheet(
                             // Segmento 2: Autenticación Biométrica
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 Row(

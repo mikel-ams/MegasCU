@@ -14,9 +14,19 @@ import com.ams.megascu.data.db.MegasDatabase
 import com.ams.megascu.data.db.MegasRepository
 import com.ams.megascu.service.ExpirationWorker
 import com.ams.megascu.service.GitHubUpdateWorker
+import com.ams.megascu.ui.components.ChangelogRepository
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 class MegasApplication : Application(), Configuration.Provider {
+    val appScope: CoroutineScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, throwable ->
+            android.util.Log.e("MegasApplication", "Unhandled application coroutine", throwable)
+        }
+    )
     val database by lazy { MegasDatabase.getDatabase(this) }
     val repository by lazy { MegasRepository(this, database.planDao(), database.smsLogDao(), database.usageHistoryDao()) }
 
@@ -27,6 +37,7 @@ class MegasApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        ChangelogRepository.getChangelogList(this)
         createNotificationChannel()
         scheduleExpirationWorker()
         scheduleGitHubUpdateWorker()

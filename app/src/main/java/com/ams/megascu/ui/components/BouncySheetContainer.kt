@@ -1,8 +1,8 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.ams.megascu.ui.components
 
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -61,21 +61,16 @@ fun BouncySheetContainer(
 
     val targetVisible = appeared && isVisible
 
+    val offscreenY = with(androidx.compose.ui.platform.LocalDensity.current) { 280.dp.toPx() }
     val translationY by animateFloatAsState(
-        targetValue = if (targetVisible) 0f else 280f,
-        animationSpec = spring(
-            dampingRatio = 0.40f, // Dynamic physical spring bounce exclusively on Y axis (up/down)
-            stiffness = Spring.StiffnessMediumLow
-        ),
+        targetValue = if (targetVisible) 0f else offscreenY,
+        animationSpec = androidx.compose.material3.MaterialTheme.motionScheme.defaultSpatialSpec(),
         label = "BouncySheetTranslation"
     )
 
     val alpha by animateFloatAsState(
         targetValue = if (targetVisible) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = 0.65f,
-            stiffness = Spring.StiffnessMediumLow
-        ),
+        animationSpec = androidx.compose.material3.MaterialTheme.motionScheme.defaultEffectsSpec(),
         label = "BouncySheetAlpha"
     )
 
@@ -104,28 +99,19 @@ fun BouncyDialogContainer(
 
     val scale by animateFloatAsState(
         targetValue = if (targetVisible) 1f else 0.85f,
-        animationSpec = spring(
-            dampingRatio = 0.58f,
-            stiffness = 350f
-        ),
+        animationSpec = androidx.compose.material3.MaterialTheme.motionScheme.defaultSpatialSpec(),
         label = "BouncyDialogScale"
     )
 
     val translationY by animateFloatAsState(
         targetValue = if (targetVisible) 0f else 60f,
-        animationSpec = spring(
-            dampingRatio = 0.55f,
-            stiffness = 320f
-        ),
+        animationSpec = androidx.compose.material3.MaterialTheme.motionScheme.defaultSpatialSpec(),
         label = "BouncyDialogTranslation"
     )
 
     val alpha by animateFloatAsState(
         targetValue = if (targetVisible) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = 0.85f,
-            stiffness = 400f
-        ),
+        animationSpec = androidx.compose.material3.MaterialTheme.motionScheme.defaultEffectsSpec(),
         label = "BouncyDialogAlpha"
     )
 

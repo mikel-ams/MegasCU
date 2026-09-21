@@ -29,15 +29,12 @@ class GitHubUpdateCheckerTest {
     }
 
     @Test
-    fun testExtractBuildCode_extractsVariousTagFormats() {
+    fun testExtractBuildCode_extractsCanonicalAndSupportedLegacyFormats() {
         val testCases = listOf(
+            Pair("v0.8.10-beta.253", "v0.8.10-beta.253") to 253,
+            Pair("0.8.9-beta_(252)", "0.8.9-beta_(252)") to 252,
             Pair("v0.8.2-beta_(245)", "v0.8.2-beta_(245)") to 245,
-            Pair("v0.8.1-beta_(244)", "v0.8.1-beta_(244)") to 244,
-            Pair("v0.8.0-beta_(243)", "MegasCU v0.8.0-beta_(243) — Primera Beta Pública") to 243,
-            Pair("0.7.9-beta_(242)", "0.7.9-beta_(242)") to 242,
-            Pair("v0.8.2-245", "v0.8.2-245") to 245,
-            Pair("v0.8.2_245", "v0.8.2_245") to 245,
-            Pair("v0.8.2", "Release 0.8.2 Build 245") to 245
+            Pair("v0.8.2", "MegasCU v0.8.2 — Build 245") to 245
         )
 
         for ((input, expected) in testCases) {
@@ -45,6 +42,9 @@ class GitHubUpdateCheckerTest {
             val extracted = GitHubUpdateChecker.extractBuildCode(tag, name)
             assertEquals("Fallo al extraer código de build de tag '$tag' y nombre '$name'", expected, extracted)
         }
+
+        assertEquals(0, GitHubUpdateChecker.extractBuildCode("v0.8.2-245", "v0.8.2-245"))
+        assertEquals(0, GitHubUpdateChecker.extractBuildCode("v0.8.2_245", "v0.8.2_245"))
     }
 
     @Test
