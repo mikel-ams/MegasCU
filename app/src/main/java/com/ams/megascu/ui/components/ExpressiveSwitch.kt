@@ -1,6 +1,9 @@
 package com.ams.megascu.ui.components
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -8,11 +11,10 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 
 /**
  * Material 3 Expressive switch. The official Switch owns semantics, touch handling,
- * motion and shape transitions; MegasCU only supplies optional thumb icons and colors.
+ * motion and shape transitions; MegasCU supplies thumb icons and expressive colors.
  */
 @Composable
 fun ExpressiveSwitch(
@@ -20,8 +22,9 @@ fun ExpressiveSwitch(
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    checkedIcon: ImageVector? = null,
-    uncheckedIcon: ImageVector? = null
+    showThumbIcons: Boolean = true,
+    checkedIcon: ImageVector = Icons.Rounded.Check,
+    uncheckedIcon: ImageVector = Icons.Rounded.Close
 ) {
     Switch(
         checked = checked,
@@ -36,21 +39,19 @@ fun ExpressiveSwitch(
             uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             uncheckedBorderColor = MaterialTheme.colorScheme.outline
         ),
-        thumbContent = if (checkedIcon != null || uncheckedIcon != null) {
+        thumbContent = if (showThumbIcons) {
             {
                 val icon = if (checked) checkedIcon else uncheckedIcon
-                if (icon != null) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = if (checked) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (checked) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    },
+                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                )
             }
         } else null
     )

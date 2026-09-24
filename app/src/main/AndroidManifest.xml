@@ -14,6 +14,10 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <queries>
+        <package android:name="cu.etecsa.cubacel.tr.tm" />
+    </queries>
+
     <application
         android:name=".MegasApplication"
         android:allowBackup="true"

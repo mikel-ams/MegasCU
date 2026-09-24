@@ -65,7 +65,7 @@ fun GuideBottomSheet(
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
         dragHandle = { ExpressiveDragHandle() },
-        scrimColor = Color.Black.copy(alpha = 0.35f),
+        scrimColor = Color.Transparent,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
         Column(
@@ -101,7 +101,11 @@ fun GuideBottomSheet(
             val scrollState = rememberScrollState()
             val fadeAlpha by remember { derivedStateOf { (scrollState.value / 40f).coerceIn(0f, 1f) } }
 
-            Box(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

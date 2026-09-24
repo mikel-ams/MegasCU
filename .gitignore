@@ -19,9 +19,14 @@ local.properties
 # Keystore files & Sensitive credentials
 *.jks
 *.keystore
+*.zip
+*.tar
+*.gz
+*.7z
 keystore/
 release-key*.jks
 release-key.jks
+release-keystore-megascu.zip
 debug.keystore
 debug.keystore.base64
 secrets.properties

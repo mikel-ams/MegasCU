@@ -1,7 +1,11 @@
 package com.ams.megascu.ui.components
 
 import android.content.Context
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -9,11 +13,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -54,9 +58,49 @@ object ChangelogRepository {
 
     private val defaultFallback = listOf(
         ChangelogVersion(
-            version = "0.9.0-beta_(254)",
-            date = "2026-09-20",
+            version = "0.9.1-beta_(257)",
+            date = "2026-09-24",
             isLatest = true,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Punto de notificación de Compra y Recarga (< 5 días): Incorporación de indicador de notificación cuando restan 5 días o menos para recargar saldo o renovar paquetes de datos.",
+                        "Punto de notificación de Actualización: Indicador rojo en el botón de ajustes visible al detectar una nueva versión.",
+                        "Notificación Enriquecida de Actualización Disponible: Mejora de la notificación del sistema de actualización.",
+                        "Gestor de Actualizaciones en Ajustes: Rediseño de la tarjeta de actualizaciones con visualización directa de la versión instalada y transición dinámica del botón de búsqueda.",
+                        "Rediseño Interactivo del Historial de Cambios: Nueva cabecera con versión destacada, insignias, métricas resumidas por categoría y tarjetas colapsables para versiones anteriores.",
+                        "Tarjeta Material 3 Expressive de Alerta en Menú de Compras: Nueva tarjeta en el catálogo de Compras para alerta de compra de planes y saldo, conteo dinámico de días y botón de apertura directa de Transfermóvil.",
+                        "Sistema de Alerta Unificada: Detección y notificación consolidada cuando coinciden la necesidad de recarga de saldo principal y el vencimiento inminente de paquetes de datos y planes.",
+                        "Acceso Directo a Compras desde Historial USSD: Incorporación de botón \"Ir a Compras\" en el diálogo de resultado USSD tras consultar la acción rápida de Historial de Recargas e indica disponibilidad de recarga.",
+                        "Opción de Acción Rápida \"Historial de Recargas\": Integración de la consulta *222*732# en el selector de acciones rápidas para acceso directo desde la pantalla principal.",
+                        "Restauración de Indicadores en Switches: Reincorporación de los iconos indicadores de estado (Check y Close) en el thumb de los interruptores."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Rediseño y Estilización de Tarjeta de Recarga de Saldo: Aplicación de tono de color rojo en tarjeta y elementos interactivos, icono de pagos, descripción detallada de recarga y unificación del botón de acción a \"Abrir Transfermóvil\".",
+                        "Disipación Continua de Desenfoque en Cierre de BottomSheets: Sincronización precisa del progreso de desenfoque con la posición física de la hoja durante el recorrido de cierre, alcanzando exactamente 0px de intensidad 2.5dp antes de cerrarse completamente.",
+                        "Efecto de Desenfoque Progresivo Nativo Android: Sustitución integral de dependencias externas por modificadores nativos de Compose y RenderEffect.",
+                        "Difuminado Progresivo con Scroll en Compras: Ajuste del efecto de desenfoque superior en la ventana de Compras para que aparezca gradualmente al desplazarse, evitando difuminados prematuros de elementos superiores.",
+                        "Optimización Integral con R8 en Modo Completo: Activación de minificación R8 Full Mode y reducción agresiva de recursos en Gradle para minimizar el tamaño del APK y maximizar el rendimiento."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Fluidez y Persistencia Visual en Cierre de Modales: Corrección de la pérdida prematura de desenfoque y eliminación de saltos bruscos al soltar o deslizar las ventanas hacia abajo.",
+                        "Desenfoque de Fondo en Ventana Acerca de: Corrección de la renderización del efecto desenfoque gaussiano limpio en la capa posterior de la ventana modal Acerca de.",
+                        "Detección y Formato de Disponibilidad de Recarga: Actualización del analizador USSD para reconocer el mensaje \"Ud puede recargar un monto de 360,00CUP en un plazo de 30 dias\" y reflejar el estado \"Puede recargar saldo\" al vencer el plazo de espera o recibir confirmación de recarga disponible."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.9.0-beta_(255)",
+            date = "2026-09-20",
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.ADDED,
@@ -214,6 +258,52 @@ object ChangelogRepository {
     }
 }
 
+private fun isBetaVersion(version: String): Boolean {
+    val lower = version.lowercase()
+    return lower.contains("beta") || lower.contains("alpha") || lower.contains("rc") || lower.contains("dev")
+}
+
+private fun getCategoryCountLabel(category: ChangeCategory, count: Int): String {
+    return when (category) {
+        ChangeCategory.ADDED -> if (count == 1) "Añadido" else "Añadidos"
+        ChangeCategory.CHANGED -> if (count == 1) "Cambio" else "Cambios"
+        ChangeCategory.FIXED -> if (count == 1) "Corrección" else "Correcciones"
+        ChangeCategory.SECURITY -> "Seguridad"
+        ChangeCategory.DEPRECATED -> if (count == 1) "Obsoleto" else "Obsoletos"
+        ChangeCategory.REMOVED -> if (count == 1) "Eliminado" else "Eliminados"
+    }
+}
+
+@Composable
+private fun getCategoryColors(category: ChangeCategory): Pair<Color, Color> {
+    return when (category) {
+        ChangeCategory.ADDED -> Pair(
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+            MaterialTheme.colorScheme.primary
+        )
+        ChangeCategory.CHANGED -> Pair(
+            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+            MaterialTheme.colorScheme.tertiary
+        )
+        ChangeCategory.DEPRECATED -> Pair(
+            MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+            MaterialTheme.colorScheme.secondary
+        )
+        ChangeCategory.REMOVED -> Pair(
+            MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+            MaterialTheme.colorScheme.error
+        )
+        ChangeCategory.FIXED -> Pair(
+            MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+            MaterialTheme.colorScheme.onSurface
+        )
+        ChangeCategory.SECURITY -> Pair(
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.onErrorContainer
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangelogBottomSheet(
@@ -281,8 +371,23 @@ fun ChangelogBottomSheet(
                 ) {
                     Spacer(modifier = Modifier.height(2.dp))
 
-                    changelogList.forEach { item ->
-                        ChangelogCard(item = item)
+                    if (changelogList.isNotEmpty()) {
+                        // 1. Tarjeta de la última versión
+                        LatestChangelogCard(item = changelogList.first())
+
+                        // 2. Versiones anteriores
+                        if (changelogList.size > 1) {
+                            Text(
+                                text = "Versiones Anteriores",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, fontSize = 12.5.sp),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 0.dp)
+                            )
+
+                            changelogList.drop(1).forEach { previousItem ->
+                                PreviousChangelogCard(item = previousItem)
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -324,126 +429,281 @@ fun ChangelogBottomSheet(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ChangelogCard(item: ChangelogVersion) {
+fun LatestChangelogCard(item: ChangelogVersion) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val codeBgColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f)
     val codeTextColor = MaterialTheme.colorScheme.primary
+    val isBeta = isBetaVersion(item.version)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (item.isLatest) 
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-            else 
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            // Cabecera: Versión en texto grande y a la derecha los dos chips apilados (Última / Beta o Estable)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "v${item.version}",
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    if (item.isLatest) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primary
-                        ) {
-                            Text(
-                                text = "Actual",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                            )
-                        }
+                Text(
+                    text = "v${item.version}",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 21.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Chips apilados verticalmente uno encima del otro
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Chip 1: Última
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary
+                    ) {
+                        Text(
+                            text = "Última",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.5.sp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    // Chip 2: Beta / Estable
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isBeta) 
+                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.85f) 
+                        else 
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.85f)
+                    ) {
+                        Text(
+                            text = if (isBeta) "Beta" else "Estable",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.5.sp),
+                            color = if (isBeta) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 2.dp)
+                        )
                     }
                 }
-                Text(
-                    text = item.date,
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            item.sections.forEachIndexed { sIndex, section ->
-                if (sIndex > 0) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                // Category Badge Pill
-                val (catBgColor, catTextColor) = when (section.category) {
-                    ChangeCategory.ADDED -> Pair(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        MaterialTheme.colorScheme.primary
-                    )
-                    ChangeCategory.CHANGED -> Pair(
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-                        MaterialTheme.colorScheme.tertiary
-                    )
-                    ChangeCategory.DEPRECATED -> Pair(
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
-                        MaterialTheme.colorScheme.secondary
-                    )
-                    ChangeCategory.REMOVED -> Pair(
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
-                        MaterialTheme.colorScheme.error
-                    )
-                    ChangeCategory.FIXED -> Pair(
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                        MaterialTheme.colorScheme.onSurface
-                    )
-                    ChangeCategory.SECURITY -> Pair(
-                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f),
-                        MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = catBgColor,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                ) {
-                    Text(
-                        text = section.category.label,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
-                        color = catTextColor,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
-                    )
-                }
-
-                section.items.forEach { change ->
-                    Row(
-                        modifier = Modifier.padding(vertical = 2.dp, horizontal = 2.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = "• ",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = catTextColor
-                        )
-                        Text(
-                            text = parseMarkdownInline(
-                                text = change,
-                                primaryColor = primaryColor,
-                                codeBgColor = codeBgColor,
-                                codeTextColor = codeTextColor
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+            // Chips en línea con la cantidad de novedades, cambios, correcciones y seguridad
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                item.sections.forEach { section ->
+                    val count = section.items.size
+                    if (count > 0) {
+                        val (catBgColor, catTextColor) = getCategoryColors(section.category)
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = catBgColor,
+                            border = BorderStroke(1.dp, catTextColor.copy(alpha = 0.3f))
+                        ) {
+                            Text(
+                                text = "($count ${getCategoryCountLabel(section.category, count)})",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp
+                                ),
+                                color = catTextColor,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
                     }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                thickness = 1.dp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Detalle de secciones
+            RenderChangelogSections(
+                sections = item.sections,
+                primaryColor = primaryColor,
+                codeBgColor = codeBgColor,
+                codeTextColor = codeTextColor
+            )
+        }
+    }
+}
+
+@Composable
+fun PreviousChangelogCard(item: ChangelogVersion) {
+    var isExpanded by rememberSaveable(item.version) { mutableStateOf(false) }
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val codeBgColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f)
+    val codeTextColor = MaterialTheme.colorScheme.primary
+    val isBeta = isBetaVersion(item.version)
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Versión con letra normal
+                Text(
+                    text = "v${item.version}",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Chips a la derecha: arriba Beta/Estable, abajo fecha
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isBeta) 
+                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f) 
+                        else 
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
+                    ) {
+                        Text(
+                            text = if (isBeta) "Beta" else "Estable",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
+                            color = if (isBeta) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    if (item.date.isNotBlank()) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f)
+                        ) {
+                            Text(
+                                text = item.date,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium, fontSize = 9.5.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.5.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Icon(
+                    imageVector = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = if (isExpanded) "Colapsar" else "Expandir",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
+                exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                ) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        thickness = 1.dp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    RenderChangelogSections(
+                        sections = item.sections,
+                        primaryColor = primaryColor,
+                        codeBgColor = codeBgColor,
+                        codeTextColor = codeTextColor
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RenderChangelogSections(
+    sections: List<ChangelogSection>,
+    primaryColor: Color,
+    codeBgColor: Color,
+    codeTextColor: Color
+) {
+    sections.forEachIndexed { sIndex, section ->
+        if (sIndex > 0) {
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        val (catBgColor, catTextColor) = getCategoryColors(section.category)
+
+        Surface(
+            shape = RoundedCornerShape(6.dp),
+            color = catBgColor,
+            modifier = Modifier.padding(bottom = 6.dp)
+        ) {
+            Text(
+                text = section.category.label,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                color = catTextColor,
+                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+            )
+        }
+
+        section.items.forEach { change ->
+            Row(
+                modifier = Modifier.padding(vertical = 2.dp, horizontal = 2.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = "• ",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = catTextColor
+                )
+                Text(
+                    text = parseMarkdownInline(
+                        text = change,
+                        primaryColor = primaryColor,
+                        codeBgColor = codeBgColor,
+                        codeTextColor = codeTextColor
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }

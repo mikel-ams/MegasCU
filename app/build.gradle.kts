@@ -17,8 +17,8 @@ android {
     applicationId = "com.ams.megascu"
     minSdk = 30
     targetSdk = 36
-    versionCode = 255
-    versionName = "0.9.0-beta_(255)"
+    versionCode = 257
+    versionName = "0.9.1-beta_(257)"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -115,7 +115,6 @@ ksp {
 dependencies {
   implementation(libs.androidx.fragment.ktx)
   implementation(libs.androidx.biometric)
-  implementation(libs.haze)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.compose.material.icons.core)

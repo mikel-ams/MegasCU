@@ -24,6 +24,7 @@ import androidx.compose.material3.*
 import androidx.compose.ui.platform.LocalContext
 import android.content.Context
 import android.widget.Toast
+import com.ams.megascu.utils.PurchaseAlertHelper
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -39,9 +40,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.ams.megascu.ui.theme.CyberCyan
 import com.ams.megascu.ui.theme.ElectricIndigo
 import com.ams.megascu.ui.theme.EmeraldGreen
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.hazeChild
 
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
@@ -107,7 +105,6 @@ fun SettingsBottomSheet(
     onExecuteConsulta: ((String, String) -> Unit)? = null,
     onExecutePurchase: ((String) -> Unit)? = null,
     onDismiss: () -> Unit,
-    hazeState: HazeState? = null,
     onProgress: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -2408,7 +2405,178 @@ fun SettingsBottomSheet(
 
                             Spacer(modifier = Modifier.height(14.dp))
 
-                            
+                            // Sección: Simulación de Alertas de Compra y Recarga (< 5 días)
+                            var simAlertEnabled by remember { mutableStateOf(prefs.getBoolean(PurchaseAlertHelper.KEY_DEV_SIMULATE_ALERT_ENABLED, false)) }
+                            var simAlertType by remember { mutableStateOf(prefs.getString(PurchaseAlertHelper.KEY_DEV_SIMULATE_TYPE, "unified") ?: "unified") }
+                            var simRechargeDays by remember { mutableIntStateOf(prefs.getInt(PurchaseAlertHelper.KEY_DEV_SIMULATE_RECHARGE_DAYS, 3)) }
+                            var simDataDays by remember { mutableIntStateOf(prefs.getInt(PurchaseAlertHelper.KEY_DEV_SIMULATE_DATA_DAYS, 2)) }
+
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                )
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.ShoppingCart,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = "Simular Alerta de Compras (<5d)",
+                                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                                color = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                        Switch(
+                                            checked = simAlertEnabled,
+                                            onCheckedChange = { checked ->
+                                                simAlertEnabled = checked
+                                                prefs.edit().putBoolean(PurchaseAlertHelper.KEY_DEV_SIMULATE_ALERT_ENABLED, checked).apply()
+                                                Toast.makeText(context, if (checked) "Simulación de alerta activada" else "Simulación de alerta desactivada", Toast.LENGTH_SHORT).show()
+                                            }
+                                        )
+                                    }
+
+                                    Text(
+                                        text = "Activa el punto rojo indicador en el botón Comprar y la tarjeta de aviso M3 Expressive en el menú de compras.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(top = 4.dp, bottom = 10.dp)
+                                    )
+
+                                    if (simAlertEnabled) {
+                                        Text(
+                                            text = "Tipo de Alerta Simulada:",
+                                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            FilterChip(
+                                                selected = simAlertType == "unified",
+                                                onClick = {
+                                                    simAlertType = "unified"
+                                                    prefs.edit().putString(PurchaseAlertHelper.KEY_DEV_SIMULATE_TYPE, "unified").apply()
+                                                },
+                                                label = { Text("Unificada", style = MaterialTheme.typography.labelSmall) },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            FilterChip(
+                                                selected = simAlertType == "recharge",
+                                                onClick = {
+                                                    simAlertType = "recharge"
+                                                    prefs.edit().putString(PurchaseAlertHelper.KEY_DEV_SIMULATE_TYPE, "recharge").apply()
+                                                },
+                                                label = { Text("Solo Saldo", style = MaterialTheme.typography.labelSmall) },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            FilterChip(
+                                                selected = simAlertType == "data",
+                                                onClick = {
+                                                    simAlertType = "data"
+                                                    prefs.edit().putString(PurchaseAlertHelper.KEY_DEV_SIMULATE_TYPE, "data").apply()
+                                                },
+                                                label = { Text("Solo Planes", style = MaterialTheme.typography.labelSmall) },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(10.dp))
+
+                                        if (simAlertType == "unified" || simAlertType == "recharge") {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Días restantes de Saldo: $simRechargeDays d",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                                    FilledTonalButton(
+                                                        onClick = {
+                                                            if (simRechargeDays > 0) {
+                                                                simRechargeDays--
+                                                                prefs.edit().putInt(PurchaseAlertHelper.KEY_DEV_SIMULATE_RECHARGE_DAYS, simRechargeDays).apply()
+                                                            }
+                                                        },
+                                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                                        modifier = Modifier.height(32.dp)
+                                                    ) { Text("-1d") }
+                                                    FilledTonalButton(
+                                                        onClick = {
+                                                            if (simRechargeDays < 30) {
+                                                                simRechargeDays++
+                                                                prefs.edit().putInt(PurchaseAlertHelper.KEY_DEV_SIMULATE_RECHARGE_DAYS, simRechargeDays).apply()
+                                                            }
+                                                        },
+                                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                                        modifier = Modifier.height(32.dp)
+                                                    ) { Text("+1d") }
+                                                }
+                                            }
+                                        }
+
+                                        if (simAlertType == "unified" || simAlertType == "data") {
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Días restantes de Planes: $simDataDays d",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                                    FilledTonalButton(
+                                                        onClick = {
+                                                            if (simDataDays > 0) {
+                                                                simDataDays--
+                                                                prefs.edit().putInt(PurchaseAlertHelper.KEY_DEV_SIMULATE_DATA_DAYS, simDataDays).apply()
+                                                            }
+                                                        },
+                                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                                        modifier = Modifier.height(32.dp)
+                                                    ) { Text("-1d") }
+                                                    FilledTonalButton(
+                                                        onClick = {
+                                                            if (simDataDays < 30) {
+                                                                simDataDays++
+                                                                prefs.edit().putInt(PurchaseAlertHelper.KEY_DEV_SIMULATE_DATA_DAYS, simDataDays).apply()
+                                                            }
+                                                        },
+                                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                                        modifier = Modifier.height(32.dp)
+                                                    ) { Text("+1d") }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(24.dp),
@@ -2741,7 +2909,7 @@ fun SettingsBottomSheet(
                 }
 
             Text(
-                text = "Gestor de Descarga y Actualizaciones",
+                text = "Gestor de Actualizaciones",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp)
@@ -2779,14 +2947,14 @@ fun SettingsBottomSheet(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Actualizaciones desde GitHub",
-                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    text = "Versión Instalada:",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    text = "Versión instalada: v${BuildConfig.VERSION_NAME}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = "v${BuildConfig.VERSION_NAME}",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -2848,6 +3016,16 @@ fun SettingsBottomSheet(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
+                    val isUpdateAvailable = (lastCheckedResult?.isUpdateAvailable == true) || 
+                        (prefs.getBoolean(GitHubUpdateChecker.PREF_UPDATE_AVAILABLE, false) && 
+                         GitHubUpdateChecker.isVersionNewer(
+                             remoteTag = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME, "") ?: "",
+                             remoteReleaseName = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME, "") ?: "",
+                             remoteCode = prefs.getInt(GitHubUpdateChecker.PREF_UPDATE_VERSION_CODE, 0),
+                             currentCode = BuildConfig.VERSION_CODE,
+                             currentName = BuildConfig.VERSION_NAME
+                         ))
+
                     // Button to check for updates now
                     ExpressiveButton(
                         onClick = { 
@@ -2856,7 +3034,9 @@ fun SettingsBottomSheet(
                         },
                         enabled = !isCheckingUpdate,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isUpdateAvailable) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
+                        )
                     ) {
                         if (isCheckingUpdate) {
                             CircularWavyProgressIndicator(
@@ -2873,7 +3053,7 @@ fun SettingsBottomSheet(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Buscar Actualización")
+                            Text(if (isUpdateAvailable) "Actualización disponible" else "Buscar Actualización")
                         }
                     }
                 }

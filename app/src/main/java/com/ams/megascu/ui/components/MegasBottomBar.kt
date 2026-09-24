@@ -2,6 +2,7 @@ package com.ams.megascu.ui.components
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +41,7 @@ fun MegasBottomBar(
     useWavyProgress: Boolean = true,
     refreshIndicatorType: String = "circular_wavy",
     disableBlur: Boolean = false,
+    hasPurchaseAlert: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -76,34 +79,61 @@ fun MegasBottomBar(
                 ) {
                     // Left - Comprar button
                     val comprarInteraction = remember { MutableInteractionSource() }
-                    ExpressiveButton(
-                        onClick = onOpenPlanes,
-                        interactionSource = comprarInteraction,
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .width(114.dp)
-                            .height(48.dp)
-                            .testTag("bottom_nav_planes_button"),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ShoppingCart,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Comprar",
-                            maxLines = 1,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.Bold
+                    Box(contentAlignment = Alignment.TopEnd) {
+                        ExpressiveButton(
+                            onClick = onOpenPlanes,
+                            interactionSource = comprarInteraction,
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .width(114.dp)
+                                .height(48.dp)
+                                .testTag("bottom_nav_planes_button"),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.ShoppingCart,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
                             )
-                        )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Comprar",
+                                maxLines = 1,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+
+                        if (hasPurchaseAlert) {
+                            val infiniteTransition = rememberInfiniteTransition(label = "AlertDotPulse")
+                            val pulseScale by infiniteTransition.animateFloat(
+                                initialValue = 0.98f,
+                                targetValue = 1.12f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(2000, easing = FastOutSlowInEasing),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "pulse"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 4.dp, end = 5.dp)
+                                    .size(11.dp)
+                                    .graphicsLayer {
+                                        scaleX = pulseScale
+                                        scaleY = pulseScale
+                                    }
+                                    .background(Color(0xFFE53935), CircleShape)
+                                    .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                                    .testTag("purchase_alert_badge_dot")
+                            )
+                        }
                     }
 
                     // Center item - Actualizar (Enlarged)

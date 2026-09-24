@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -11,6 +12,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -33,8 +36,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.ams.megascu.BuildConfig
 import com.ams.megascu.utils.ApkDownloadManager
 import com.ams.megascu.utils.GitHubUpdateChecker
@@ -55,7 +56,8 @@ private enum class DownloadStatus {
 fun UpdateAvailableDialog(
     updateResult: UpdateCheckResult,
     isSimulation: Boolean = false,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onProgress: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -70,6 +72,15 @@ fun UpdateAvailableDialog(
     var downloadedApkFile by remember { mutableStateOf<File?>(null) }
     var downloadErrorMessage by remember { mutableStateOf<String?>(null) }
     var downloadJob by remember { mutableStateOf<Job?>(null) }
+
+    DisposableEffect(Unit) {
+        onProgress(0f)
+        onDispose {
+            onProgress(0f)
+        }
+    }
+
+    BackHandler(enabled = downloadStatus != DownloadStatus.DOWNLOADING, onBack = onDismiss)
 
     fun startDownload() {
         if (isSimulation) {
@@ -152,47 +163,49 @@ fun UpdateAvailableDialog(
         }
     }
 
-    Dialog(
-        onDismissRequest = {
-            if (downloadStatus != DownloadStatus.DOWNLOADING) {
-                onDismiss()
-            }
-        },
-        properties = DialogProperties(
-            dismissOnBackPress = downloadStatus != DownloadStatus.DOWNLOADING,
-            dismissOnClickOutside = downloadStatus != DownloadStatus.DOWNLOADING,
-            usePlatformDefaultWidth = false
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Transparent)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    if (downloadStatus != DownloadStatus.DOWNLOADING) {
+                        onDismiss()
+                    }
+                }
+            ),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
+        val dialogShape = RoundedCornerShape(28.dp)
+        Card(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.65f))
-                .systemBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 20.dp),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth(0.92f)
+                .widthIn(max = 480.dp)
+                .wrapContentHeight()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {}
+                ),
+            shape = dialogShape,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            val dialogShape = RoundedCornerShape(28.dp)
-            Surface(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 480.dp),
-                shape = dialogShape,
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-                ),
-                tonalElevation = 8.dp,
-                shadowElevation = 14.dp
+                    .verticalScroll(dialogScrollState)
+                    .padding(horizontal = 20.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(dialogScrollState)
-                        .padding(horizontal = 20.dp, vertical = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
                     // Header Badge
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -763,4 +776,3 @@ fun UpdateAvailableDialog(
             }
         }
     }
-}

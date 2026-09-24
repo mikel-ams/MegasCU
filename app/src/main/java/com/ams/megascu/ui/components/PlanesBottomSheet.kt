@@ -41,6 +41,13 @@ import com.ams.megascu.R
 import com.ams.megascu.ui.theme.CyberCyan
 import com.ams.megascu.ui.theme.ElectricIndigo
 import com.ams.megascu.data.db.PlanStatusEntity
+import com.ams.megascu.utils.PurchaseAlertHelper
+import com.ams.megascu.ui.components.PurchaseAlertCard
+import com.ams.megascu.ui.modifiers.progressiveBlur
+import com.ams.megascu.ui.modifiers.BlurDirection
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 
 data class EtecsaPlan(
     val title: String,
@@ -64,8 +71,15 @@ fun PlanesBottomSheet(
     onDismiss: () -> Unit,
     onSelectPlan: (String) -> Unit,
     onRequestRefresh: (() -> Unit)? = null,
+    disableBlur: Boolean = false,
     onProgress: (Float) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val prefs = remember(context) { context.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE) }
+    val alertState = remember(planStatus, prefs) {
+        PurchaseAlertHelper.calculateAlertState(planStatus, prefs)
+    }
+    val scope = rememberCoroutineScope()
     val categories = listOf(
         EtecsaCategory(
             title = "Planes de Datos y Combos Combinados",
@@ -213,17 +227,51 @@ fun PlanesBottomSheet(
             Spacer(modifier = Modifier.height(12.dp))
 
             val listState = rememberLazyListState()
-            val fadeAlpha by remember { derivedStateOf { 
-                if (listState.firstVisibleItemIndex > 0) 1f 
-                else (listState.firstVisibleItemScrollOffset / 40f).coerceIn(0f, 1f) 
-            } }
+            val density = LocalDensity.current
+            val topScrollProgress by remember {
+                derivedStateOf {
+                    if (listState.firstVisibleItemIndex > 0) {
+                        1f
+                    } else {
+                        val scrollThresholdPx = with(density) { 32.dp.toPx() }
+                        (listState.firstVisibleItemScrollOffset / scrollThresholdPx).coerceIn(0f, 1f)
+                    }
+                }
+            }
 
-            Box(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .progressiveBlur(
+                        blurRadius = if (disableBlur) 0f else (16f * topScrollProgress),
+                        height = with(LocalDensity.current) { (20.dp.toPx() * topScrollProgress) },
+                        direction = BlurDirection.TOP
+                    )
+                    .progressiveBlur(
+                        blurRadius = if (disableBlur) 0f else 20f,
+                        height = with(LocalDensity.current) { 24.dp.toPx() },
+                        direction = BlurDirection.BOTTOM
+                    )
+            ) {
                 LazyColumn(
                     state = listState,
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
                 ) {
+                    if (alertState.hasAlert) {
+                        item {
+                            PurchaseAlertCard(
+                                alertState = alertState,
+                                onScrollToCatalog = {
+                                    scope.launch {
+                                        listState.animateScrollToItem(index = 2)
+                                    }
+                                }
+                            )
+                        }
+                    }
+
                     item {
                         ActivePlanHeaderCard(
                             planStatus = planStatus,
@@ -390,7 +438,7 @@ fun PlanesBottomSheet(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.surface.copy(alpha = fadeAlpha),
+                                    MaterialTheme.colorScheme.surface.copy(alpha = topScrollProgress),
                                     Color.Transparent
                                 )
                             )

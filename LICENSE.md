@@ -41,16 +41,11 @@ MegasCU utiliza y se apoya en los siguientes componentes, librerías y recursos 
 * **Licencia:** [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 * **Repositorio:** [https://github.com/patrykandpatryk/vico](https://github.com/patrykandpatryk/vico)
 
-### 4. Haze (Glassmorphism & Blur for Jetpack Compose)
-* **Desarrollador:** Chris Banes
-* **Licencia:** [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
-* **Repositorio:** [https://github.com/chrisbanes/haze](https://github.com/chrisbanes/haze)
-
-### 5. Google Material Symbols & Icons
+### 4. Google Material Symbols & Icons
 * **Desarrollador:** Google LLC
 * **Licencia:** [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-### 6. Fuente Tipográfica Space Mono
+### 5. Fuente Tipográfica Space Mono
 * **Diseñador:** Colophon Foundry
 * **Licencia:** [SIL Open Font License, Version 1.1](http://scripts.sil.org/OFL)
 * **Distribución:** Google Fonts

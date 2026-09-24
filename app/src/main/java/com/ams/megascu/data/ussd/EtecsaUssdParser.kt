@@ -144,10 +144,22 @@ object EtecsaUssdParser {
                 bonusDays = firstDays ?: extractDaysForKeywordSection(response, "bono|bonus")
             }
             "*222*732#" -> {
-                if (extractedDate != null) {
+                val lower = response.lowercase()
+                if (lower.contains("puede recargar un monto") || lower.contains("ud puede recargar") || (lower.contains("puede recargar") && !lower.contains("posterior al dia"))) {
+                    nextRechargeDays = 0
+                    nextRechargeDateStr = "Puede recargar saldo"
+                } else if (extractedDate != null) {
                     val (effectiveDateStr, daysRem) = calculateRechargeAvailability(extractedDate)
-                    nextRechargeDateStr = effectiveDateStr
-                    if (daysRem != null) nextRechargeDays = daysRem.toInt()
+                    if (daysRem != null && daysRem <= 0) {
+                        nextRechargeDays = 0
+                        nextRechargeDateStr = "Puede recargar saldo"
+                    } else {
+                        nextRechargeDateStr = effectiveDateStr
+                        if (daysRem != null) nextRechargeDays = daysRem.toInt()
+                    }
+                } else if (lower.contains("puede recargar")) {
+                    nextRechargeDays = 0
+                    nextRechargeDateStr = "Puede recargar saldo"
                 }
             }
             else -> {
@@ -273,8 +285,8 @@ object EtecsaUssdParser {
     }
 
     fun evaluateExpiration(dateStr: String?): Triple<Long?, Boolean, Boolean> {
-        if (dateStr.isNullOrBlank()) {
-            return Triple(null, false, false)
+        if (dateStr.isNullOrBlank() || dateStr.equals("Puede recargar saldo", ignoreCase = true)) {
+            return Triple(0L, false, false)
         }
         try {
             val cleanedDate = dateStr.trim().replace('/', '-').replace('.', '-')

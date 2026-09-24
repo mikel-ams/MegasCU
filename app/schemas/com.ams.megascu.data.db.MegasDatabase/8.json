@@ -1,0 +1,243 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 8,
+    "identityHash": "97c3ae8bd306fd4249488bccb1d63c7e",
+    "entities": [
+      {
+        "tableName": "plan_status",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `subscriptionId` INTEGER, `balanceCup` REAL NOT NULL, `dataMb` INTEGER NOT NULL, `dataLteMb` INTEGER NOT NULL, `bonusDataMb` INTEGER NOT NULL, `minutesStr` TEXT NOT NULL, `smsCount` INTEGER NOT NULL, `dataDays` INTEGER NOT NULL, `minutesDays` INTEGER NOT NULL, `smsDays` INTEGER NOT NULL, `dataExpirationTimestamp` INTEGER NOT NULL, `minutesExpirationTimestamp` INTEGER NOT NULL, `smsExpirationTimestamp` INTEGER NOT NULL, `nextRechargeDateStr` TEXT NOT NULL, `nextRechargeDays` INTEGER NOT NULL, `lastUpdatedTimestamp` INTEGER NOT NULL, `rawLastResponse` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subscriptionId",
+            "columnName": "subscriptionId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "balanceCup",
+            "columnName": "balanceCup",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataMb",
+            "columnName": "dataMb",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataLteMb",
+            "columnName": "dataLteMb",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bonusDataMb",
+            "columnName": "bonusDataMb",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minutesStr",
+            "columnName": "minutesStr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "smsCount",
+            "columnName": "smsCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataDays",
+            "columnName": "dataDays",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minutesDays",
+            "columnName": "minutesDays",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "smsDays",
+            "columnName": "smsDays",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataExpirationTimestamp",
+            "columnName": "dataExpirationTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minutesExpirationTimestamp",
+            "columnName": "minutesExpirationTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "smsExpirationTimestamp",
+            "columnName": "smsExpirationTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextRechargeDateStr",
+            "columnName": "nextRechargeDateStr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextRechargeDays",
+            "columnName": "nextRechargeDays",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdatedTimestamp",
+            "columnName": "lastUpdatedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rawLastResponse",
+            "columnName": "rawLastResponse",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "sms_logs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sender` TEXT NOT NULL, `messageBody` TEXT NOT NULL, `extractedDateStr` TEXT, `timestamp` INTEGER NOT NULL, `simSlot` INTEGER NOT NULL, `subscriptionId` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sender",
+            "columnName": "sender",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "messageBody",
+            "columnName": "messageBody",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "extractedDateStr",
+            "columnName": "extractedDateStr",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "simSlot",
+            "columnName": "simSlot",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subscriptionId",
+            "columnName": "subscriptionId",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "usage_history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `balanceCup` REAL NOT NULL, `dataMb` INTEGER NOT NULL, `dataLteMb` INTEGER NOT NULL, `bonusDataMb` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `simSlot` INTEGER NOT NULL, `subscriptionId` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "balanceCup",
+            "columnName": "balanceCup",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataMb",
+            "columnName": "dataMb",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataLteMb",
+            "columnName": "dataLteMb",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bonusDataMb",
+            "columnName": "bonusDataMb",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "simSlot",
+            "columnName": "simSlot",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subscriptionId",
+            "columnName": "subscriptionId",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '97c3ae8bd306fd4249488bccb1d63c7e')"
+    ]
+  }
+}

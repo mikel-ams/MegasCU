@@ -37,10 +37,26 @@ class MegasApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        ChangelogRepository.getChangelogList(this)
-        createNotificationChannel()
-        scheduleExpirationWorker()
-        scheduleGitHubUpdateWorker()
+        try {
+            ChangelogRepository.getChangelogList(this)
+        } catch (e: Throwable) {
+            android.util.Log.e("MegasApplication", "Error initializing ChangelogRepository", e)
+        }
+        try {
+            createNotificationChannel()
+        } catch (e: Throwable) {
+            android.util.Log.e("MegasApplication", "Error creating notification channels", e)
+        }
+        try {
+            scheduleExpirationWorker()
+        } catch (e: Throwable) {
+            android.util.Log.e("MegasApplication", "Error scheduling ExpirationWorker", e)
+        }
+        try {
+            scheduleGitHubUpdateWorker()
+        } catch (e: Throwable) {
+            android.util.Log.e("MegasApplication", "Error scheduling GitHubUpdateWorker", e)
+        }
     }
 
     private fun createNotificationChannel() {

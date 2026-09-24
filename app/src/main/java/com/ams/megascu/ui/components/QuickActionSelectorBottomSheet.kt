@@ -78,7 +78,8 @@ fun QuickActionSelectorBottomSheet(
         QuickActionOption("Consulta Saldo Principal", "*222#", "*222#", "Consultas Frecuentes"),
         QuickActionOption("Consulta Datos (DAT)", "*222*328#", "*222*328#", "Consultas Frecuentes"),
         QuickActionOption("Consulta Minutos (VOZ)", "*222*869#", "*222*869#", "Consultas Frecuentes"),
-        QuickActionOption("Consulta Mensajes (SMS)", "*222*767#", "*222*767#", "Consultas Frecuentes")
+        QuickActionOption("Consulta Mensajes (SMS)", "*222*767#", "*222*767#", "Consultas Frecuentes"),
+        QuickActionOption("Historial de Recargas", "Consulta de recargas *222*732#", "*222*732#", "Consultas Frecuentes")
     )
 
     val groupedOptions = options.groupBy { it.category }
