@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Version-0.9.1--beta__(257)-007ACC?style=flat&logo=android&logoColor=white" alt="Version 0.9.1-beta_(257)" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Version-0.9.2--beta__(258)-007ACC?style=flat&logo=android&logoColor=white" alt="Version 0.9.2-beta_(258)" /></a>
   <a href="https://android.com"><img src="https://img.shields.io/badge/Platform-Android_11.0%2B_(API_30%2B)-3DDC84?logo=android&logoColor=white" alt="Platform: Android" /></a>
   <a href="https://developer.android.com/jetpack/compose"><img src="https://img.shields.io/badge/UI-Jetpack_Compose_Expressive_M3-4285F4?logo=jetpackcompose&logoColor=white" alt="Jetpack Compose" /></a>
   <a href="https://developer.android.com/topic/architecture"><img src="https://img.shields.io/badge/Architecture-Clean_MVVM_%2B_Flow-7952B3" alt="Architecture" /></a>

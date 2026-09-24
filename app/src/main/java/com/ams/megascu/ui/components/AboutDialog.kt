@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Brands
 import compose.icons.fontawesomeicons.brands.Facebook
+import compose.icons.fontawesomeicons.brands.Github
 import compose.icons.fontawesomeicons.brands.Instagram
 import compose.icons.fontawesomeicons.brands.Telegram
 import compose.icons.fontawesomeicons.brands.Whatsapp
@@ -275,16 +276,57 @@ fun AboutBottomSheet(
     onProgress: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
+    var isVisible by remember { mutableStateOf(false) }
+    var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var playLogoAnim by remember { mutableStateOf(false) }
     var isPressed by remember { mutableStateOf(false) }
     var isSuperSaiyan by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        isVisible = true
+        delay(200) // Pausa inicial breve al abrir la ventana antes de animar el logo
+        playLogoAnim = true
+    }
+
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+        label = "aboutModalProgress"
+    )
+
+    LaunchedEffect(animatedProgress) {
+        onProgress(animatedProgress)
+        if (animatedProgress == 0f && !isVisible) {
+            val action = pendingAction
+            if (action != null) {
+                action()
+            } else {
+                onDismiss()
+            }
+        }
+    }
+
     DisposableEffect(Unit) {
-        onProgress(0f)
         onDispose {
             onProgress(0f)
         }
     }
+
+    val requestDismiss: () -> Unit = {
+        if (isVisible) {
+            pendingAction = null
+            isVisible = false
+        }
+    }
+
+    val requestOpenChangelog: () -> Unit = {
+        if (isVisible) {
+            pendingAction = onOpenChangelog
+            isVisible = false
+        }
+    }
+
+    BackHandler(enabled = true, onBack = requestDismiss)
 
     LaunchedEffect(isPressed) {
         if (isPressed && !isSuperSaiyan) {
@@ -293,31 +335,31 @@ fun AboutBottomSheet(
         }
     }
 
-    LaunchedEffect(Unit) {
-        delay(200) // Pausa inicial breve de 200ms al abrir la ventana antes de iniciar la animación
-        playLogoAnim = true
-    }
-
-    BackHandler(onBack = onDismiss)
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .expressiveModalEntrance()
-            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.35f))
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onDismiss
-            ),
-        contentAlignment = Alignment.Center
-    ) {
+    if (animatedProgress > 0f || isVisible) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.scrim.copy(alpha = animatedProgress * 0.40f))
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = requestDismiss
+                ),
+            contentAlignment = Alignment.Center
+        ) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth(0.92f)
                     .wrapContentHeight()
+                    .graphicsLayer {
+                        val scale = 0.90f + (0.10f * animatedProgress)
+                        scaleX = scale
+                        scaleY = scale
+                        alpha = animatedProgress.coerceIn(0f, 1f)
+                        translationY = (1f - animatedProgress) * 45f
+                    }
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -326,15 +368,15 @@ fun AboutBottomSheet(
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp)
-            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(24.dp)
+                ) {
                     // Logo con animación calcada del Splash Screen
                     Box(
                         modifier = Modifier.pointerInput(isSuperSaiyan) {
@@ -383,7 +425,6 @@ fun AboutBottomSheet(
                         textAlign = TextAlign.Center
                     )
 
-                    
                     Text(
                         text = stringResource(R.string.app_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
@@ -397,22 +438,56 @@ fun AboutBottomSheet(
                     var lastTapTime by remember { mutableLongStateOf(0L) }
                     var isDevModeEnabled by remember { mutableStateOf(prefs.getBoolean("developer_mode_enabled", false)) }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
 
+                    val devByText = stringResource(R.string.developed_by)
+                    val devNameText = stringResource(R.string.developer_name)
+                    // Tarjeta de Desarrollado por (sin línea de contorno)
+                    Surface(
+                        shape = RoundedCornerShape(22.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = null,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = buildAnnotatedString {
+                                    append("$devByText\n")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
+                                        append(devNameText)
+                                    }
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.copyright_text),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Botón de Versión (colocado debajo de Desarrollado por con animación expressive)
                     val devInteraction = remember { MutableInteractionSource() }
                     Surface(
                         shape = RoundedCornerShape(22.dp),
                         color = if (isDevModeEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
                         onClick = {
-                            val now = System.currentTimeMillis()
-                            if (now - lastTapTime > 2000L) {
-                                devTapCount = 0
-                            }
-                            lastTapTime = now
-
-                            if (isDevModeEnabled) {
-                                android.widget.Toast.makeText(context, "El modo de pruebas de desarrollador ya está activado", android.widget.Toast.LENGTH_SHORT).show()
-                            } else {
+                            if (!isDevModeEnabled) {
+                                val now = System.currentTimeMillis()
+                                if (now - lastTapTime > 2000L) {
+                                    devTapCount = 0
+                                }
+                                lastTapTime = now
                                 devTapCount++
                                 val remaining = 7 - devTapCount
                                 if (devTapCount in 3..6) {
@@ -467,46 +542,10 @@ fun AboutBottomSheet(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    val devByText = stringResource(R.string.developed_by)
-                    val devNameText = stringResource(R.string.developer_name)
-                    // Separate Card for Developer and Copyright
-                    Surface(
-                        shape = RoundedCornerShape(22.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(14.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = buildAnnotatedString {
-                                    append("$devByText\n")
-                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                                        append(devNameText)
-                                    }
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(R.string.copyright_text),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-
                     Spacer(modifier = Modifier.height(12.dp))
 
                     ExpressiveOutlinedButton(
-                        onClick = onOpenChangelog,
+                        onClick = requestOpenChangelog,
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 48.dp)
@@ -522,17 +561,17 @@ fun AboutBottomSheet(
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                         )
                     }
-                    
+
                     Spacer(modifier = Modifier.height(24.dp))
-                    
+
                     Text(
                         text = stringResource(R.string.community_and_support),
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
-                    
+
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -540,34 +579,46 @@ fun AboutBottomSheet(
                     ) {
                         SocialIcon(
                             icon = FontAwesomeIcons.Brands.Whatsapp,
-                            contentDescription = "WhatsApp"
+                            contentDescription = "WhatsApp",
+                            backgroundColor = Color(0xFF25D366)
                         ) {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/5353226526")))
                         }
                         SocialIcon(
                             icon = FontAwesomeIcons.Brands.Facebook,
-                            contentDescription = "Facebook"
+                            contentDescription = "Facebook",
+                            backgroundColor = Color(0xFF1877F2)
                         ) {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/appmovilshop.cu")))
                         }
                         SocialIcon(
                             icon = FontAwesomeIcons.Brands.Telegram,
-                            contentDescription = "Telegram"
+                            contentDescription = "Telegram",
+                            backgroundColor = Color(0xFF229ED9)
                         ) {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/migue_appmovilshop")))
                         }
                         SocialIcon(
                             icon = FontAwesomeIcons.Brands.Instagram,
-                            contentDescription = "Instagram"
+                            contentDescription = "Instagram",
+                            backgroundColor = Color(0xFFE4405F)
                         ) {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/appmovilshop")))
                         }
+                        SocialIcon(
+                            icon = FontAwesomeIcons.Brands.Github,
+                            contentDescription = "GitHub",
+                            backgroundColor = Color(0xFF24292E)
+                        ) {
+                            val repoUrl = "https://github.com/${com.ams.megascu.utils.GitHubUpdateChecker.DEFAULT_REPO}"
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(repoUrl)))
+                        }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(28.dp))
-                    
+
                     ExpressiveButton(
-                        onClick = onDismiss,
+                        onClick = requestDismiss,
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 48.dp),
@@ -583,6 +634,7 @@ fun AboutBottomSheet(
             }
         }
     }
+}
 
 // Alias for backwards compatibility if needed
 @Composable
@@ -595,17 +647,17 @@ fun SocialIcon(
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     painter: androidx.compose.ui.graphics.painter.Painter? = null,
     contentDescription: String,
+    backgroundColor: Color = Color(0xFF4A00E0),
     onClick: () -> Unit
 ) {
-    val violetBg = Color(0xFF4A00E0)
     val socialInteraction = remember { MutableInteractionSource() }
     Surface(
         onClick = onClick,
         interactionSource = socialInteraction,
         modifier = Modifier
-            .size(52.dp)
+            .size(46.dp)
             .expressivePressEffect(interactionSource = socialInteraction),
-        color = violetBg,
+        color = backgroundColor,
         shape = CircleShape,
         shadowElevation = 0.dp
     ) {
@@ -618,14 +670,14 @@ fun SocialIcon(
                     painter = painter,
                     contentDescription = contentDescription,
                     tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             } else if (icon != null) {
                 Icon(
                     imageVector = icon,
                     contentDescription = contentDescription,
                     tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
         }

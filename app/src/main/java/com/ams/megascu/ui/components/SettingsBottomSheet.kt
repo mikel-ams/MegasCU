@@ -1728,83 +1728,93 @@ fun SettingsBottomSheet(
                         }
                     }
 
-                    ModalBottomSheet(
+                    Dialog(
                         onDismissRequest = { showDeveloperSheet = false },
-                        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                        modifier = Modifier.statusBarsPadding().padding(top = 40.dp),
-                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        dragHandle = { ExpressiveDragHandle() },
-                        scrimColor = Color.Transparent,
-                        contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+                        properties = DialogProperties(
+                            usePlatformDefaultWidth = false,
+                            decorFitsSystemWindows = false
+                        )
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .statusBarsPadding()
-                                .navigationBarsPadding()
-                                .padding(horizontal = 20.dp, vertical = 12.dp)
-                                .verticalScroll(rememberScrollState())
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.surface
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        modifier = Modifier.size(42.dp)
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.BugReport,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(
-                                            text = "Opciones de Desarrollador",
-                                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            Scaffold(
+                                topBar = {
+                                    TopAppBar(
+                                        title = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Surface(
+                                                    shape = CircleShape,
+                                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                                    modifier = Modifier.size(38.dp)
+                                                ) {
+                                                    Box(contentAlignment = Alignment.Center) {
+                                                        Icon(
+                                                            imageVector = Icons.Rounded.BugReport,
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.width(12.dp))
+                                                Column {
+                                                    Text(
+                                                        text = "Opciones de Desarrollador",
+                                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                                    )
+                                                    Text(
+                                                        text = "Herramientas M3 Expressive",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        navigationIcon = {
+                                            IconButton(onClick = { showDeveloperSheet = false }) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                                    contentDescription = "Regresar"
+                                                )
+                                            }
+                                        },
+                                        actions = {
+                                            ExpressiveFilledTonalIconButton(
+                                                onClick = {
+                                                    isDeveloperMode = false
+                                                    showDeveloperSheet = false
+                                                    prefs.edit().putBoolean("developer_mode_enabled", false).apply()
+                                                    Toast.makeText(context, "Modo de prueba desactivado", Toast.LENGTH_SHORT).show()
+                                                },
+                                                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
+                                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                                )
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Rounded.PowerSettingsNew,
+                                                    contentDescription = "Desactivar modo prueba",
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            }
+                                        },
+                                        colors = TopAppBarDefaults.topAppBarColors(
+                                            containerColor = MaterialTheme.colorScheme.surface
                                         )
-                                        Text(
-                                            text = "Herramientas M3 Expressive",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                                ExpressiveFilledTonalIconButton(
-                                    onClick = {
-                                        isDeveloperMode = false
-                                        showDeveloperSheet = false
-                                        prefs.edit().putBoolean("developer_mode_enabled", false).apply()
-                                        Toast.makeText(context, "Modo de prueba desactivado", Toast.LENGTH_SHORT).show()
-                                    },
-                                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
-                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
                                     )
+                                },
+                                contentWindowInsets = WindowInsets.statusBars
+                            ) { innerPadding ->
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(innerPadding)
+                                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                                        .verticalScroll(rememberScrollState())
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.PowerSettingsNew,
-                                        contentDescription = "Desactivar modo prueba",
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                }
-                            }
-
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-
-                            Text(
+                                    Text(
         text = "🎨 Temas y Estilos",
         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
         color = MaterialTheme.colorScheme.primary,
@@ -2903,10 +2913,12 @@ fun SettingsBottomSheet(
                                 )
                             }
 
-                            Spacer(modifier = Modifier.navigationBarsPadding())
+                                Spacer(modifier = Modifier.navigationBarsPadding())
+                            }
                         }
                     }
                 }
+            }
 
             Text(
                 text = "Gestor de Actualizaciones",

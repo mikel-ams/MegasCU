@@ -7,6 +7,18 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.9.2-beta_(258)] - 2026-09-24
+
+### Añadido
+- **Enlace al Repositorio en Acerca de:** Nuevo botón de acceso directo al repositorio de GitHub con icono distintivo.
+- **Animaciones Expressive al Pulsar:** Transición táctil con escala y rebote elástico en botones sociales, enlaces de soporte y versión.
+- **Transición Fluida en Ventana Acerca de:** Animación suave de apertura y cierre con escalado sutil, desvanecimiento y sincronización de desenfoque.
+- **Indicador PullToRefresh M3 Expressive:** Integración del indicador de carga nativo con transformación de formas durante la actualización.
+
+### Cambiado
+- **Mayor Grosor en Indicadores de Interruptores:** Incremento del trazo en los símbolos de verificación y cierre con terminaciones redondeadas.
+- **Reorganización en Acerca de:** Reubicación de la versión debajo de los créditos de desarrollo y eliminación del contorno de la tarjeta.
+
 ## [0.9.1-beta_(257)] - 2026-09-24
 
 ### Añadido
