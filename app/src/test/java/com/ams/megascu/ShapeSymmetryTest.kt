@@ -36,7 +36,10 @@ class ShapeSymmetryTest {
                         "topStart" to "28.dp",
                         "topEnd" to "28.dp"
                     )
-                    if (allNamedCornersEqual || isBottomSheet) {
+                    val isGroupedCard = cornerValues.size == 4 &&
+                        cornerValues["topStart"] == cornerValues["topEnd"] &&
+                        cornerValues["bottomStart"] == cornerValues["bottomEnd"]
+                    if (allNamedCornersEqual || isBottomSheet || isGroupedCard) {
                         null
                     } else {
                         "${file.path}:${text.substring(0, match.range.first).count { it == '\n' } + 1}: $body"

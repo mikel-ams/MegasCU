@@ -5,11 +5,8 @@ import com.ams.megascu.utils.PermissionUtils
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import dev.chrisbanes.haze.haze
+import com.ams.megascu.utils.PurchaseAlertHelper
 
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.hazeChild
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlurEffect
@@ -75,6 +72,7 @@ import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -487,6 +485,7 @@ fun MegasMainApp(
     val quickActionCode by viewModel.quickActionCode.collectAsStateWithLifecycle()
     val quickActionLabel by viewModel.quickActionLabel.collectAsStateWithLifecycle()
 
+    val hasPendingUpdateBadge by viewModel.hasPendingUpdateBadge.collectAsStateWithLifecycle()
     val updateCheckResult by viewModel.updateCheckResult.collectAsStateWithLifecycle()
 
     val nonCubacelSimAlert by viewModel.nonCubacelSimAlert.collectAsStateWithLifecycle()
@@ -503,7 +502,6 @@ fun MegasMainApp(
     var showMatrixTerminal by remember { mutableStateOf(false) }
     var showQuickActionSelector by remember { mutableStateOf(false) }
     var showWhatsNewDialog by remember { mutableStateOf(false) }
-    val hazeState = remember { HazeState() }
     val pullRefreshState = rememberPullToRefreshState()
     var isPullRefreshing by remember { mutableStateOf(false) }
 
@@ -573,7 +571,7 @@ fun MegasMainApp(
                 "comprar" -> {
                     showPlanesSheet = true
                 }
-                "menu" -> {
+                "menu", "open_settings_update" -> {
                     showSettingsSheet = true
                 }
                 "show_update" -> {
@@ -590,6 +588,10 @@ fun MegasMainApp(
 
     var activeSheetProgress by remember { mutableFloatStateOf(0f) }
 
+    val purchaseAlertState = remember(planStatus, prefs) {
+        PurchaseAlertHelper.calculateAlertState(planStatus, prefs)
+    }
+
     val isUpdateModalOpen = updateCheckResult != null && updateCheckResult!!.isUpdateAvailable
 
     val isAnyDialogOnlyOpen = showAbout || showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
@@ -605,13 +607,13 @@ fun MegasMainApp(
     )
 
     val effectiveBlurAmount = maxOf(dialogBlurFraction, activeSheetProgress)
-    val backgroundBlurRadius = if (disableBlurEffects) 0.dp else (16.dp * effectiveBlurAmount).coerceIn(0.dp, 16.dp)
+    val backgroundBlurRadius = if (disableBlurEffects) 0.dp else (24.dp * effectiveBlurAmount).coerceIn(0.dp, 24.dp)
     val isDarkScrimDialog = (showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
             (ussdState !is UssdUiState.Idle && ussdState !is UssdUiState.Executing)) && !showAbout
     val backgroundOverlayAlpha = if (isDarkScrimDialog) {
         (0.25f * dialogBlurFraction).coerceIn(0f, 0.25f)
     } else if (showAbout) {
-        0f
+        (0.35f * dialogBlurFraction).coerceIn(0f, 0.35f)
     } else {
         (0.25f * activeSheetProgress).coerceIn(0f, 0.25f)
     }
@@ -620,7 +622,6 @@ fun MegasMainApp(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .haze(hazeState)
                 .then(if (backgroundBlurRadius > 0.dp) Modifier.blur(backgroundBlurRadius) else Modifier)
         ) {
             PullToRefreshBox(
@@ -767,17 +768,55 @@ fun MegasMainApp(
                                         tint = MaterialTheme.colorScheme.onBackground
                                     )
                                 }
-                                ExpressiveIconButton(
-                                    onClick = { showSettingsSheet = true },
-                                    modifier = Modifier
-                                        .padding(end = 4.dp)
-                                        .testTag("btn_settings")
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Settings,
-                                        contentDescription = "Configuración",
-                                        tint = MaterialTheme.colorScheme.onBackground
-                                    )
+                                Box(contentAlignment = Alignment.TopEnd) {
+                                    ExpressiveIconButton(
+                                        onClick = { showSettingsSheet = true },
+                                        modifier = Modifier
+                                            .padding(end = 4.dp)
+                                            .testTag("btn_settings")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Settings,
+                                            contentDescription = "Configuración",
+                                            tint = MaterialTheme.colorScheme.onBackground
+                                        )
+                                    }
+
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = hasPendingUpdateBadge,
+                                        enter = fadeIn(
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                stiffness = Spring.StiffnessMediumLow
+                                            )
+                                        ) + scaleIn(
+                                            initialScale = 0.2f,
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                stiffness = Spring.StiffnessMediumLow
+                                            )
+                                        ),
+                                        exit = fadeOut(
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                                stiffness = Spring.StiffnessMedium
+                                            )
+                                        ) + scaleOut(
+                                            targetScale = 0.2f,
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                                stiffness = Spring.StiffnessMedium
+                                            )
+                                        )
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(top = 8.dp, end = 9.dp)
+                                                .size(9.dp)
+                                                .background(Color(0xFFE53935), CircleShape)
+                                                .testTag("settings_update_badge_dot")
+                                        )
+                                    }
                                 }
                             }
                         },
@@ -798,6 +837,7 @@ fun MegasMainApp(
                             useWavyProgress = useWavyProgress,
                             refreshIndicatorType = refreshIndicatorType,
                             disableBlur = disableBlurEffects,
+                            hasPurchaseAlert = purchaseAlertState.hasAlert,
                             onOpenSettings = { showSettingsSheet = true },
                             onShowAbout = { showAbout = true }
                         )
@@ -837,6 +877,7 @@ fun MegasMainApp(
                                 planStatus = planStatus,
                                 selectedSimSlot = selectedSimSlot,
                                 dualSimEnabled = dualSimEnabled,
+                                hasPurchaseAlert = purchaseAlertState.hasAlert,
                                 onSelectSimSlot = { viewModel.selectSimSlot(it, context) },
                                 onExecuteConsulta = { code, title -> safeRunUssd { viewModel.executeUssdQuery(code, title = title, simSlot = selectedSimSlot) } },
                                 onRefresh = { safeRunUssd { viewModel.refreshAllStatus(simSlot = selectedSimSlot) } },
@@ -1035,6 +1076,7 @@ fun MegasMainApp(
                         showPlanesSheet = false 
                     },
                     onRequestRefresh = { safeRunUssd { viewModel.refreshAllStatus(simSlot = selectedSimSlot) } },
+                    disableBlur = disableBlurEffects,
                     onProgress = { activeSheetProgress = it }
                 )
             }
@@ -1134,7 +1176,6 @@ fun MegasMainApp(
                         safeRunUssd { viewModel.executePurchaseUssd(code, selectedSimSlot) }
                     },
                     onDismiss = { showSettingsSheet = false },
-                    hazeState = hazeState,
                     onProgress = { activeSheetProgress = it }
                 )
             }
@@ -1154,7 +1195,6 @@ fun MegasMainApp(
                         showAbout = false
                         showChangelogSheet = true
                     },
-                    hazeState = hazeState,
                     onProgress = { activeSheetProgress = it }
                 )
             }
@@ -1211,6 +1251,14 @@ fun MegasMainApp(
                 is UssdUiState.Success -> {
                     val state = ussdState as UssdUiState.Success
                     val responseText = state.message.ifBlank { state.rawResponse }
+                    val isRechargeHistoryQuery = state.code == "*222*732#" ||
+                            state.title?.contains("Historial", ignoreCase = true) == true
+                    val isRechargeAvailable = isRechargeHistoryQuery &&
+                            (responseText.contains("puede recargar un", ignoreCase = true) ||
+                             responseText.contains("UD puede recargar", ignoreCase = true) ||
+                             responseText.contains("monto de recarga", ignoreCase = true) ||
+                             responseText.contains("puede recargar", ignoreCase = true))
+
                     AlertDialog(
                         onDismissRequest = { viewModel.dismissUssdDialog() },
                         modifier = Modifier.expressiveModalEntrance(),
@@ -1266,6 +1314,29 @@ fun MegasMainApp(
                                 Text("Aceptar", fontWeight = FontWeight.Bold)
                             }
                         },
+                        dismissButton = if (isRechargeAvailable) {
+                            {
+                                ExpressiveButton(
+                                    onClick = {
+                                        viewModel.dismissUssdDialog()
+                                        showPlanesSheet = true
+                                    },
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ShoppingCart,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Ir a Compras", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        } else null,
                         containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
                         textContentColor = MaterialTheme.colorScheme.onSurface

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Version-0.9.0--beta__(255)-007ACC?style=flat&logo=android&logoColor=white" alt="Version 0.9.0-beta_(255)" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Version-0.9.1--beta__(257)-007ACC?style=flat&logo=android&logoColor=white" alt="Version 0.9.1-beta_(257)" /></a>
   <a href="https://android.com"><img src="https://img.shields.io/badge/Platform-Android_11.0%2B_(API_30%2B)-3DDC84?logo=android&logoColor=white" alt="Platform: Android" /></a>
   <a href="https://developer.android.com/jetpack/compose"><img src="https://img.shields.io/badge/UI-Jetpack_Compose_Expressive_M3-4285F4?logo=jetpackcompose&logoColor=white" alt="Jetpack Compose" /></a>
   <a href="https://developer.android.com/topic/architecture"><img src="https://img.shields.io/badge/Architecture-Clean_MVVM_%2B_Flow-7952B3" alt="Architecture" /></a>
@@ -130,6 +130,14 @@
 
 ---
 
+## 📚 Documentación y Recursos del Proyecto
+
+* **[Descripción y Especificaciones de Release (APP_DESCRIPTION.md)](APP_DESCRIPTION.md):** Ficha técnica detallada, desglose arquitectónico, novedades de la versión actual (`0.9.0-beta_(255)`) y resumen funcional completo para notas de lanzamiento y publicación.
+* **[Registro Histórico de Cambios (CHANGELOG.md)](CHANGELOG.md):** Registro cronológico detallado de novedades, cambios, correcciones y seguridad estructurado bajo los estándares *Keep a Changelog* y *Semantic Versioning*.
+* **[Licencias y Atribuciones de Código Abierto (LICENSE.md)](LICENSE.md):** Términos de la licencia del software junto con el reconocimiento y licencias de bibliotecas de terceros (Android Jetpack, Compose, Kotlin, Vico, Haze, Material Symbols y tipografía Space Mono).
+
+---
+
 ## 📄 Licencia
 
-Este proyecto está distribuido bajo la licencia de código abierto correspondiente. Consulta el archivo `LICENSE` para más detalles.
+Este proyecto está distribuido bajo la licencia de código abierto **MIT**. Consulta el archivo [LICENSE.md](LICENSE.md) para más detalles y atribuciones de componentes de terceros.

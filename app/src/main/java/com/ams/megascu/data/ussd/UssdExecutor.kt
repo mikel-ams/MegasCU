@@ -623,7 +623,7 @@ class UssdExecutor(private val context: Context) {
             "*222*266#" -> "Bono activo: 1000 MB Nacional + 500 MB Promocional LTE. Vencimiento 25-08-26."
             "*222*767#" -> "Dispone de 150 SMS vigentes hasta el 25-08-26."
             "*222*869#" -> "Dispone de 45 Minutos para llamadas nacionales hasta el 25-08-26."
-            "*222*732#" -> "Su proxima recarga internacional debe ser realizada antes del 25-08-26. Bono vigente."
+            "*222*732#" -> "Ud puede recargar un monto de 360,00CUP en un plazo de 30 dias."
             "*222*736#" -> "Saldo disponible para renovación automática: 0.00 CUP. Servicio activo."
             "*222*468#" -> "Acceso a Internet: Su línea se encuentra habilitada para datos móviles y red 4G/LTE."
             "*222*264#" -> "Plan Amigos: Servicio activo con tarifas reducidas en sus 3 contactos elegidos."

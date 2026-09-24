@@ -106,7 +106,7 @@ fun SecuritySettingsBottomSheet(
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
         dragHandle = { ExpressiveDragHandle() },
-        scrimColor = Color.Black.copy(alpha = 0.35f),
+        scrimColor = Color.Transparent,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
         Column(
@@ -146,7 +146,11 @@ fun SecuritySettingsBottomSheet(
                 }
             }
 
-            Box(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

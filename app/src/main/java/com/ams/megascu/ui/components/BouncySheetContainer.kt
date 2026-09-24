@@ -18,24 +18,28 @@ fun SheetProgressTracker(
     sheetState: androidx.compose.material3.SheetState,
     onProgress: (Float) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val screenHeightPx = with(density) { androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    val displayMetrics = remember(context) { context.resources.displayMetrics }
+    val windowHeightPx = displayMetrics.heightPixels.toFloat()
+    val cutoffThresholdPx = remember(density) { with(density) { 2.5.dp.toPx() } }
 
     LaunchedEffect(sheetState) {
         var expandedOffsetPx = -1f
         snapshotFlow {
             runCatching { sheetState.requireOffset() }.getOrNull()
         }.collect { offset ->
-            if (offset != null && offset > 0f) {
+            if (offset != null) {
                 if (expandedOffsetPx < 0f || offset < expandedOffsetPx) {
                     expandedOffsetPx = offset
                 }
-                val totalRange = screenHeightPx - expandedOffsetPx
-                if (totalRange > 0f) {
-                    val progress = ((screenHeightPx - offset) / totalRange).coerceIn(0f, 1f)
-                    onProgress(progress)
+                val cutoffOffsetPx = windowHeightPx - cutoffThresholdPx
+                if (offset >= cutoffOffsetPx) {
+                    onProgress(0f)
                 } else {
-                    onProgress(1f)
+                    val effectiveRange = (cutoffOffsetPx - expandedOffsetPx).coerceAtLeast(1f)
+                    val progress = ((cutoffOffsetPx - offset) / effectiveRange).coerceIn(0f, 1f)
+                    onProgress(progress)
                 }
             }
         }

@@ -3,6 +3,7 @@ package com.ams.megascu.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.ams.megascu.BuildConfig
 import com.ams.megascu.MegasApplication
 import com.ams.megascu.data.db.PlanStatusEntity
 import com.ams.megascu.data.ussd.EtecsaUssdParser
@@ -562,26 +563,71 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isCheckingUpdate = MutableStateFlow(false)
     val isCheckingUpdate: StateFlow<Boolean> = _isCheckingUpdate
 
+    private val _hasPendingUpdateBadge = MutableStateFlow(false)
+    val hasPendingUpdateBadge: StateFlow<Boolean> = _hasPendingUpdateBadge
+
+    init {
+        refreshPendingUpdateBadge()
+    }
+
+    fun refreshPendingUpdateBadge() {
+        val prefs = app.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE)
+        val isAvailable = prefs.getBoolean(GitHubUpdateChecker.PREF_UPDATE_AVAILABLE, false)
+        val latestCode = prefs.getInt(GitHubUpdateChecker.PREF_UPDATE_VERSION_CODE, 0)
+        val latestName = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME, "") ?: ""
+
+        val isNewer = isAvailable && latestName.isNotBlank() && GitHubUpdateChecker.isVersionNewer(
+            remoteTag = latestName,
+            remoteReleaseName = latestName,
+            remoteCode = latestCode,
+            currentCode = BuildConfig.VERSION_CODE,
+            currentName = BuildConfig.VERSION_NAME
+        )
+
+        // Limpiar preferencias residuales de versiones anteriores si ya estamos en una versión igual o superior
+        if (!isNewer && isAvailable) {
+            prefs.edit()
+                .putBoolean(GitHubUpdateChecker.PREF_UPDATE_AVAILABLE, false)
+                .remove(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME)
+                .remove(GitHubUpdateChecker.PREF_UPDATE_VERSION_CODE)
+                .apply()
+        }
+
+        _hasPendingUpdateBadge.value = isNewer
+    }
+
     /**
      * Realiza una comprobación silenciosa en background con el servidor de GitHub al iniciar la app.
-     * Si detecta una nueva versión disponible, despliega automáticamente el diálogo de actualización.
+     * Si detecta una nueva versión disponible, despliega automáticamente el diálogo de actualización
+     * y emite la notificación del sistema.
      */
     fun checkUpdatesSilentlyOnLaunch() {
         viewModelScope.launch {
             try {
                 val prefs = app.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE)
                 val autoCheck = prefs.getBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, true)
-                if (!autoCheck) return@launch
+                if (!autoCheck) {
+                    refreshPendingUpdateBadge()
+                    return@launch
+                }
 
                 val result = GitHubUpdateChecker.checkForUpdates(app)
                 if (result.isSuccess && result.isUpdateAvailable) {
                     val dismissed = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_DISMISSED_VERSION, "")
                     if (result.latestVersionName != dismissed) {
                         _updateCheckResult.value = result
+                        com.ams.megascu.service.UpdateNotificationHelper.sendUpdateNotification(
+                            context = app,
+                            versionName = result.latestVersionName,
+                            changelog = result.changelog,
+                            apkUrl = result.apkDownloadUrl
+                        )
                     }
                 }
             } catch (e: Exception) {
                 // Comprobación silenciosa: no se interrumpe la navegación del usuario ante fallos de red
+            } finally {
+                refreshPendingUpdateBadge()
             }
         }
     }
@@ -590,7 +636,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val prefs = app.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE)
             val autoCheck = prefs.getBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, true)
-            if (!force && !autoCheck) return@launch
+            if (!force && !autoCheck) {
+                refreshPendingUpdateBadge()
+                return@launch
+            }
 
             val lastCheck = prefs.getLong(GitHubUpdateChecker.PREF_LAST_UPDATE_CHECK_TIME, 0L)
             val now = System.currentTimeMillis()
@@ -599,13 +648,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 // If there is already a saved update available and not dismissed
                 val isAvailable = prefs.getBoolean(GitHubUpdateChecker.PREF_UPDATE_AVAILABLE, false)
                 val versionName = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME, "") ?: ""
+                val versionCode = prefs.getInt(GitHubUpdateChecker.PREF_UPDATE_VERSION_CODE, 0)
                 val dismissed = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_DISMISSED_VERSION, "")
-                if (isAvailable && versionName.isNotBlank() && versionName != dismissed) {
+                val isStrictlyNewer = isAvailable && versionName.isNotBlank() && GitHubUpdateChecker.isVersionNewer(
+                    remoteTag = versionName,
+                    remoteReleaseName = versionName,
+                    remoteCode = versionCode,
+                    currentCode = BuildConfig.VERSION_CODE,
+                    currentName = BuildConfig.VERSION_NAME
+                )
+                if (isStrictlyNewer && versionName != dismissed) {
                     _updateCheckResult.value = UpdateCheckResult(
                         isSuccess = true,
                         isUpdateAvailable = true,
                         latestVersionName = versionName,
-                        latestVersionCode = prefs.getInt(GitHubUpdateChecker.PREF_UPDATE_VERSION_CODE, 0),
+                        latestVersionCode = versionCode,
                         releaseTitle = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_TITLE, "") ?: "",
                         changelog = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_CHANGELOG, "") ?: "",
                         apkDownloadUrl = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_APK_URL, null),
@@ -613,6 +670,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         sha256Checksum = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_SHA256, null)
                     )
                 }
+                refreshPendingUpdateBadge()
                 return@launch
             }
 
@@ -627,11 +685,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } else if (force) {
                 _updateCheckResult.value = result
             }
+            refreshPendingUpdateBadge()
         }
     }
 
     fun dismissUpdateDialog() {
+        val currentResult = _updateCheckResult.value
+        if (currentResult != null && currentResult.isUpdateAvailable) {
+            val prefs = app.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putString(GitHubUpdateChecker.PREF_UPDATE_DISMISSED_VERSION, currentResult.latestVersionName).apply()
+        }
         _updateCheckResult.value = null
+        refreshPendingUpdateBadge()
     }
 
     fun clearAllData() {

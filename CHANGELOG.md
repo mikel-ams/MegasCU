@@ -7,6 +7,34 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.9.1-beta_(257)] - 2026-09-24
+
+### Añadido
+- **Punto de notificación de Compra y Recarga (< 5 días):** Incorporación de indicador de notificación cuando restan 5 días o menos para recargar saldo o renovar paquetes de datos.
+- **Punto de notificación de Actualización:** Indicador rojo en el botón de ajustes visible al detectar una nueva versión.
+- **Notificación Enriquecida de Actualización Disponible:** Mejora de la notificación del sistema de actualización.
+- **Gestor de Actualizaciones en Ajustes:** Rediseño de la tarjeta de actualizaciones con visualización directa de la versión instalada y transición dinámica del botón de búsqueda.
+- **Rediseño Interactivo del Historial de Cambios:** Nueva cabecera con versión destacada, insignias, métricas resumidas por categoría y tarjetas colapsables para versiones anteriores.
+- **Tarjeta Material 3 Expressive de Alerta en Menú de Compras:** Nueva tarjeta en el catálogo de Compras para alerta de compra de planes y saldo, conteo dinámico de días y botón de apertura directa de Transfermóvil.
+- **Sistema de Alerta Unificada:** Detección y notificación consolidada cuando coinciden la necesidad de recarga de saldo principal y el vencimiento inminente de paquetes de datos y planes.
+- **Acceso Directo a Compras desde Historial USSD:** Incorporación de botón "Ir a Compras" en el diálogo de resultado USSD tras consultar la acción rápida de Historial de Recargas e indica disponibilidad de recarga.
+- **Opción de Acción Rápida "Historial de Recargas":** Integración de la consulta `*222*732#` en el selector de acciones rápidas para acceso directo desde la pantalla principal.
+- **Restauración de Indicadores en Switches:** Reincorporación de los iconos indicadores de estado (Check y Close) en el thumb de los interruptores.
+
+### Cambiado
+- **Rediseño y Estilización de Tarjeta de Recarga de Saldo:** Aplicación de tono de color rojo en tarjeta y elementos interactivos, icono de pagos, descripción detallada de recarga y unificación del botón de acción a "Abrir Transfermóvil".
+- **Disipación Continua de Desenfoque en Cierre de BottomSheets:** Sincronización precisa del progreso de desenfoque con la posición física de la hoja durante el recorrido de cierre, alcanzando exactamente 0px de intensidad 2.5dp antes de cerrarse completamente.
+- **Efecto de Desenfoque Progresivo Nativo Android:** Sustitución integral de dependencias externas por modificadores nativos de Compose y `RenderEffect`.
+- **Difuminado Progresivo con Scroll en Compras:** Ajuste del efecto de desenfoque superior en la ventana de Compras para que aparezca gradualmente al desplazarse, evitando difuminados prematuros de elementos superiores.
+- **Optimización Integral con R8 en Modo Completo:** Activación de minificación R8 Full Mode y reducción agresiva de recursos en Gradle para minimizar el tamaño del APK y maximizar el rendimiento.
+
+### Corregido
+- **Fluidez y Persistencia Visual en Cierre de Modales:** Corrección de la pérdida prematura de desenfoque y eliminación de saltos bruscos al soltar o deslizar las ventanas hacia abajo.
+- **Desenfoque de Fondo en Ventana Acerca de:** Corrección de la renderización del efecto desenfoque gaussiano limpio en la capa posterior de la ventana modal Acerca de.
+- **Detección y Formato de Disponibilidad de Recarga:** Actualización del analizador USSD para reconocer el mensaje "Ud puede recargar un monto de 360,00CUP en un plazo de 30 dias" y reflejar el estado "Puede recargar saldo" al vencer el plazo de espera o recibir confirmación de recarga disponible.
+
+---
+
 ## [0.9.0-beta_(255)] - 2026-09-20
 
 ### Añadido

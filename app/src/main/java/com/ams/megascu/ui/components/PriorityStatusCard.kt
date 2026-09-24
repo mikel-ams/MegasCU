@@ -18,9 +18,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.*
@@ -34,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -723,9 +726,13 @@ fun PriorityStatusCard(
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            val dateStr = planStatus?.nextRechargeDateStr.orEmpty().ifBlank { "Límite de recarga" }
+                            val isRechargeNow = planStatus?.nextRechargeDateStr == "Puede recargar saldo" ||
+                                    ((planStatus?.nextRechargeDays ?: 1) <= 0 && !planStatus?.nextRechargeDateStr.isNullOrBlank()) ||
+                                    (planStatus?.nextRechargeDateStr?.isNotBlank() == true && !planStatus.nextRechargeDateStr.contains("-") && !planStatus.nextRechargeDateStr.contains("/") && !planStatus.nextRechargeDateStr.contains(".")) ||
+                                    (planStatus?.nextRechargeDateStr?.isNotBlank() == true && com.ams.megascu.data.ussd.EtecsaUssdParser.evaluateExpiration(planStatus.nextRechargeDateStr).first?.let { it <= 0 } == true)
+                            val rechargeLabel = if (isRechargeNow) "Puede recargar saldo" else "Puede recargar el ${planStatus?.nextRechargeDateStr}"
                             Text(
-                                text = "Puede recargar el $dateStr",
+                                text = rechargeLabel,
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Medium,
                                     color = secondaryContentColor
@@ -796,6 +803,7 @@ fun SimplePriorityStatusCard(
     planStatus: PlanStatusEntity?,
     selectedSimSlot: Int = 1,
     dualSimEnabled: Boolean = false,
+    hasPurchaseAlert: Boolean = false,
     onSelectSimSlot: (Int) -> Unit = {},
     onExecuteConsulta: (code: String, title: String?) -> Unit = { _, _ -> },
     onRefresh: () -> Unit = {},
@@ -1233,8 +1241,13 @@ fun SimplePriorityStatusCard(
                         modifier = Modifier.size(18.dp).clip(RoundedCornerShape(2.5.dp))
                     )
                     Spacer(modifier = Modifier.width(6.dp))
+                    val isRechargeNow = planStatus?.nextRechargeDateStr == "Puede recargar saldo" ||
+                            ((planStatus?.nextRechargeDays ?: 1) <= 0 && !planStatus?.nextRechargeDateStr.isNullOrBlank()) ||
+                            (planStatus?.nextRechargeDateStr?.isNotBlank() == true && !planStatus.nextRechargeDateStr.contains("-") && !planStatus.nextRechargeDateStr.contains("/") && !planStatus.nextRechargeDateStr.contains(".")) ||
+                            (planStatus?.nextRechargeDateStr?.isNotBlank() == true && com.ams.megascu.data.ussd.EtecsaUssdParser.evaluateExpiration(planStatus.nextRechargeDateStr).first?.let { it <= 0 } == true)
+                    val rechargeLabel = if (isRechargeNow) "Puede recargar saldo" else "Puede recargar el ${planStatus?.nextRechargeDateStr}"
                     Text(
-                        text = "Puede recargar el ${planStatus?.nextRechargeDateStr}",
+                        text = rechargeLabel,
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
@@ -1245,33 +1258,49 @@ fun SimplePriorityStatusCard(
             }
 
             // Action Button to Open Purchase Window
-            ExpressiveButton(
-                onClick = onOpenPlanes,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = contentColor,
-                    contentColor = containerColor
-                )
+            Box(
+                contentAlignment = Alignment.TopEnd,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.ShoppingCart,
-                        contentDescription = "Comprar",
-                        modifier = Modifier.size(20.dp).clip(RoundedCornerShape(2.5.dp))
+                ExpressiveButton(
+                    onClick = onOpenPlanes,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = contentColor,
+                        contentColor = containerColor
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Comprar Paquetes",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.ShoppingCart,
+                            contentDescription = "Comprar",
+                            modifier = Modifier.size(20.dp).clip(RoundedCornerShape(2.5.dp))
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Comprar Paquetes",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                        )
+                    }
+                }
+
+                if (hasPurchaseAlert) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 6.dp, end = 8.dp)
+                            .size(13.dp)
+                            .background(Color(0xFFE53935), CircleShape)
+                            .border(2.dp, contentColor, CircleShape)
+                            .testTag("simple_mode_purchase_alert_badge_dot")
                     )
                 }
             }

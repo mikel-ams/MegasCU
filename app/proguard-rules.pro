@@ -22,9 +22,11 @@
 
 # ProGuard / R8 optimization and minification rules
 
-# Optimization passes
+# Optimization passes and aggressive shrinking
 -repackageclasses ''
 -allowaccessmodification
+-overloadaggressively
+-mergeinterfacesaggressively
 -optimizationpasses 5
 
 # Strip unused attributes

@@ -59,9 +59,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.blur
 import androidx.compose.material.icons.rounded.BugReport
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.hazeChild
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -275,7 +272,6 @@ fun AnimatedAboutLogo(playAnimation: Boolean, isSuperSaiyan: Boolean = false) {
 fun AboutBottomSheet(
     onDismiss: () -> Unit,
     onOpenChangelog: () -> Unit = {},
-    hazeState: HazeState? = null,
     onProgress: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -308,19 +304,7 @@ fun AboutBottomSheet(
         modifier = Modifier
             .fillMaxSize()
             .expressiveModalEntrance()
-            .then(
-                if (hazeState != null) {
-                    Modifier.hazeChild(
-                        state = hazeState,
-                        style = HazeStyle(
-                            tint = Color.Transparent,
-                            blurRadius = 24.dp
-                        )
-                    )
-                } else {
-                    Modifier.background(Color.Transparent)
-                }
-            )
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.35f))
             .statusBarsPadding()
             .navigationBarsPadding()
             .clickable(

@@ -133,7 +133,8 @@ object MaterialIconsCatalog {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialIconsBottomSheet(
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    disableBlurEffects: Boolean = false
 ) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
@@ -173,16 +174,24 @@ fun MaterialIconsBottomSheet(
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
+        scrimColor = Color.Transparent,
         dragHandle = { ExpressiveDragHandle() }
     ) {
-        LazyColumn(
+        val surfaceColor = MaterialTheme.colorScheme.surface
+
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp),
-            contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .weight(1f, fill = false)
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
             // Header
             item {
                 Row(
@@ -393,6 +402,7 @@ fun MaterialIconsBottomSheet(
             }
         }
     }
+}
 
     // Modal / Dialog Informativo de Dónde se usa el icono
     selectedIconForInfo?.let { iconEntry ->
