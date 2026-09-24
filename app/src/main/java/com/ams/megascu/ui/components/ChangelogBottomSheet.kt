@@ -58,9 +58,32 @@ object ChangelogRepository {
 
     private val defaultFallback = listOf(
         ChangelogVersion(
-            version = "0.9.1-beta_(257)",
+            version = "0.9.2-beta_(258)",
             date = "2026-09-24",
             isLatest = true,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Enlace al Repositorio en Acerca de: Nuevo botón de acceso directo al repositorio de GitHub con icono distintivo.",
+                        "Animaciones Expressive al Pulsar: Transición táctil con escala y rebote elástico en botones sociales, enlaces de soporte y versión.",
+                        "Transición Fluida en Ventana Acerca de: Animación suave de apertura y cierre con escalado sutil, desvanecimiento y sincronización de desenfoque.",
+                        "Indicador PullToRefresh M3 Expressive: Integración del indicador de carga nativo con transformación de formas durante la actualización."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Mayor Grosor en Indicadores de Interruptores: Incremento del trazo en los símbolos de verificación y cierre con terminaciones redondeadas.",
+                        "Reorganización en Acerca de: Reubicación de la versión debajo de los créditos de desarrollo y eliminación del contorno de la tarjeta."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.9.1-beta_(257)",
+            date = "2026-09-24",
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.ADDED,

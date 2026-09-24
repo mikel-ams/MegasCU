@@ -116,13 +116,27 @@ fun Modifier.expressiveClick(
 ): Modifier = expressiveClick(18.dp, onClick)
 
 /**
- * Kept as a compatibility modifier for existing call sites. Visual press feedback is provided
- * by the Material component/ripple and the component-level motion scheme; this modifier itself
- * intentionally has no side effects or shape changes.
+ * Material 3 Expressive press scale animation with spring bounce.
  */
 fun Modifier.expressivePressEffect(
-    interactionSource: MutableInteractionSource? = null
-): Modifier = this
+    interactionSource: MutableInteractionSource? = null,
+    targetScale: Float = 0.94f
+): Modifier = composed {
+    val source = interactionSource ?: remember { MutableInteractionSource() }
+    val isPressed by source.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) targetScale else 1f,
+        animationSpec = spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
+        ),
+        label = "expressivePressScale"
+    )
+    this.graphicsLayer {
+        scaleX = scale
+        scaleY = scale
+    }
+}
 
 private fun expressiveButtonShape(requested: Shape): Shape = requested
 
