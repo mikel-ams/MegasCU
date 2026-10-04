@@ -17,8 +17,8 @@ android {
     applicationId = "com.ams.megascu"
     minSdk = 30
     targetSdk = 36
-    versionCode = 258
-    versionName = "0.9.2-beta_(258)"
+    versionCode = 262
+    versionName = "0.9.4-beta_(262)"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -34,9 +34,9 @@ android {
     val releaseKeyPassword = secret("RELEASE_KEY_PASSWORD")
 
     val releaseStoreFile: File? = releaseKeystoreBase64?.let { base64Str ->
-      val targetDir = File(layout.buildDirectory.get().asFile, "intermediates/keystore")
+      val targetDir = rootProject.file("keystore")
       targetDir.mkdirs()
-      val tempKeystore = File(targetDir, "release-keystore.jks")
+      val tempKeystore = File(targetDir, "release-key.jks")
       try {
         val cleanBase64 = base64Str.replace("\n", "").replace("\r", "").trim()
         val decodedBytes = Base64.getDecoder().decode(cleanBase64)
@@ -98,8 +98,11 @@ android {
     }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+  }
+  kotlin {
+    jvmToolchain(21)
   }
   buildFeatures {
     compose = true

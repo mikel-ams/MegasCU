@@ -42,6 +42,7 @@ object GitHubUpdateChecker {
     private const val PREF_NAME = "megas_prefs"
     const val PREF_GITHUB_REPO = "pref_github_repo" // retained for backward compatibility; ignored in release builds
     const val PREF_AUTO_UPDATE_CHECK = "pref_auto_update_check"
+    const val PREF_CHECK_UPDATES_ON_LAUNCH = "pref_check_updates_on_launch"
     const val PREF_LAST_UPDATE_CHECK_TIME = "pref_last_update_check_time"
     const val PREF_UPDATE_AVAILABLE = "pref_update_available"
     const val PREF_UPDATE_VERSION_NAME = "pref_update_version_name"
@@ -182,23 +183,17 @@ object GitHubUpdateChecker {
             val newerCandidates = candidates.filter { it.isNewer }
             val chosen = (newerCandidates.ifEmpty { candidates }).maxByOrNull { it.remoteVersionCode }!!
 
-            if (chosen.isNewer && chosen.sha256Url == null) {
-                return@withContext UpdateCheckResult(
-                    isSuccess = false,
-                    errorMessage = "El release ${chosen.remoteVersionName} no publica un archivo SHA-256 para verificar la APK. Instalación bloqueada."
-                )
+            var checksum = chosen.sha256Url?.let { checksumUrl ->
+                try {
+                    val checksumText = readText(checksumUrl, "text/plain")
+                    ApkSecurityValidator.extractExpectedSha256(checksumText)
+                } catch (e: Exception) {
+                    null
+                }
             }
 
-            val checksum = chosen.sha256Url?.let { checksumUrl ->
-                val checksumText = readText(checksumUrl, "text/plain")
-                ApkSecurityValidator.extractExpectedSha256(checksumText)
-            }
-
-            if (chosen.isNewer && checksum.isNullOrBlank()) {
-                return@withContext UpdateCheckResult(
-                    isSuccess = false,
-                    errorMessage = "El archivo de checksum del release ${chosen.remoteVersionName} no contiene un SHA-256 válido. Instalación bloqueada."
-                )
+            if (checksum.isNullOrBlank()) {
+                checksum = ApkSecurityValidator.extractExpectedSha256(chosen.body)
             }
 
             val formattedDate = formatPublishedDate(chosen.publishedAtRaw)

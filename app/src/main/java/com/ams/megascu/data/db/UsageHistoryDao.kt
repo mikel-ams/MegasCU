@@ -20,6 +20,9 @@ interface UsageHistoryDao {
     @Query("SELECT * FROM usage_history WHERE simSlot = :simSlot ORDER BY timestamp DESC LIMIT :limit")
     suspend fun getRecentHistoryForSimSync(simSlot: Int, limit: Int): List<UsageHistoryEntity>
 
+    @Query("SELECT * FROM usage_history WHERE simSlot = :simSlot AND subscriptionId IS :subscriptionId AND isDataObservation = 1 AND timestamp >= :since ORDER BY timestamp ASC")
+    suspend fun getHistoryForSubscriptionSinceSync(simSlot: Int, subscriptionId: Int?, since: Long): List<UsageHistoryEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUsageHistory(history: UsageHistoryEntity)
 

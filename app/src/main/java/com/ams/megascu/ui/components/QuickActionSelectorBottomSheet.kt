@@ -4,6 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,6 +36,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import com.ams.megascu.ui.modifiers.progressiveBlur
+import com.ams.megascu.ui.modifiers.BlurDirection
 
 data class QuickActionOption(
     val title: String,
@@ -75,11 +80,11 @@ fun QuickActionSelectorBottomSheet(
         QuickActionOption("Menú General Comprar SMS", "Menú interactivo *133*2#", "*133*2#", "Planes de SMS"),
 
         // Consultas
-        QuickActionOption("Consulta Saldo Principal", "*222#", "*222#", "Consultas Frecuentes"),
-        QuickActionOption("Consulta Datos (DAT)", "*222*328#", "*222*328#", "Consultas Frecuentes"),
-        QuickActionOption("Consulta Minutos (VOZ)", "*222*869#", "*222*869#", "Consultas Frecuentes"),
-        QuickActionOption("Consulta Mensajes (SMS)", "*222*767#", "*222*767#", "Consultas Frecuentes"),
-        QuickActionOption("Historial de Recargas", "Consulta de recargas *222*732#", "*222*732#", "Consultas Frecuentes")
+        QuickActionOption("Consulta Saldo Principal", "", "*222#", "Consultas Frecuentes"),
+        QuickActionOption("Consulta Datos (DAT)", "", "*222*328#", "Consultas Frecuentes"),
+        QuickActionOption("Consulta Minutos (VOZ)", "", "*222*869#", "Consultas Frecuentes"),
+        QuickActionOption("Consulta Mensajes (SMS)", "", "*222*767#", "Consultas Frecuentes"),
+        QuickActionOption("Historial de Recargas", "", "*222*732#", "Consultas Frecuentes")
     )
 
     val groupedOptions = options.groupBy { it.category }
@@ -148,93 +153,153 @@ fun QuickActionSelectorBottomSheet(
                 )
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+            val listState = rememberLazyListState()
+            val density = LocalDensity.current
+            val topScrollProgress by remember {
+                derivedStateOf {
+                    if (listState.firstVisibleItemIndex > 0) {
+                        1f
+                    } else {
+                        val scrollThresholdPx = with(density) { 24.dp.toPx() }
+                        (listState.firstVisibleItemScrollOffset / scrollThresholdPx).coerceIn(0f, 1f)
+                    }
+                }
+            }
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f, fill = false)
+                    .progressiveBlur(
+                        blurRadius = 16f * topScrollProgress,
+                        height = with(density) { 20.dp.toPx() * topScrollProgress },
+                        direction = BlurDirection.TOP
+                    )
+                    .progressiveBlur(
+                        blurRadius = 20f,
+                        height = with(density) { 24.dp.toPx() },
+                        direction = BlurDirection.BOTTOM
+                    )
             ) {
-                groupedOptions.forEach { (category, items) ->
-                    item {
-                        Text(
-                            text = category,
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        )
-                    }
-
-                    items(items) { option ->
-                        val isSelected = option.code == selectedOptionCode
-                        val itemInteraction = remember { MutableInteractionSource() }
-                        val unselectedBgColor = if (isDark) {
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
-                        } else {
-                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+                LazyColumn(
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(top = 4.dp, bottom = 120.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    groupedOptions.forEach { (category, items) ->
+                        item {
+                            Text(
+                                text = category,
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                ),
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
                         }
-                        Surface(
-                            shape = rememberExpressiveMorphShape(
-                                defaultRadius = 20.dp,
-                                pressedRadius = 10.dp,
-                                interactionSource = itemInteraction
-                            ),
-                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else unselectedBgColor,
-                            border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
-                            onClick = {
-                                if (!isDismissing) {
-                                    isDismissing = true
-                                    selectedOptionCode = option.code
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    scope.launch {
-                                        try {
-                                            sheetState.hide()
-                                        } catch (_: Exception) {
-                                            // Ignore
-                                        } finally {
-                                            onSelectCode(option.code, option.title)
-                                            onDismiss()
+
+                        items(items) { option ->
+                            val isSelected = option.code == selectedOptionCode
+                            val itemInteraction = remember { MutableInteractionSource() }
+                            val unselectedBgColor = if (isDark) {
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+                            }
+                            Surface(
+                                shape = rememberExpressiveMorphShape(
+                                    defaultRadius = 20.dp,
+                                    pressedRadius = 10.dp,
+                                    interactionSource = itemInteraction
+                                ),
+                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else unselectedBgColor,
+                                border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
+                                onClick = {
+                                    if (!isDismissing) {
+                                        isDismissing = true
+                                        selectedOptionCode = option.code
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        scope.launch {
+                                            try {
+                                                sheetState.hide()
+                                            } catch (_: Exception) {
+                                                // Ignore
+                                            } finally {
+                                                onSelectCode(option.code, option.title)
+                                                onDismiss()
+                                            }
                                         }
                                     }
-                                }
-                            },
-                            interactionSource = itemInteraction,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .expressivePressEffect(interactionSource = itemInteraction)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                                },
+                                interactionSource = itemInteraction,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = option.title,
-                                        style = MaterialTheme.typography.titleSmall.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            text = option.title,
+                                            style = MaterialTheme.typography.titleSmall.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                            )
                                         )
-                                    )
-                                    Text(
-                                        text = "${option.subtitle} • Código: ${option.code}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
 
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Check,
-                                        contentDescription = "Seleccionado",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(22.dp)
-                                    )
+                                        val isConsulta = option.category == "Consultas Frecuentes" || option.subtitle == option.code
+                                        if (!isConsulta && option.subtitle.isNotBlank()) {
+                                            Text(
+                                                text = option.subtitle,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+
+                                        // 3ra línea: chip con el código
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = if (isSelected) {
+                                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+                                            } else {
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                                            },
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = "Código: ${option.code}",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    fontSize = 11.sp,
+                                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                                                ),
+                                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            )
+                                        }
+                                    }
+
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Check,
+                                            contentDescription = "Seleccionado",
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(48.dp))
                     }
                 }
             }

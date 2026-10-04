@@ -7,43 +7,66 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
-## [0.9.2-beta_(258)] - 2026-09-24
+## [0.9.4-beta_(262)] - 2026-10-04
 
 ### Añadido
-- **Enlace al Repositorio en Acerca de:** Nuevo botón de acceso directo al repositorio de GitHub con icono distintivo.
-- **Animaciones Expressive al Pulsar:** Transición táctil con escala y rebote elástico en botones sociales, enlaces de soporte y versión.
-- **Transición Fluida en Ventana Acerca de:** Animación suave de apertura y cierre con escalado sutil, desvanecimiento y sincronización de desenfoque.
-- **Indicador PullToRefresh M3 Expressive:** Integración del indicador de carga nativo con transformación de formas durante la actualización.
+- **Historial para consumo real:** Las consultas de datos guardan observaciones verificadas incluso con saldo sin cambios. La migración de base de datos 8→9 conserva el historial previo y separa las nuevas mediciones de datos de las copias de saldo en caché. La gráfica estima disminuciones de datos generales y LTE de la misma SIM tras consultas en al menos dos fechas distintas, sin inventar puntos ni contar recargas como consumo.
+- **Acceso a estadísticas de Android:** Lectura compartida del tráfico móvil cuando está disponible, diferenciando cero consumo de estadísticas inaccesibles y ofreciendo acceso al permiso desde la app y el widget sin historial.
 
 ### Cambiado
-- **Mayor Grosor en Indicadores de Interruptores:** Incremento del trazo en los símbolos de verificación y cierre con terminaciones redondeadas.
-- **Reorganización en Acerca de:** Reubicación de la versión debajo de los créditos de desarrollo y eliminación del contorno de la tarjeta.
+- **Configuración del widget 2x1:** Ventana flotante con el launcher desenfocado y una vista previa que reproduce las proporciones y el estilo del widget compacto.
+- **Consultas y persistencia unificadas:** App, sincronización periódica y widgets usan el mismo guardado transaccional de estado e historial; se evita mezclar registros o caché de distintas SIM.
+- **Gráficas transparentes:** Se indican las estimaciones por historial, los últimos siete días y el estado de recopilación inicial. La comprobación SHA-256 continúa desactivada y su lógica se conserva.
+
+### Corregido
+- **Chips en widgets compactos:** El fondo de los indicadores se ajusta al ancho real del texto Space Mono en 3x1 y 4x1; el control de actualización también se presenta en un chip sin cambiar su función.
+- **Éxito aparente en consultas:** El resultado final distingue actualización completa, parcial y fallida e identifica las consultas pendientes. Se valida la respuesta antes de guardar y el éxito se muestra después del guardado. Se reintentan fallos en la actualización de la app sin tratar saldos cero como error.
+- **Actualización de widgets:** Los botones ejecutan consultas mediante WorkManager, respetan la SIM configurada y notifican el resultado. Se evita depender de la duración limitada del receptor y se limpia la caché al borrar los datos.
+- **Space Mono en widgets:** Los textos de los widgets compactos y de resumen se renderizan con la fuente incluida, preservando tamaños, colores, distribución, controles y accesibilidad.
+- **Tarjetas del historial de cambios:** Una sola transición controla la altura al abrir y contraer las tarjetas, moviendo las siguientes durante toda la animación y evitando el salto por animaciones superpuestas.
+
+---
+
+## [0.9.3-beta_(260)] - 2026-09-27
+
+### Añadido
+- **Fondo Desenfocado y Fades en Modales:** Efecto de desenfoque de fondo dinámico (Blur) en ventanas de actualizaciones y difuminados progresivos gaussianos (`progressiveBlur`) superior e inferior en la hoja modal de Acción Rápida.
+- **Búsqueda Automatizada de Actualizaciones e Instalación OTA:** Verificación silenciosa en segundo plano al iniciar la app, persistencia de indicadores rojos de alerta en ajustes e inicio automático del instalador tras la descarga.
+- **Línea de Tiempo y Separación Ajustada en Historial:** Timeline con puntos y líneas continuas para versiones anteriores, separación ajustada de 2dp y puntos rellenos para versiones estables.
+- **Acceso Directo al Repositorio Oficial:** Enlace oficial con icono representativo a GitHub Releases en la ventana Acerca de.
+
+### Cambiado
+- **Tipografía Space Mono y Refinamiento de Widgets:** Aplicación consistente de la fuente Space Mono en todos los widgets y pantallas de configuración, alineación visual a la tarjeta de estado y actualización en tiempo real desde widgets.
+- **Pulsación Expressive y Microinteracciones:** Animaciones táctiles de rebote elástico en botones, versión, enlaces de soporte y acción rápida sin desalineaciones ni hundimiento.
+- **Rediseño de Iconos y Formas:** Iconos de consultas rápidas sin contornos para un aspecto minimalista y forma de galleta lobulada de 9 lados en el éxito de bienvenida (`Cookie9LadosShape`).
+- **Indicadores de Progreso y Descarga:** Sustitución de la barra de límite diario por un indicador lineal estándar de Material 3 (`LinearProgressIndicator` Determinate), ondas suaves en la barra de descarga y ocultamiento fluido de notas durante la descarga activa.
+- **Optimización y Limpieza en Actualizaciones:** Módulo de actualización optimizado sin verificaciones redundantes para agilizar la instalación manual y eliminación de etiquetas de firma innecesarias.
+
+### Corregido
+- **Descarga OTA y Compatibilidad de Redirecciones:** Enrutamiento y validación de URLs optimizado para garantizar compatibilidad con redirecciones dinámicas de GitHub Releases y AWS S3.
+- **Transición Fluida en Tarjetas del Historial:** Animación de apertura y cierre fluida en tarjetas colapsables del historial sin saltos ni tirones visuales.
+
+---
 
 ## [0.9.1-beta_(257)] - 2026-09-24
 
 ### Añadido
-- **Punto de notificación de Compra y Recarga (< 5 días):** Incorporación de indicador de notificación cuando restan 5 días o menos para recargar saldo o renovar paquetes de datos.
-- **Punto de notificación de Actualización:** Indicador rojo en el botón de ajustes visible al detectar una nueva versión.
-- **Notificación Enriquecida de Actualización Disponible:** Mejora de la notificación del sistema de actualización.
-- **Gestor de Actualizaciones en Ajustes:** Rediseño de la tarjeta de actualizaciones con visualización directa de la versión instalada y transición dinámica del botón de búsqueda.
-- **Rediseño Interactivo del Historial de Cambios:** Nueva cabecera con versión destacada, insignias, métricas resumidas por categoría y tarjetas colapsables para versiones anteriores.
-- **Tarjeta Material 3 Expressive de Alerta en Menú de Compras:** Nueva tarjeta en el catálogo de Compras para alerta de compra de planes y saldo, conteo dinámico de días y botón de apertura directa de Transfermóvil.
-- **Sistema de Alerta Unificada:** Detección y notificación consolidada cuando coinciden la necesidad de recarga de saldo principal y el vencimiento inminente de paquetes de datos y planes.
-- **Acceso Directo a Compras desde Historial USSD:** Incorporación de botón "Ir a Compras" en el diálogo de resultado USSD tras consultar la acción rápida de Historial de Recargas e indica disponibilidad de recarga.
-- **Opción de Acción Rápida "Historial de Recargas":** Integración de la consulta `*222*732#` en el selector de acciones rápidas para acceso directo desde la pantalla principal.
-- **Restauración de Indicadores en Switches:** Reincorporación de los iconos indicadores de estado (Check y Close) en el thumb de los interruptores.
+- **Punto de Notificación de Compra y Recarga (< 5 días):** Indicador visual de alerta cuando restan 5 días o menos para recargar saldo o renovar paquetes de datos.
+- **Tarjeta de Alerta M3 Expressive en Menú de Compras:** Tarjeta de advertencia para compra de planes y saldo con conteo dinámico de días y botón directo a Transfermóvil.
+- **Sistema de Alerta Unificada:** Detección consolidada cuando coinciden la recarga de saldo principal y el vencimiento inminente de paquetes.
+- **Acceso a Compras desde Historial USSD:** Botón directo a Compras en el diálogo de resultado USSD tras consultar el Historial de Recargas (`*222*732#`).
+- **Acción Rápida "Historial de Recargas":** Integración de la consulta `*222*732#` en el selector de acciones rápidas de la pantalla principal.
 
 ### Cambiado
-- **Rediseño y Estilización de Tarjeta de Recarga de Saldo:** Aplicación de tono de color rojo en tarjeta y elementos interactivos, icono de pagos, descripción detallada de recarga y unificación del botón de acción a "Abrir Transfermóvil".
-- **Disipación Continua de Desenfoque en Cierre de BottomSheets:** Sincronización precisa del progreso de desenfoque con la posición física de la hoja durante el recorrido de cierre, alcanzando exactamente 0px de intensidad 2.5dp antes de cerrarse completamente.
-- **Efecto de Desenfoque Progresivo Nativo Android:** Sustitución integral de dependencias externas por modificadores nativos de Compose y `RenderEffect`.
-- **Difuminado Progresivo con Scroll en Compras:** Ajuste del efecto de desenfoque superior en la ventana de Compras para que aparezca gradualmente al desplazarse, evitando difuminados prematuros de elementos superiores.
-- **Optimización Integral con R8 en Modo Completo:** Activación de minificación R8 Full Mode y reducción agresiva de recursos en Gradle para minimizar el tamaño del APK y maximizar el rendimiento.
+- **Rediseño de Tarjeta de Recarga de Saldo:** Tono rojo distintivo, icono de pagos, descripción detallada y botón unificado para abrir Transfermóvil.
+- **Disipación Continua de Desenfoque en Cierre de Ventanas:** Sincronización del efecto de desenfoque con la posición física del modal hasta disiparse por completo antes del cierre.
+- **Difuminado Progresivo con Scroll en Compras:** Aparición gradual del desenfoque superior al desplazarse en el catálogo de compras.
+- **Optimización Integral con R8 en Modo Completo:** Minificación R8 Full Mode y reducción agresiva de recursos para maximizar el rendimiento.
 
 ### Corregido
-- **Fluidez y Persistencia Visual en Cierre de Modales:** Corrección de la pérdida prematura de desenfoque y eliminación de saltos bruscos al soltar o deslizar las ventanas hacia abajo.
-- **Desenfoque de Fondo en Ventana Acerca de:** Corrección de la renderización del efecto desenfoque gaussiano limpio en la capa posterior de la ventana modal Acerca de.
-- **Detección y Formato de Disponibilidad de Recarga:** Actualización del analizador USSD para reconocer el mensaje "Ud puede recargar un monto de 360,00CUP en un plazo de 30 dias" y reflejar el estado "Puede recargar saldo" al vencer el plazo de espera o recibir confirmación de recarga disponible.
+- **Fluidez y Persistencia Visual en Cierre de Modales:** Eliminación de saltos bruscos y pérdida prematura del desenfoque al deslizar las ventanas hacia abajo.
+- **Desenfoque de Fondo en Ventana Acerca de:** Corrección de la renderización del efecto desenfoque gaussiano limpio en la capa posterior.
+- **Detección y Formato de Disponibilidad de Recarga:** Reconocimiento de los plazos de 30 días en el analizador USSD y actualización al estado "Puede recargar saldo".
 
 ---
 

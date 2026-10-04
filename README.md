@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Version-0.9.2--beta__(258)-007ACC?style=flat&logo=android&logoColor=white" alt="Version 0.9.2-beta_(258)" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Version-0.9.4--beta__(262)-007ACC?style=flat&logo=android&logoColor=white" alt="Version 0.9.4-beta_(262)" /></a>
   <a href="https://android.com"><img src="https://img.shields.io/badge/Platform-Android_11.0%2B_(API_30%2B)-3DDC84?logo=android&logoColor=white" alt="Platform: Android" /></a>
   <a href="https://developer.android.com/jetpack/compose"><img src="https://img.shields.io/badge/UI-Jetpack_Compose_Expressive_M3-4285F4?logo=jetpackcompose&logoColor=white" alt="Jetpack Compose" /></a>
   <a href="https://developer.android.com/topic/architecture"><img src="https://img.shields.io/badge/Architecture-Clean_MVVM_%2B_Flow-7952B3" alt="Architecture" /></a>
@@ -96,8 +96,6 @@
   * Tipografías optimizadas de alta legibilidad (Space Mono TrueType integrada con verificación de integridad de hashes binarios).
 * **Widget Interactivo para Pantalla de Inicio:**
   * Glance/AppWidget para consultar el estado de datos disponibles y realizar consultas rápidas sin abrir la aplicación.
-* **Modo Simulación / Sandbox para Desarrolladores:**
-  * Entorno de pruebas integrado para simular respuestas USSD de Cubacel y probar el comportamiento de la UI sin consumir saldo real ni requerir cobertura celular.
 
 ---
 

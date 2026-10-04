@@ -57,7 +57,7 @@ fun ExpressiveSwitch(
                 if (checked && checkedIcon == Icons.Rounded.Check) {
                     // Indicador de Check con mayor grosor y extremos redondeados
                     Canvas(modifier = Modifier.size(SwitchDefaults.IconSize)) {
-                        val strokeWidth = 2.4.dp.toPx()
+                        val strokeWidth = 2.5.dp.toPx()
                         val path = Path().apply {
                             moveTo(size.width * 0.22f, size.height * 0.52f)
                             lineTo(size.width * 0.42f, size.height * 0.72f)
@@ -76,7 +76,7 @@ fun ExpressiveSwitch(
                 } else if (!checked && uncheckedIcon == Icons.Rounded.Close) {
                     // Indicador de Close (X) con mayor grosor y extremos redondeados
                     Canvas(modifier = Modifier.size(SwitchDefaults.IconSize)) {
-                        val strokeWidth = 2.4.dp.toPx()
+                        val strokeWidth = 2.5.dp.toPx()
                         drawLine(
                             color = tint,
                             start = Offset(size.width * 0.28f, size.height * 0.28f),

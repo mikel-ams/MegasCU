@@ -1,4 +1,4 @@
-# MegasCU — Descripción y Especificaciones de Release (v0.9.0-beta / Build 255)
+# MegasCU — Descripción y Especificaciones de Release (v0.9.4-beta / Build 261)
 
 > **Short Description (GitHub About / Subtitle):**  
 > Monitor nativo y gestor inteligente de saldo, paquetes LTE, bonos y consumo de datos para Cubacel / ETECSA en Android, construido con Jetpack Compose Expressive (M3), arquitectura Clean MVVM, telemetría celular en tiempo real, Room Database, actualizador OTA integrado y privacidad 100% Offline-First.
@@ -9,9 +9,15 @@
 
 **MegasCU** es una suite de herramientas de telecomunicaciones de código abierto desarrollada en Kotlin y Jetpack Compose para dispositivos Android. Diseñada a medida para optimizar y simplificar la gestión de saldo, planes LTE, paquetes combinados, bonos y llamadas en la red de **ETECSA / Cubacel** en Cuba.
 
-Esta versión **v0.9.0-beta_(255)** incorpora optimizaciones integrales en la interfaz de usuario con Material 3 Expressive, animaciones morfológicas de cambio de forma en botones, soporte completo para Markdown en notas de versión, gestos predictivos de retroceso y un robusto sistema de seguridad con Android Keystore.
+Esta versión **v0.9.4-beta_(262)** incorpora optimizaciones integrales en la interfaz de usuario con Material 3 Expressive, animaciones morfológicas de cambio de forma en botones, soporte completo para Markdown en notas de versión, gestos predictivos de retroceso y un robusto sistema de seguridad con Android Keystore.
 
 ---
+
+### Correcciones de la versión 261
+
+Consultas con resultado completo, parcial o fallido; persistencia coherente entre app y widgets; actualización de widgets en WorkManager; Space Mono conservando su diseño; gráficas basadas en historial real o tráfico de Android y cierre fluido de tarjetas del registro de cambios.
+
+La gráfica por historial necesita consultas de datos en dos fechas distintas. Las diferencias se asignan a la fecha final de cada intervalo y son estimaciones: no equivalen a la facturación de Cubacel. Si Android no permite separar estadísticas por SIM, se conserva el historial como alternativa.
 
 ### 🚀 Novedades y Características Principales
 
@@ -19,7 +25,7 @@ Esta versión **v0.9.0-beta_(255)** incorpora optimizaciones integrales en la in
 * **Comprobación Automática en Segundo Plano:** Tarea periódica programada cada 24 horas mediante `WorkManager` con restricciones inteligentes de red para no consumir recursos innecesarios.
 * **Detección de Pre-releases y Releases:** Motor `GitHubUpdateChecker` conectado a la API de GitHub (`mikel-ams/MegasCU`) para encontrar al instante nuevas versiones, leer el changelog y calcular el tamaño del paquete.
 * **Diálogo Modal Expresivo (`UpdateAvailableDialog`):** Ventana emergente con comparador visual de versiones, renderizado de Markdown nativo para notas de versión y descarga directa del archivo `.apk`.
-* **Seguridad Criptográfica en Actualizaciones:** Módulo `ApkSecurityValidator` para verificación de hashes SHA-256 y dominios autorizados antes de la instalación.
+* **Validación de Actualizaciones:** Módulo `ApkSecurityValidator` con validación de dominios, paquete y firma. La lógica SHA-256 se conserva y la comparación de hashes permanece desactivada.
 * **Ajustes de Actualización Personalizables:** Conmutador para activar/desactivar chequeos automáticos, botón para comprobación manual inmediata y visualización del historial de comprobaciones.
 
 #### 2. Respuesta Háptica Táctil y Microinteracciones Expressive
@@ -62,8 +68,8 @@ Esta versión **v0.9.0-beta_(255)** incorpora optimizaciones integrales en la in
 
 | Parámetro | Especificación |
 | :--- | :--- |
-| **Versión** | `0.9.0-beta_(255)` |
-| **Código de Build** | `255` |
+| **Versión** | `0.9.3-beta_(260)` |
+| **Código de Build** | `260` |
 | **Plataforma** | Android (Kotlin) |
 | **SDK Mínimo** | API 30 (Android 11.0) |
 | **SDK Objetivo / Compilación** | API 36 |

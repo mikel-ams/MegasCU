@@ -46,7 +46,7 @@ class DualSimUssdAndSyncTest {
         db = Room.inMemoryDatabaseBuilder(context, MegasDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        repository = com.ams.megascu.data.db.MegasRepository(context, db.planDao(), db.smsLogDao(), db.usageHistoryDao())
+        repository = com.ams.megascu.data.db.MegasRepository(context, db.planDao(), db.smsLogDao(), db.usageHistoryDao(), database = db)
 
         setupDualSimSubscriptions()
     }
@@ -270,7 +270,8 @@ class DualSimUssdAndSyncTest {
             context = context,
             planDao = db.planDao(),
             smsLogDao = db.smsLogDao(),
-            usageHistoryDao = db.usageHistoryDao()
+            usageHistoryDao = db.usageHistoryDao(),
+            database = db
         )
 
         // 1. Guardar datos para SIM 1 (subId = 101)
@@ -356,7 +357,8 @@ class DualSimUssdAndSyncTest {
             context = context,
             planDao = db.planDao(),
             smsLogDao = db.smsLogDao(),
-            usageHistoryDao = db.usageHistoryDao()
+            usageHistoryDao = db.usageHistoryDao(),
+            database = db
         )
 
         val ussd = "Saldo: 500.00 CUP. Linea activa hasta 01/01/2027."
@@ -378,7 +380,8 @@ class DualSimUssdAndSyncTest {
             context = context,
             planDao = db.planDao(),
             smsLogDao = db.smsLogDao(),
-            usageHistoryDao = db.usageHistoryDao()
+            usageHistoryDao = db.usageHistoryDao(),
+            database = db
         )
 
         // Estado inicial: SIM A (101) en Slot 1, SIM B (202) en Slot 2
@@ -435,7 +438,8 @@ class DualSimUssdAndSyncTest {
             context = context,
             planDao = db.planDao(),
             smsLogDao = db.smsLogDao(),
-            usageHistoryDao = db.usageHistoryDao()
+            usageHistoryDao = db.usageHistoryDao(),
+            database = db
         )
         val ussd = "Saldo: 300.00 CUP. Linea activa hasta 01/01/2027."
         repositoryOld.saveParsedData(EtecsaUssdParser.parseUssdResponse(ussd, "*222#"), ussd, simSlot = 1)
@@ -456,7 +460,8 @@ class DualSimUssdAndSyncTest {
             context = context,
             planDao = db.planDao(),
             smsLogDao = db.smsLogDao(),
-            usageHistoryDao = db.usageHistoryDao()
+            usageHistoryDao = db.usageHistoryDao(),
+            database = db
         )
 
         val planColdStart = repositoryNew.getPlanStatusDirect(1)
@@ -494,7 +499,8 @@ class DualSimUssdAndSyncTest {
             context = context,
             planDao = db.planDao(),
             smsLogDao = db.smsLogDao(),
-            usageHistoryDao = db.usageHistoryDao()
+            usageHistoryDao = db.usageHistoryDao(),
+            database = db
         )
         assertNull("Repositorio no debe retornar la entidad con subId 101 cuando la SIM actual es 303", repository.getPlanStatusDirect(1))
     }
@@ -505,7 +511,8 @@ class DualSimUssdAndSyncTest {
             context = context,
             planDao = db.planDao(),
             smsLogDao = db.smsLogDao(),
-            usageHistoryDao = db.usageHistoryDao()
+            usageHistoryDao = db.usageHistoryDao(),
+            database = db
         )
 
         // Registrar SMS en SIM 1 (subId = 101)

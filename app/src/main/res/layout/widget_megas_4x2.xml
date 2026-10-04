@@ -26,22 +26,40 @@
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <FrameLayout android:id="@+id/widget_megas_4x2_text_1_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/widget_megas_4x2_text_1"
                 android:text="Saldo Principal"
+                android:fontFamily="@font/space_mono_bold"
                 android:textColor="@color/widget_card_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_megas_4x2_text_1_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
-            <TextView
+            <FrameLayout android:id="@+id/widget_balance_cup_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:id="@+id/widget_balance_cup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:text="0.00 CUP"
+                android:fontFamily="@font/space_mono_bold"
                 android:textColor="@color/widget_card_text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_balance_cup_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
         </LinearLayout>
 
         <!-- "Actualizar info" Chip -->
@@ -66,14 +84,23 @@
                 android:tint="@color/widget_card_chip_text"
                 android:contentDescription="Actualizar" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
+            <FrameLayout android:id="@+id/widget_megas_4x2_text_3_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/widget_megas_4x2_text_3"
                 android:text="Actualizar info"
+                android:fontFamily="@font/space_mono_bold"
                 android:textColor="@color/widget_card_chip_text"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_megas_4x2_text_3_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
         </LinearLayout>
     </RelativeLayout>
 
@@ -93,13 +120,22 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <FrameLayout android:id="@+id/widget_megas_4x2_text_4_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/widget_megas_4x2_text_4"
                 android:text="Datos Disponibles"
+                android:fontFamily="@font/space_mono_bold"
                 android:textColor="@color/widget_card_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_megas_4x2_text_4_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -107,29 +143,47 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <TextView
+                <FrameLayout android:id="@+id/widget_data_value_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:id="@+id/widget_data_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="0.00 GB"
+                    android:fontFamily="@font/space_mono_bold"
                     android:textColor="@color/widget_card_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_data_value_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
                 <!-- Badge for days remaining -->
-                <TextView
+                <FrameLayout android:id="@+id/widget_data_days_badge_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:id="@+id/widget_data_days_badge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
                     android:background="@drawable/widget_card_badge_bg"
                     android:paddingHorizontal="4dp"
                     android:paddingVertical="1.5dp"
+                    android:fontFamily="@font/space_mono_bold"
                     android:textColor="@color/widget_card_text_primary"
                     android:textSize="9sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
+            <ImageView android:id="@+id/widget_data_days_badge_font_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
             </LinearLayout>
         </LinearLayout>
 
@@ -141,13 +195,22 @@
             android:orientation="vertical"
             android:gravity="end">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <FrameLayout android:id="@+id/widget_megas_4x2_text_7_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/widget_megas_4x2_text_7"
                 android:text="Bono Datos .CU"
+                android:fontFamily="@font/space_mono_bold"
                 android:textColor="@color/widget_card_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_megas_4x2_text_7_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -155,29 +218,47 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <TextView
+                <FrameLayout android:id="@+id/widget_bonus_value_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:id="@+id/widget_bonus_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="0.00 GB"
+                    android:fontFamily="@font/space_mono_bold"
                     android:textColor="@color/widget_card_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_bonus_value_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
                 <!-- Badge for days remaining -->
-                <TextView
+                <FrameLayout android:id="@+id/widget_bonus_days_badge_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:id="@+id/widget_bonus_days_badge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
                     android:background="@drawable/widget_card_badge_bg"
                     android:paddingHorizontal="4dp"
                     android:paddingVertical="1.5dp"
+                    android:fontFamily="@font/space_mono_bold"
                     android:textColor="@color/widget_card_text_primary"
                     android:textSize="9sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
+            <ImageView android:id="@+id/widget_bonus_days_badge_font_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -198,13 +279,22 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <FrameLayout android:id="@+id/widget_megas_4x2_text_10_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/widget_megas_4x2_text_10"
                 android:text="Llamadas (Voz)"
+                android:fontFamily="@font/space_mono_bold"
                 android:textColor="@color/widget_card_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_megas_4x2_text_10_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -212,29 +302,47 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <TextView
+                <FrameLayout android:id="@+id/widget_calls_value_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:id="@+id/widget_calls_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="0 Min"
+                    android:fontFamily="@font/space_mono_bold"
                     android:textColor="@color/widget_card_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_calls_value_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
                 <!-- Badge for days remaining -->
-                <TextView
+                <FrameLayout android:id="@+id/widget_calls_days_badge_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:id="@+id/widget_calls_days_badge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
                     android:background="@drawable/widget_card_badge_bg"
                     android:paddingHorizontal="4dp"
                     android:paddingVertical="1.5dp"
+                    android:fontFamily="@font/space_mono_bold"
                     android:textColor="@color/widget_card_text_primary"
                     android:textSize="9sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
+            <ImageView android:id="@+id/widget_calls_days_badge_font_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
             </LinearLayout>
         </LinearLayout>
 
@@ -246,13 +354,22 @@
             android:orientation="vertical"
             android:gravity="end">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <FrameLayout android:id="@+id/widget_megas_4x2_text_13_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/widget_megas_4x2_text_13"
                 android:text="Mensajes"
+                android:fontFamily="@font/space_mono_bold"
                 android:textColor="@color/widget_card_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_megas_4x2_text_13_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -260,29 +377,47 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <TextView
+                <FrameLayout android:id="@+id/widget_sms_value_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:id="@+id/widget_sms_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="0 SMS"
+                    android:fontFamily="@font/space_mono_bold"
                     android:textColor="@color/widget_card_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_sms_value_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
                 <!-- Badge for days remaining -->
-                <TextView
+                <FrameLayout android:id="@+id/widget_sms_days_badge_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:id="@+id/widget_sms_days_badge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
                     android:background="@drawable/widget_card_badge_bg"
                     android:paddingHorizontal="4dp"
                     android:paddingVertical="1.5dp"
+                    android:fontFamily="@font/space_mono_bold"
                     android:textColor="@color/widget_card_text_primary"
                     android:textSize="9sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
+            <ImageView android:id="@+id/widget_sms_days_badge_font_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -304,29 +439,47 @@
             android:tint="@color/widget_card_text_secondary"
             android:contentDescription="Icono Recarga" />
 
-        <TextView
-            android:id="@+id/widget_recharge_text"
+        <FrameLayout android:id="@+id/widget_recharge_text_font_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:id="@+id/widget_recharge_text"
             android:text="Puede recargar el --"
+            android:fontFamily="@font/space_mono_bold"
             android:textColor="@color/widget_card_text_secondary"
             android:textSize="10sp"
             android:textStyle="bold" />
+            <ImageView android:id="@+id/widget_recharge_text_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
         <!-- Badge for days remaining for next recharge -->
-        <TextView
-            android:id="@+id/widget_recharge_days_badge"
+        <FrameLayout android:id="@+id/widget_recharge_days_badge_font_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="4dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:id="@+id/widget_recharge_days_badge"
             android:background="@drawable/widget_card_badge_bg"
             android:paddingHorizontal="4dp"
             android:paddingVertical="1.5dp"
+            android:fontFamily="@font/space_mono_bold"
             android:textColor="@color/widget_card_text_primary"
             android:textSize="9sp"
             android:textStyle="bold"
             android:visibility="gone" />
+            <ImageView android:id="@+id/widget_recharge_days_badge_font_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitXY"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
     </LinearLayout>
 
     <!-- Hidden legacy views to preserve layout ID compilation -->

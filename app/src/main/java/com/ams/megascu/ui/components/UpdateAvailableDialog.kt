@@ -9,6 +9,11 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -72,6 +77,12 @@ fun UpdateAvailableDialog(
     var downloadedApkFile by remember { mutableStateOf<File?>(null) }
     var downloadErrorMessage by remember { mutableStateOf<String?>(null) }
     var downloadJob by remember { mutableStateOf<Job?>(null) }
+
+    val effectiveSizeMb = if (totalSizeBytes > 0) {
+        totalSizeBytes / (1024f * 1024f)
+    } else {
+        updateResult.apkSizeMb
+    }
 
     DisposableEffect(Unit) {
         onProgress(0f)
@@ -163,49 +174,68 @@ fun UpdateAvailableDialog(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Transparent)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {
-                    if (downloadStatus != DownloadStatus.DOWNLOADING) {
-                        onDismiss()
-                    }
-                }
-            ),
-        contentAlignment = Alignment.Center
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = {
+            if (downloadStatus != DownloadStatus.DOWNLOADING) {
+                onDismiss()
+            }
+        },
+        properties = androidx.compose.ui.window.DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = downloadStatus != DownloadStatus.DOWNLOADING,
+            dismissOnClickOutside = downloadStatus != DownloadStatus.DOWNLOADING
+        )
     ) {
-        val dialogShape = RoundedCornerShape(28.dp)
-        Card(
+        Box(
             modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .widthIn(max = 480.dp)
-                .wrapContentHeight()
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = {}
+                    onClick = {
+                        if (downloadStatus != DownloadStatus.DOWNLOADING) {
+                            onDismiss()
+                        }
+                    }
                 ),
-            shape = dialogShape,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            contentAlignment = Alignment.Center
         ) {
-            Column(
+            // Fondo Desenfocado (Blurred background scrim)
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(dialogScrollState)
-                    .padding(horizontal = 20.dp, vertical = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .blur(16.dp)
+            )
+
+            val dialogShape = RoundedCornerShape(28.dp)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.92f)
+                    .widthIn(max = 480.dp)
+                    .wrapContentHeight()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {}
+                    ),
+                shape = dialogShape,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(dialogScrollState)
+                        .padding(horizontal = 20.dp, vertical = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     // Header Badge
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -340,92 +370,74 @@ fun UpdateAvailableDialog(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Changelog Section
-                    Text(
-                        text = "Registro de cambios (GitHub):",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 2.dp, bottom = 6.dp)
-                    )
-
-                    val changelogCardShape = RoundedCornerShape(16.dp)
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 60.dp, max = 160.dp),
-                        shape = changelogCardShape,
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    AnimatedVisibility(
+                        visible = downloadStatus == DownloadStatus.IDLE,
+                        enter = fadeIn(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) + 
+                                expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)),
+                        exit = fadeOut(animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)) + 
+                               shrinkVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium))
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .verticalScroll(changelogScrollState)
-                                .padding(12.dp)
-                        ) {
-                            val changelogText = if (updateResult.changelog.isNotBlank()) {
-                                updateResult.changelog
-                            } else {
-                                "• Novedades y correcciones de estabilidad.\n• Actualizaciones de la interfaz de usuario.\n• Optimización en descarga e instalación."
-                            }
-                            MarkdownChangelog(
-                                markdown = changelogText,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-
-                    // Calculated Size Badge
-                    val effectiveSizeMb = if (totalSizeBytes > 0) {
-                        totalSizeBytes / (1024f * 1024f)
-                    } else {
-                        updateResult.apkSizeMb
-                    }
-
-                    if (effectiveSizeMb > 0f) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Android,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(15.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
+                        Column {
+                            // Changelog Section
                             Text(
-                                text = "Tamaño del instalador: %.1f MB".format(effectiveSizeMb),
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "Registro de cambios (GitHub):",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 2.dp, bottom = 6.dp)
                             )
-                        }
-                    }
 
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.VerifiedUser,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.size(15.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = if (!updateResult.sha256Checksum.isNullOrBlank()) "Validación OTA criptográfica y SHA-256 activa" else "Validación de firma oficial y paquete activa",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
-                        )
+                            val changelogCardShape = RoundedCornerShape(16.dp)
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 60.dp, max = 160.dp),
+                                shape = changelogCardShape,
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .verticalScroll(changelogScrollState)
+                                        .padding(12.dp)
+                                ) {
+                                    val changelogText = if (updateResult.changelog.isNotBlank()) {
+                                        updateResult.changelog
+                                    } else {
+                                        "• Novedades y correcciones de estabilidad.\n• Actualizaciones de la interfaz de usuario.\n• Optimización en descarga e instalación."
+                                    }
+                                    MarkdownChangelog(
+                                        markdown = changelogText,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+
+                            if (effectiveSizeMb > 0f) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Android,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Tamaño del instalador: %.1f MB".format(effectiveSizeMb),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(18.dp))
@@ -547,7 +559,7 @@ fun UpdateAvailableDialog(
                                     color = MaterialTheme.colorScheme.primary,
                                     trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                                     strokeWidth = 4.dp,
-                                    amplitude = 3.dp,
+                                    amplitude = 0.6.dp,
                                     waveLength = 20.dp
                                 )
 
@@ -620,31 +632,6 @@ fun UpdateAvailableDialog(
                                     color = MaterialTheme.colorScheme.onSurface,
                                     textAlign = TextAlign.Center
                                 )
-
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                Surface(
-                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.Shield,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(14.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = "Firma oficial e integridad verificadas",
-                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                    }
-                                }
 
                                 if (!hasInstallPermission && !isSimulation) {
                                     Spacer(modifier = Modifier.height(12.dp))
@@ -776,3 +763,4 @@ fun UpdateAvailableDialog(
             }
         }
     }
+}

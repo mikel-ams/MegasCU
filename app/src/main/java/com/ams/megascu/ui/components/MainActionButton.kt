@@ -63,7 +63,6 @@ fun MainActionButton(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .expressivePressEffect(interactionSource = cardInteraction)
             .clip(cardShape)
             .combinedClickable(
                 interactionSource = cardInteraction,
@@ -85,10 +84,10 @@ fun MainActionButton(
         shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp,
-            pressedElevation = 2.dp,
-            focusedElevation = 6.dp,
-            hoveredElevation = 6.dp
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp,
+            focusedElevation = 0.dp,
+            hoveredElevation = 0.dp
         )
     ) {
         Box(

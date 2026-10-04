@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 8,
-    "identityHash": "97c3ae8bd306fd4249488bccb1d63c7e",
+    "version": 9,
+    "identityHash": "4a11df6d66f1eb3f9cb482c7199ffaf7",
     "entities": [
       {
         "tableName": "plan_status",
@@ -177,7 +177,7 @@
       },
       {
         "tableName": "usage_history",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `balanceCup` REAL NOT NULL, `dataMb` INTEGER NOT NULL, `dataLteMb` INTEGER NOT NULL, `bonusDataMb` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `simSlot` INTEGER NOT NULL, `subscriptionId` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `balanceCup` REAL NOT NULL, `dataMb` INTEGER NOT NULL, `dataLteMb` INTEGER NOT NULL, `bonusDataMb` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `simSlot` INTEGER NOT NULL, `subscriptionId` INTEGER, `isDataObservation` INTEGER NOT NULL DEFAULT 0)",
         "fields": [
           {
             "fieldPath": "id",
@@ -225,6 +225,13 @@
             "fieldPath": "subscriptionId",
             "columnName": "subscriptionId",
             "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isDataObservation",
+            "columnName": "isDataObservation",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
           }
         ],
         "primaryKey": {
@@ -237,7 +244,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '97c3ae8bd306fd4249488bccb1d63c7e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4a11df6d66f1eb3f9cb482c7199ffaf7')"
     ]
   }
 }
