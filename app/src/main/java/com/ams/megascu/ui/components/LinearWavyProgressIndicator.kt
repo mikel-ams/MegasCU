@@ -31,13 +31,13 @@ import androidx.compose.ui.unit.dp
 fun LinearWavyProgressIndicator(
     modifier: Modifier = Modifier
         .fillMaxWidth()
-        .height(10.dp),
+        .height(LoadingIndicatorsConfig.linearWavyHeight.dp),
     progress: (() -> Float)? = null,
     color: Color = Color.White,
     trackColor: Color = Color.Transparent,
-    strokeWidth: Dp = 3.dp,
-    amplitude: Dp = 2.5.dp,
-    waveLength: Dp = 18.dp
+    strokeWidth: Dp = LoadingIndicatorsConfig.linearWavyStrokeWidth.dp,
+    amplitude: Dp = LoadingIndicatorsConfig.linearWavyAmplitude.dp,
+    waveLength: Dp = LoadingIndicatorsConfig.linearWavyWaveLength.dp
 ) {
     val density = LocalDensity.current
     val stroke = Stroke(
@@ -52,7 +52,7 @@ fun LinearWavyProgressIndicator(
             trackColor = trackColor,
             stroke = stroke,
             trackStroke = stroke,
-            amplitude = { 1.0f },
+            amplitude = { LoadingIndicatorsConfig.linearWavyAmplitude },
             wavelength = waveLength
         )
     } else {
@@ -62,7 +62,7 @@ fun LinearWavyProgressIndicator(
             trackColor = trackColor,
             stroke = stroke,
             trackStroke = stroke,
-            amplitude = 1.0f,
+            amplitude = LoadingIndicatorsConfig.linearWavyAmplitude,
             wavelength = waveLength
         )
     }
@@ -74,12 +74,12 @@ fun LinearWavyProgressIndicator(
     progress: Float,
     modifier: Modifier = Modifier
         .fillMaxWidth()
-        .height(10.dp),
+        .height(LoadingIndicatorsConfig.linearWavyHeight.dp),
     color: Color = Color.White,
     trackColor: Color = Color.Transparent,
-    strokeWidth: Dp = 3.dp,
-    amplitude: Dp = 2.5.dp,
-    waveLength: Dp = 18.dp
+    strokeWidth: Dp = LoadingIndicatorsConfig.linearWavyStrokeWidth.dp,
+    amplitude: Dp = LoadingIndicatorsConfig.linearWavyAmplitude.dp,
+    waveLength: Dp = LoadingIndicatorsConfig.linearWavyWaveLength.dp
 ) {
     LinearWavyProgressIndicator(
         modifier = modifier,

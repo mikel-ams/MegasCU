@@ -7,16 +7,20 @@ import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,6 +34,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -235,6 +240,136 @@ private fun getDaysBadgeColors(
 }
 
 @Composable
+fun LastUpdatedBanner(
+    timestamp: Long,
+    contentColor: Color,
+    secondaryContentColor: Color,
+    badgeBgColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val formattedTime = remember(timestamp) {
+        if (timestamp <= 0L) {
+            "Sin datos" to "Sin registro previo"
+        } else {
+            val date = java.util.Date(timestamp)
+            val now = System.currentTimeMillis()
+            val diffMinutes = (now - timestamp) / (60 * 1000)
+            val timeFormat = java.text.SimpleDateFormat("h:mm a", Locale.getDefault())
+            val dateFormat = java.text.SimpleDateFormat("dd-MM-yy", Locale("es", "ES"))
+            val formattedDate = dateFormat.format(date)
+            val formattedHour = timeFormat.format(date).lowercase()
+
+            val relativeStr = when {
+                diffMinutes < 1 -> "Hace un\nmomento"
+                diffMinutes < 60 -> "Hace\n$diffMinutes min"
+                diffMinutes < 1440 -> "Hoy,\n$formattedHour"
+                diffMinutes < 2880 -> "Ayer,\n$formattedHour"
+                else -> "$formattedDate\n$formattedHour"
+            }
+            relativeStr to "$formattedDate • $formattedHour"
+        }
+    }
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        color = contentColor.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, contentColor.copy(alpha = 0.15f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f, fill = false)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = contentColor.copy(alpha = 0.14f),
+                    modifier = Modifier.size(30.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Rounded.Schedule,
+                            contentDescription = "Última actualización",
+                            tint = contentColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "Última actualización",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.5.sp,
+                            letterSpacing = 0.3.sp
+                        ),
+                        color = secondaryContentColor
+                    )
+                    Spacer(modifier = Modifier.height(1.dp))
+                    AnimatedContent(
+                        targetState = formattedTime.second,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(180)) togetherWith fadeOut(animationSpec = tween(140))
+                        },
+                        label = "LastUpdatedText"
+                    ) { targetSecond ->
+                        Text(
+                            text = targetSecond,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 11.sp,
+                                fontFamily = FontFamily.Monospace
+                            ),
+                            color = contentColor,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = contentColor.copy(alpha = 0.15f),
+                modifier = Modifier.padding(start = 6.dp)
+            ) {
+                AnimatedContent(
+                    targetState = formattedTime.first,
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(180)) + scaleIn(initialScale = 0.95f, animationSpec = tween(180)))
+                            .togetherWith(fadeOut(animationSpec = tween(140)))
+                    },
+                    label = "LastUpdatedRelative"
+                ) { targetFirst ->
+                    Text(
+                        text = targetFirst,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 9.5.sp,
+                            lineHeight = 11.sp
+                        ),
+                        color = contentColor,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                        maxLines = 2,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        softWrap = true
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun PriorityStatusCard(
     planStatus: PlanStatusEntity?,
     selectedSimSlot: Int = 1,
@@ -244,6 +379,7 @@ fun PriorityStatusCard(
     onCardClick: () -> Unit = {}
 ) {
     val showCard = planStatus != null
+    var showLastUpdated by rememberSaveable { mutableStateOf(false) }
     val simStatus = rememberSimStatusState()
     val context = LocalContext.current
     val prefs = remember(context) { context.getSharedPreferences("megas_prefs", Context.MODE_PRIVATE) }
@@ -309,8 +445,23 @@ fun PriorityStatusCard(
             else -> badgeBgColor to contentColor
         }
 
+        val cardInteraction = remember { MutableInteractionSource() }
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                )
+                .clip(RoundedCornerShape(28.dp))
+                .clickable(
+                    interactionSource = cardInteraction,
+                    indication = ripple()
+                ) {
+                    showLastUpdated = !showLastUpdated
+                },
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(
                 containerColor = containerColor,
@@ -750,6 +901,55 @@ fun PriorityStatusCard(
                             }
                         }
                     }
+
+                    // Última Actualización animada al pulsar sobre la tarjeta principal
+                    AnimatedVisibility(
+                        visible = showLastUpdated,
+                        enter = expandVertically(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            ),
+                            expandFrom = Alignment.Top
+                        ) + fadeIn(animationSpec = tween(220)) +
+                        slideInVertically(
+                            initialOffsetY = { -it / 2 },
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        ) + scaleIn(
+                            initialScale = 0.90f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        ),
+                        exit = shrinkVertically(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            shrinkTowards = Alignment.Top
+                        ) + fadeOut(animationSpec = tween(140)) +
+                        slideOutVertically(
+                            targetOffsetY = { -it / 2 },
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            )
+                        ) + scaleOut(targetScale = 0.92f)
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            LastUpdatedBanner(
+                                timestamp = planStatus?.lastUpdatedTimestamp ?: System.currentTimeMillis(),
+                                contentColor = contentColor,
+                                secondaryContentColor = secondaryContentColor,
+                                badgeBgColor = badgeBgColor
+                            )
+                        }
+                    }
                 }
                 // Dual SIM Selector Button (Top Right)
                 if (dualSimEnabled && !simStatus.hideSelector) {
@@ -809,6 +1009,7 @@ fun SimplePriorityStatusCard(
     onRefresh: () -> Unit = {},
     onOpenPlanes: () -> Unit = {}
 ) {
+    var showLastUpdated by rememberSaveable { mutableStateOf(false) }
     val simStatus = rememberSimStatusState()
     val context = LocalContext.current
     val prefs = remember(context) { context.getSharedPreferences("megas_prefs", Context.MODE_PRIVATE) }
@@ -857,8 +1058,23 @@ fun SimplePriorityStatusCard(
         else -> badgeBgColor to contentColor
     }
 
+    val simpleCardInteraction = remember { MutableInteractionSource() }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            )
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(
+                interactionSource = simpleCardInteraction,
+                indication = ripple()
+            ) {
+                showLastUpdated = !showLastUpdated
+            },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
@@ -1255,6 +1471,52 @@ fun SimplePriorityStatusCard(
                         )
                     )
                 }
+            }
+
+            // Última Actualización animada al pulsar sobre la tarjeta
+            AnimatedVisibility(
+                visible = showLastUpdated,
+                enter = expandVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    ),
+                    expandFrom = Alignment.Top
+                ) + fadeIn(animationSpec = tween(220)) +
+                slideInVertically(
+                    initialOffsetY = { -it / 2 },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ) + scaleIn(
+                    initialScale = 0.90f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ),
+                exit = shrinkVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    ),
+                    shrinkTowards = Alignment.Top
+                ) + fadeOut(animationSpec = tween(140)) +
+                slideOutVertically(
+                    targetOffsetY = { -it / 2 },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                ) + scaleOut(targetScale = 0.92f)
+            ) {
+                LastUpdatedBanner(
+                    timestamp = planStatus?.lastUpdatedTimestamp ?: System.currentTimeMillis(),
+                    contentColor = contentColor,
+                    secondaryContentColor = secondaryContentColor,
+                    badgeBgColor = badgeBgColor
+                )
             }
 
             // Action Button to Open Purchase Window

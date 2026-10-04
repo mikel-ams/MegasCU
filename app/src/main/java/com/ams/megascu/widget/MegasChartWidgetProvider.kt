@@ -17,9 +17,6 @@ import com.ams.megascu.data.db.MegasDatabase
 import com.ams.megascu.utils.PermissionUtils
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 class MegasChartWidgetProvider : AppWidgetProvider() {
@@ -104,69 +101,32 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
                     val db = MegasDatabase.getDatabase(context)
                     val currentSubId = com.ams.megascu.data.ussd.SimOperatorUtils.getSubscriptionIdForSlot(context, simSlot)
                     val latestPlanRaw = db.planDao().getPlanStatusDirect(simSlot)
-                    val latestPlan = if (latestPlanRaw != null && (latestPlanRaw.subscriptionId == null || currentSubId == null || latestPlanRaw.subscriptionId == currentSubId)) {
+                    val latestPlan = if (latestPlanRaw != null && latestPlanRaw.subscriptionId == currentSubId) {
                         latestPlanRaw
                     } else null
 
                     val hasPermission = PermissionUtils.hasUsageStatsPermission(context)
-                    val dailyStats = if (hasPermission) {
-                        getDailyMobileDataUsageLast7Days(context, currentSubId)
-                    } else emptyList()
-
-                    val hasValidStats = dailyStats.isNotEmpty() && dailyStats.any { it.second > 0f }
-                    val historyList = db.usageHistoryDao().getRecentHistoryForSimSync(simSlot, 14)
-                    val isDataValid = hasValidStats || historyList.size >= 2 || latestPlan != null
-
-                    Log.d(TAG, "Widget $appWidgetId Data Check -> hasPermission=$hasPermission, hasValidStats=$hasValidStats, historyCount=${historyList.size}, hasPlan=${latestPlan != null}, isDataValid=$isDataValid")
-
-                    val dataPoints: List<Float>
-                    val chartLabels: List<String>
-
-                    if (hasValidStats) {
-                        dataPoints = dailyStats.map { it.second }
-                        chartLabels = dailyStats.map { it.first }
-                    } else if (historyList.size >= 2) {
-                        val sorted = historyList.sortedBy { it.timestamp }
-                        val sdf = SimpleDateFormat("dd MMM", Locale.getDefault())
-                        val deltas = mutableListOf<Float>()
-                        val labels = mutableListOf<String>()
-
-                        for (i in 0 until sorted.size) {
-                            val h = sorted[i]
-                            val totalMb = h.dataMb + h.dataLteMb + h.bonusDataMb
-                            deltas.add((totalMb / 1024f).coerceAtLeast(0f))
-                            labels.add(sdf.format(Date(h.timestamp)))
-                        }
-                        dataPoints = deltas.takeLast(7)
-                        chartLabels = labels.takeLast(7)
-                    } else if (latestPlan != null && (latestPlan.dataMb > 0 || latestPlan.dataLteMb > 0 || latestPlan.bonusDataMb > 0)) {
-                        val totalMb = latestPlan.dataMb + latestPlan.dataLteMb + latestPlan.bonusDataMb
-                        val currentGb = totalMb / 1024f
-                        dataPoints = listOf(
-                            (currentGb * 1.35f),
-                            (currentGb * 1.28f),
-                            (currentGb * 1.20f),
-                            (currentGb * 1.15f),
-                            (currentGb * 1.08f),
-                            (currentGb * 1.03f),
-                            currentGb
-                        )
-                        chartLabels = getPast7DaysLabels()
-                    } else {
-                        dataPoints = listOf(1.2f, 1.8f, 2.5f, 3.1f, 4.2f, 5.0f, 6.5f)
-                        chartLabels = getPast7DaysLabels()
-                    }
-
-                    val totalMb = (latestPlan?.dataMb ?: 0) + (latestPlan?.dataLteMb ?: 0)
-                    val totalGb = if (totalMb > 0) totalMb / 1024.0 else (dataPoints.lastOrNull()?.toDouble() ?: 0.0)
+                    val systemDays = com.ams.megascu.utils.MobileDataUsageReader.lastDays(context, currentSubId)
+                    val since = java.time.LocalDate.now().minusDays(30).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    val history = db.usageHistoryDao().getHistoryForSubscriptionSinceSync(simSlot, currentSubId, since)
+                    val estimates = com.ams.megascu.utils.UsageHistoryEstimator.dailyUsage(history, simSlot, currentSubId)
+                    val format = java.time.format.DateTimeFormatter.ofPattern("EEE dd", Locale.getDefault())
+                    val isEstimated = systemDays == null
+                    val dataPoints = systemDays?.map { it.bytes / (1024f * 1024f * 1024f) }
+                        ?: estimates.map { it.consumedMb / 1024f }
+                    val chartLabels = systemDays?.map { format.format(it.date) }
+                        ?: estimates.map { format.format(it.date) }
+                    val isDataValid = dataPoints.isNotEmpty()
+                    val totalMb = (latestPlan?.dataMb ?: 0L) + (latestPlan?.dataLteMb ?: 0L)
+                    val totalGb = totalMb / 1024.0
 
                     val isNightMode = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
                     val chartBitmap = if (isDataValid) {
-                        createChartBitmap(context, appWidgetManager, appWidgetId, dataPoints, chartLabels, totalGb, isNightMode)
+                        createChartBitmap(context, appWidgetManager, appWidgetId, dataPoints, chartLabels, totalGb, isNightMode, isEstimated)
                     } else {
-                        Log.d(TAG, "Data pending/unloaded for widget $appWidgetId. Rendering Skeleton Chart bitmap.")
-                        createSkeletonChartBitmap(context, appWidgetManager, appWidgetId, isNightMode)
+                        Log.d(TAG, "Data pending/unloaded for widget $appWidgetId. Rendering empty history state.")
+                        createEmptyChartBitmap(context, appWidgetManager, appWidgetId, totalGb, isNightMode, hasPermission)
                     }
 
                     val views = RemoteViews(context.packageName, R.layout.widget_megas_chart_3x2)
@@ -174,6 +134,8 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
 
                     val mainIntent = Intent(context, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        putExtra("selected_sim_slot", simSlot)
+                        putExtra("request_usage_access", !hasPermission && !isDataValid)
                     }
                     val pendingIntent = PendingIntent.getActivity(
                         context,
@@ -185,6 +147,8 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
 
                     val refreshIntent = Intent(context, MegasWidgetProvider::class.java).apply {
                         action = MegasWidgetProvider.ACTION_WIDGET_REFRESH
+                        data = android.net.Uri.parse("megascu://widget/$appWidgetId/refresh")
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                     }
                     val refreshPendingIntent = PendingIntent.getBroadcast(
                         context,
@@ -213,61 +177,32 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        private fun getPast7DaysLabels(): List<String> {
-            val labels = mutableListOf<String>()
-            val sdf = SimpleDateFormat("EEE dd", Locale.getDefault())
-            val cal = Calendar.getInstance()
-            for (i in 6 downTo 0) {
-                val dayCal = cal.clone() as Calendar
-                dayCal.add(Calendar.DAY_OF_YEAR, -i)
-                labels.add(sdf.format(dayCal.time).replace(" ", "").replace(".", ""))
-            }
-            return labels
-        }
-
-        private fun createSkeletonChartBitmap(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, isNightMode: Boolean): Bitmap {
-            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-            val maxWidthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
-            val maxHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
+        private fun createEmptyChartBitmap(context: Context, manager: AppWidgetManager, widgetId: Int, currentGb: Double, night: Boolean, hasPermission: Boolean): Bitmap {
+            val options = manager.getAppWidgetOptions(widgetId)
             val density = context.resources.displayMetrics.density
-            var width = if (maxWidthDp > 0) (maxWidthDp * density).toInt() else 600
-            var height = if (maxHeightDp > 0) (maxHeightDp * density).toInt() else 360
-            width = width.coerceAtLeast(600)
-            height = height.coerceAtLeast(360)
+            val width = (options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH) * density).toInt().coerceAtLeast(600)
+            val height = (options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT) * density).toInt().coerceAtLeast(360)
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
-
-            val skeletonColorHex = if (isNightMode) "#4A3768" else "#D8C4FB"
-            val skeletonPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor(skeletonColorHex)
-                style = Paint.Style.FILL
+            val font = androidx.core.content.res.ResourcesCompat.getFont(context, R.font.space_mono_bold)
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                typeface = font
+                color = Color.parseColor(if (night) "#FFFFFF" else "#22005D")
+                textSize = 15f * density
             }
-
-            // Header Skeleton blocks
-            canvas.drawRoundRect(RectF(28f, 28f, 220f, 52f), 10f, 10f, skeletonPaint)
-            canvas.drawRoundRect(RectF(width - 150f, 28f, width - 28f, 52f), 10f, 10f, skeletonPaint)
-
-            // Wave Line Skeleton
-            val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor(skeletonColorHex)
-                style = Paint.Style.STROKE
-                strokeWidth = 4f
-                pathEffect = DashPathEffect(floatArrayOf(12f, 12f), 0f)
+            canvas.drawText("Consumo de Datos", 20f * density, 32f * density, paint)
+            paint.textSize = 14f * density
+            val balance = String.format(Locale.US, "%.2f GB", currentGb)
+            val right = (width - 100f * density - paint.measureText(balance)).coerceAtLeast(paint.measureText("Consumo de Datos") + 30f * density)
+            canvas.drawText(balance, right, 32f * density, paint)
+            paint.textAlign = Paint.Align.CENTER
+            paint.textSize = 13f * density
+            canvas.drawText("Reuniendo historial real", width / 2f, height / 2f, paint)
+            paint.textSize = 9.5f * density
+            canvas.drawText("Consulta los datos en al menos 2 días", width / 2f, height / 2f + 24f * density, paint)
+            if (!hasPermission) {
+                canvas.drawText("Abre la app para conceder acceso de uso", width / 2f, height - 20f * density, paint)
             }
-            val path = Path()
-            path.moveTo(36f, 240f)
-            path.cubicTo(120f, 200f, 200f, 260f, 300f, 180f)
-            path.cubicTo(400f, 100f, 500f, 220f, 564f, 160f)
-            canvas.drawPath(path, linePaint)
-
-            // Skeleton Dots along wave
-            val pointsX = listOf(36f, 124f, 212f, 300f, 388f, 476f, 564f)
-            val pointsY = listOf(240f, 205f, 255f, 180f, 120f, 200f, 160f)
-            for (i in pointsX.indices) {
-                canvas.drawCircle(pointsX[i], pointsY[i], 8f, skeletonPaint)
-                canvas.drawRoundRect(RectF(pointsX[i] - 18f, 310f, pointsX[i] + 18f, 325f), 6f, 6f, skeletonPaint)
-            }
-
             return bitmap
         }
 
@@ -278,7 +213,8 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
             dataPoints: List<Float>,
             labels: List<String>,
             currentGb: Double,
-            isNightMode: Boolean
+            isNightMode: Boolean,
+            isEstimated: Boolean
         ): Bitmap {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val maxWidthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
@@ -291,42 +227,52 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
 
-            // Theme colors
+            // Theme colors matching the app
             val titleColorHex = if (isNightMode) "#FFFFFF" else "#22005D"
             val subTitleColorHex = if (isNightMode) "#D0BCFF" else "#592DA1"
             val lineColorHex = if (isNightMode) "#D0BCFF" else "#6750A4"
             val gradientStartHex = if (isNightMode) "#60D0BCFF" else "#506750A4"
             val gradientEndHex = if (isNightMode) "#00D0BCFF" else "#006750A4"
             val valTextColorHex = if (isNightMode) "#FFFFFF" else "#22005D"
-            val dotBorderHex = if (isNightMode) "#E8DEF8" else "#6750A4"
-            val dotFillHex = if (isNightMode) "#381E72" else "#E8DEF8"
-            val xLabelHex = if (isNightMode) "#E6E1E5" else "#381E72"
+            val dotBorderHex = if (isNightMode) "#D0BCFF" else "#6750A4"
+            val dotFillHex = if (isNightMode) "#160040" else "#FFFFFF" // match center inside dot
+            val xLabelHex = if (isNightMode) "#DFD1FF" else "#22005D"
+            val cardBgColorHex = if (isNightMode) "#23006B" else "#DFD1FF" // matches surfaceVariant
+
+            // Font loading
+            val customTypeface = try {
+                androidx.core.content.res.ResourcesCompat.getFont(context, R.font.space_mono_bold)
+            } catch (e: Exception) {
+                Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            }
 
             // Header Title
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.parseColor(titleColorHex)
-                textSize = 30f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textSize = 15f * density
+                typeface = customTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
-            canvas.drawText("Consumo de Datos", 28f, 48f, textPaint)
+            canvas.drawText("Consumo de Datos", 20f * density, 32f * density, textPaint)
 
-            // Header Value (Colocado con margen derecho de seguridad para no chocar con el boton de actualizar)
+            // Header Value
             val subTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.parseColor(subTitleColorHex)
-                textSize = 28f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textSize = 14f * density
+                typeface = customTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
             val gbText = if (currentGb > 0) String.format(Locale.US, "%.2f GB", currentGb) else "0.00 GB"
             val gbWidth = subTextPaint.measureText(gbText)
-            val safeRightX = (width - 110f - gbWidth).coerceAtLeast(textPaint.measureText("Consumo de Datos") + 45f)
-            canvas.drawText(gbText, safeRightX, 48f, subTextPaint)
+            val safeRightX = (width - 100f * density - gbWidth).coerceAtLeast(textPaint.measureText("Consumo de Datos") + 30f * density)
+            canvas.drawText(gbText, safeRightX, 32f * density, subTextPaint)
 
-            val points = if (dataPoints.size >= 2) dataPoints else listOf(1.2f, 2.0f, 2.8f, 3.5f, 4.2f, 5.0f, 6.5f)
+            val points = dataPoints
+            require(points.isNotEmpty())
 
-            val paddingLeft = 36f
-            val paddingRight = 36f
-            val paddingTop = 95f
-            val paddingBottom = 65f
+            // Scaled padding
+            val paddingLeft = 54f * density
+            val paddingRight = 16f * density
+            val paddingTop = 64f * density
+            val paddingBottom = 48f * density
 
             val chartWidth = width - paddingLeft - paddingRight
             val chartHeight = height - paddingTop - paddingBottom
@@ -335,6 +281,46 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
             var maxVal = (points.maxOrNull() ?: 1f).coerceAtLeast(minVal + 0.1f)
             if (maxVal - minVal < 0.1f) {
                 maxVal = minVal + 1.0f
+            }
+
+            // Reference guidelines
+            val guidePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor(lineColorHex)
+                alpha = 45
+                style = Paint.Style.STROKE
+                strokeWidth = 1f * density
+                pathEffect = DashPathEffect(floatArrayOf(8f * density, 8f * density), 0f)
+            }
+
+            val guideLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor(subTitleColorHex)
+                textSize = 9f * density
+                typeface = customTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textAlign = Paint.Align.LEFT
+            }
+
+            // Reference levels
+            val refLabels = listOf(
+                String.format(Locale.US, "%.1fG", maxVal),
+                String.format(Locale.US, "%.1fG", (maxVal + minVal) / 2f),
+                String.format(Locale.US, "%.1fG", minVal)
+            )
+
+            val refYPositions = listOf(
+                paddingTop,
+                paddingTop + chartHeight / 2f,
+                paddingTop + chartHeight
+            )
+
+            for (idx in refLabels.indices) {
+                val yPos = refYPositions[idx]
+                val label = refLabels[idx]
+                canvas.drawText(label, 6f * density, yPos + 4f * density, guideLabelPaint)
+                val guidePath = Path().apply {
+                    moveTo(paddingLeft, yPos)
+                    lineTo(width - paddingRight, yPos)
+                }
+                canvas.drawPath(guidePath, guidePaint)
             }
 
             val path = Path()
@@ -381,42 +367,46 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
             val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.parseColor(lineColorHex)
                 style = Paint.Style.STROKE
-                strokeWidth = 6f
+                strokeWidth = 3f * density
                 strokeCap = Paint.Cap.ROUND
                 strokeJoin = Paint.Join.ROUND
             }
             canvas.drawPath(path, linePaint)
 
             // Point Values Above Line Paint
-            val cardBgColorHex = if (isNightMode) "#1D0C38" else "#F2EBFD"
             val valTextStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.parseColor(cardBgColorHex)
-                textSize = 17f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textSize = 9.5f * density
+                typeface = customTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 textAlign = Paint.Align.CENTER
                 style = Paint.Style.STROKE
-                strokeWidth = 9f
+                strokeWidth = 4f * density
             }
             val valTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.parseColor(valTextColorHex)
-                textSize = 17f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textSize = 9.5f * density
+                typeface = customTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 textAlign = Paint.Align.CENTER
             }
 
             // Dots & X Labels
-            val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor(dotFillHex)
+            val outerHaloPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor(lineColorHex)
+                alpha = 64 // 25% alpha
                 style = Paint.Style.FILL
             }
             val dotBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor(dotBorderHex)
+                color = Color.parseColor(lineColorHex)
+                style = Paint.Style.FILL
+            }
+            val dotFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor(dotFillHex)
                 style = Paint.Style.FILL
             }
             val xLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.parseColor(xLabelHex)
-                textSize = 17f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textSize = 9.5f * density
+                typeface = customTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 textAlign = Paint.Align.CENTER
             }
 
@@ -425,11 +415,12 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
                 val normalizedY = (points[i] - minVal) / (maxVal - minVal)
                 val y = paddingTop + chartHeight - (normalizedY * chartHeight)
 
-                // Draw Dots
-                canvas.drawCircle(x, y, 9f, dotBorderPaint)
-                canvas.drawCircle(x, y, 5f, dotPaint)
+                // Draw Dots (Concentric Circles)
+                canvas.drawCircle(x, y, 9f * density, outerHaloPaint)
+                canvas.drawCircle(x, y, 6f * density, dotBorderPaint)
+                canvas.drawCircle(x, y, 3f * density, dotFillPaint)
 
-                // Draw Value directly above point on line with background halo/stroke
+                // Draw Value directly above point on line with background halo
                 val ptVal = points[i]
                 val valStr = if (ptVal >= 1f) {
                     String.format(Locale.US, "%.1fG", ptVal)
@@ -438,80 +429,30 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
                 } else {
                     "0"
                 }
-                val valY = (y - 14f).coerceAtLeast(paddingTop - 8f)
+                val valY = (y - 10f * density).coerceAtLeast(paddingTop - 4f * density)
                 canvas.drawText(valStr, x, valY, valTextStrokePaint)
                 canvas.drawText(valStr, x, valY, valTextPaint)
 
                 if (labels.size > i) {
-                    canvas.drawText(labels[i], x, paddingTop + chartHeight + 24f, xLabelPaint)
+                    canvas.drawText(labels[i], x, paddingTop + chartHeight + 16f * density, xLabelPaint)
                 }
             }
 
             // Footer Label e información del consumo semanal en la esquina inferior derecha
             val footerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor(if (isNightMode) "#D0BCFF" else "#592DA1")
-                textSize = 19f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                color = Color.parseColor(subTitleColorHex)
+                textSize = 10f * density
+                typeface = customTypeface ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
-            canvas.drawText("Últimos 7 días", 28f, height - 16f, footerPaint)
+            canvas.drawText(if (isEstimated) "Estimado por historial" else "Últimos 7 días", 20f * density, height - 12f * density, footerPaint)
 
             val weeklyTotalGb = points.sum()
             val weeklyText = String.format(Locale.US, "Semana: %.2f GB", weeklyTotalGb)
             val weeklyWidth = footerPaint.measureText(weeklyText)
-            canvas.drawText(weeklyText, width - 28f - weeklyWidth, height - 16f, footerPaint)
+            canvas.drawText(weeklyText, width - 20f * density - weeklyWidth, height - 12f * density, footerPaint)
 
             return bitmap
         }
 
-        private fun getDailyMobileDataUsageLast7Days(context: Context, subscriptionId: Int? = null): List<Pair<String, Float>> {
-            val results = mutableListOf<Pair<String, Float>>()
-            try {
-                val networkStatsManager = context.getSystemService(Context.NETWORK_STATS_SERVICE) as? android.app.usage.NetworkStatsManager
-                    ?: return emptyList()
-                val sdf = SimpleDateFormat("EEE dd", Locale.getDefault())
-
-                val cal = Calendar.getInstance()
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                cal.set(Calendar.MILLISECOND, 0)
-
-                val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager
-                val subTelephony = if (subscriptionId != null && subscriptionId != android.telephony.SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
-                    telephonyManager?.createForSubscriptionId(subscriptionId)
-                } else {
-                    telephonyManager
-                }
-                val subscriberId = try {
-                    subTelephony?.subscriberId
-                } catch (e: Exception) {
-                    null
-                }
-
-                for (i in 6 downTo 0) {
-                    val dayStartCal = cal.clone() as Calendar
-                    dayStartCal.add(Calendar.DAY_OF_YEAR, -i)
-                    val startTime = dayStartCal.timeInMillis
-
-                    val dayEndCal = dayStartCal.clone() as Calendar
-                    dayEndCal.add(Calendar.DAY_OF_YEAR, 1)
-                    val endTime = if (i == 0) System.currentTimeMillis() else dayEndCal.timeInMillis
-
-                    val bytes = try {
-                        val bucket = networkStatsManager.querySummaryForDevice(android.net.ConnectivityManager.TYPE_MOBILE, subscriberId, startTime, endTime)
-                        bucket.rxBytes + bucket.txBytes
-                    } catch (e: Exception) {
-                        0L
-                    }
-
-                    val gbUsed = bytes / (1024f * 1024f * 1024f)
-                    val dateLabel = sdf.format(Date(startTime)).replace(" ", "").replace(".", "")
-                    results.add(dateLabel to gbUsed)
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("MegasCU", "Unhandled exception", e)
-            }
-            return results
-        }
     }
 }

@@ -1717,9 +1717,9 @@ private fun FinishPage(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Success Circle Badge de tamaño armónico
+                // Success Cookie Badge de tamaño armónico (Cookie de 9 lados)
                 Surface(
-                    shape = CircleShape,
+                    shape = Cookie9LadosShape(),
                     color = MaterialTheme.colorScheme.primary,
                     shadowElevation = 4.dp,
                     modifier = Modifier.size(76.dp)
@@ -3051,4 +3051,34 @@ private fun ChartsAndSecurityPage(
     }
 }
 }
+}
+
+class Cookie9LadosShape : androidx.compose.ui.graphics.Shape {
+    override fun createOutline(
+        size: androidx.compose.ui.geometry.Size,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        density: androidx.compose.ui.unit.Density
+    ): androidx.compose.ui.graphics.Outline {
+        val path = androidx.compose.ui.graphics.Path()
+        val centerX = size.width / 2f
+        val centerY = size.height / 2f
+        val baseRadius = size.width.coerceAtMost(size.height) / 2f
+        val sides = 9
+        val scallopDepth = baseRadius * 0.14f // Profundidad de los 9 lados para dar el efecto cookie
+
+        for (i in 0..360 step 2) {
+            val angleRad = Math.toRadians(i.toDouble())
+            // Modulación de radio con un coseno de 9 periodos para los 9 lados (cookie)
+            val r = baseRadius - scallopDepth * kotlin.math.cos(sides * angleRad).toFloat()
+            val x = centerX + r * kotlin.math.cos(angleRad).toFloat()
+            val y = centerY + r * kotlin.math.sin(angleRad).toFloat()
+            if (i == 0) {
+                path.moveTo(x, y)
+            } else {
+                path.lineTo(x, y)
+            }
+        }
+        path.close()
+        return androidx.compose.ui.graphics.Outline.Generic(path)
+    }
 }

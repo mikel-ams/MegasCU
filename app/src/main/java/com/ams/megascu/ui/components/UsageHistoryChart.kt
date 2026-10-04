@@ -1,10 +1,10 @@
 package com.ams.megascu.ui.components
 
 import com.ams.megascu.utils.PermissionUtils
-import android.app.usage.NetworkStatsManager
+import com.ams.megascu.utils.MobileDataUsageReader
+import com.ams.megascu.utils.UsageHistoryEstimator
+import java.time.format.DateTimeFormatter
 import android.content.Context
-import android.net.ConnectivityManager
-import java.util.Calendar
 import kotlin.math.roundToInt
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Animatable
@@ -67,72 +67,34 @@ fun UsageHistoryChart(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
 
-    var systemDailyTrends by remember { mutableStateOf<List<Pair<String, Float>>>(emptyList()) }
+    var systemDailyTrends by remember(planStatus?.id, planStatus?.subscriptionId) { mutableStateOf<List<Pair<String, Float>>>(emptyList()) }
     var effectivePermission by remember { mutableStateOf(hasUsagePermission) }
 
-    LaunchedEffect(hasUsagePermission, planStatus?.subscriptionId) {
+    LaunchedEffect(hasUsagePermission, planStatus?.subscriptionId, planStatus?.lastUpdatedTimestamp) {
         val granted = hasUsagePermission || PermissionUtils.hasUsageStatsPermission(context)
         effectivePermission = granted
-        if (granted) {
+        systemDailyTrends = if (granted) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                try {
-                    val trends = getDailyMobileDataUsageLast7Days(context, planStatus?.subscriptionId)
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        systemDailyTrends = trends
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("MegasCU", "Unhandled exception", e)
-                }
+                getDailyMobileDataUsageLast7Days(context, planStatus?.subscriptionId)
             }
-        } else {
-            systemDailyTrends = emptyList()
-        }
+        } else emptyList()
     }
 
-    val (chartData, avgDailyMb, totalConsumedMb, recommendedDailyMb) = remember(usageHistory, planStatus, systemDailyTrends) {
-        val sorted = usageHistory.sortedBy { it.timestamp }
-        var totalConsumed = 0f
-        val consumptions = mutableListOf<Pair<Long, Float>>()
-        for (i in 1 until sorted.size) {
-            val prev = sorted[i - 1]
-            val curr = sorted[i]
-            val prevTotal = prev.dataMb + prev.dataLteMb
-            val currTotal = curr.dataMb + curr.dataLteMb
-            val diff = prevTotal - currTotal
-            if (diff > 0) {
-                consumptions.add(curr.timestamp to (diff / 1024f))
-                totalConsumed += diff
-            }
+    val lineHistory = remember(usageHistory, planStatus?.id, planStatus?.subscriptionId) {
+        usageHistory.filter { it.simSlot == (planStatus?.id ?: 1) && it.subscriptionId == planStatus?.subscriptionId }
+    }
+    val (chartData, avgDailyMb, totalConsumedMb, recommendedDailyMb) = remember(lineHistory, planStatus, systemDailyTrends) {
+        val dateFormat = DateTimeFormatter.ofPattern("EEE dd", Locale.getDefault())
+        val estimates = UsageHistoryEstimator.dailyUsage(lineHistory, planStatus?.id ?: 1, planStatus?.subscriptionId)
+        val displayData = if (systemDailyTrends.isNotEmpty()) systemDailyTrends else {
+            estimates.map { dateFormat.format(it.date) to (it.consumedMb / 1024f) }
         }
-
-        val firstTime = sorted.firstOrNull()?.timestamp ?: System.currentTimeMillis()
-        val lastTime = sorted.lastOrNull()?.timestamp ?: System.currentTimeMillis()
-        val daysDiff = ((lastTime - firstTime) / (1000 * 3600 * 24)).coerceAtLeast(1)
-        val avgMb = if (totalConsumed > 0) (totalConsumed / daysDiff) else 0f
-
-        val sdf = SimpleDateFormat("dd MMM", Locale.getDefault())
-        val groupedRemaining = sorted.groupBy { sdf.format(Date(it.timestamp)) }
-            .map { (dateStr, list) -> 
-                 val lastEntry = list.last()
-                 dateStr to ((lastEntry.dataMb + lastEntry.dataLteMb) / 1024f)
-            }
-            .takeLast(7)
-        
-        val displayData = if (systemDailyTrends.isNotEmpty()) systemDailyTrends else groupedRemaining
-
-        // Tasa recomendada según planStatus
+        val totalMb = displayData.sumOf { it.second.toDouble() * 1024.0 }.toFloat()
+        val avgMb = if (displayData.isNotEmpty()) totalMb / displayData.size else 0f
+        val remainingMb = (planStatus?.dataMb ?: 0L) + (planStatus?.dataLteMb ?: 0L)
         val dataDays = planStatus?.dataDays ?: 0
-        val remainingDataMb = (planStatus?.dataMb ?: 0L) + (planStatus?.dataLteMb ?: 0L)
-        val recMb = if (dataDays > 0 && remainingDataMb > 0) {
-            remainingDataMb.toFloat() / dataDays
-        } else {
-            null
-        }
-
-        val totalSystemMb = systemDailyTrends.sumOf { it.second.toDouble() * 1024.0 }.toFloat()
-        val finalTotalConsumed = if (totalSystemMb > 0) totalSystemMb else totalConsumed
-
-        Quadruple(displayData, avgMb, finalTotalConsumed, recMb)
+        val recommendedMb = if (dataDays > 0 && remainingMb > 0) remainingMb.toFloat() / dataDays else null
+        Quadruple(displayData, avgMb, totalMb, recommendedMb)
     }
 
     Column(
@@ -140,7 +102,7 @@ fun UsageHistoryChart(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Banner de estado de permiso / estimador alternativo cuando falta PACKAGE_USAGE_STATS
-        if (!effectivePermission) {
+        if (!effectivePermission || systemDailyTrends.isEmpty()) {
             Surface(
                 shape = RoundedCornerShape(18.dp),
                 color = if (useAlternativeEstimator) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.85f),
@@ -163,14 +125,14 @@ fun UsageHistoryChart(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (useAlternativeEstimator) "Estimador Alternativo Activo" else "Permiso de Estadísticas No Concedido",
+                            text = if (effectivePermission) "Estadísticas no disponibles para esta SIM" else if (useAlternativeEstimator) "Estimador Alternativo Activo" else "Permiso de Estadísticas No Concedido",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = if (useAlternativeEstimator) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = if (useAlternativeEstimator)
-                                "Calculando tendencias según consultas USSD. Concede el permiso de estadísticas de Android para ver el consumo exacto por app/sistema."
+                                "Comparamos saldos de datos de la misma SIM: se necesitan consultas en al menos 2 días. Las recargas no cuentan como consumo. El acceso de uso permite consultar el tráfico móvil registrado por Android; algunas SIM pueden restringirlo."
                             else
                                 "El permiso de uso de Android está denegado o restringido. Puedes concederlo en Ajustes del Sistema o activar el Estimador Alternativo.",
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp, lineHeight = 15.sp),
@@ -213,7 +175,7 @@ fun UsageHistoryChart(
             chartData = if (effectivePermission || useAlternativeEstimator) chartData else emptyList(),
             totalConsumedMb = if (effectivePermission || useAlternativeEstimator) totalConsumedMb else 0f,
             hasPermission = effectivePermission,
-            usageHistory = usageHistory,
+            usageHistory = lineHistory,
             planStatus = planStatus
         )
     }
@@ -232,7 +194,7 @@ fun TasaConsumoCard(
     onToggleAlternativeEstimator: ((Boolean) -> Unit)? = null
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var realDataUsedToday by remember { mutableStateOf(0L) }
+    var realDataUsedToday by remember(planStatus?.id, planStatus?.subscriptionId) { mutableStateOf<Long?>(null) }
     var effectivePermission by remember { mutableStateOf(hasUsagePermission) }
     var showExplanationDialog by remember { mutableStateOf(false) }
 
@@ -255,7 +217,7 @@ fun TasaConsumoCard(
         if (granted) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 try {
-                    val used = getMobileDataUsageToday(context, planStatus?.subscriptionId)
+                    val used = MobileDataUsageReader.lastDays(context, planStatus?.subscriptionId, 1)?.lastOrNull()?.bytes
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                         realDataUsedToday = used
                     }
@@ -264,7 +226,7 @@ fun TasaConsumoCard(
                 }
             }
         } else {
-            realDataUsedToday = 0L
+            realDataUsedToday = null
         }
     }
 
@@ -353,8 +315,8 @@ fun TasaConsumoCard(
                 }
             }
 
-            val todayMb = if (hasUsagePermission && realDataUsedToday > 0L) {
-                realDataUsedToday / (1024f * 1024f)
+            val todayMb = if (effectivePermission && realDataUsedToday != null) {
+                (realDataUsedToday ?: 0L) / (1024f * 1024f)
             } else if (useAlternativeEstimator) {
                 avgDailyMb
             } else {
@@ -578,16 +540,15 @@ fun TasaConsumoCard(
                             softWrap = false
                         )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
-                        progress = { animatedProgress.value },
+                        progress = animatedProgress.value,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(4.dp)),
+                            .height(LoadingIndicatorsConfig.linearDetHeight.dp)
+                            .clip(RoundedCornerShape(LoadingIndicatorsConfig.linearDetCornerRadius.dp)),
                         color = barColor,
-                        trackColor = onContainerColor.copy(alpha = 0.15f),
-                        drawStopIndicator = {}
+                        trackColor = onContainerColor.copy(alpha = 0.15f)
                     )
                 }
             }
@@ -1116,7 +1077,7 @@ fun ConsumoYRegistrosCard(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "Total semana (Lun - Dom)",
+                                        text = "Total últimos 7 días",
                                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
                                         color = MaterialTheme.colorScheme.onSurface,
                                         maxLines = 1,
@@ -1140,7 +1101,7 @@ fun ConsumoYRegistrosCard(
                         }
                     } else {
                         Text(
-                            text = if (hasPermission) "Realiza consultas de saldo o usa tu red móvil para generar la tendencia diaria." else "Concede el permiso de acceso a datos para ver el informe diario real del sistema.",
+                            text = "Se necesitan consultas de datos en al menos 2 días distintos para estimar el consumo. Con el acceso de uso se consulta el tráfico registrado por Android cuando está disponible.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -1275,7 +1236,7 @@ fun EmptyUsageState(onRequestRefresh: (() -> Unit)? = null) {
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Realiza tu primera consulta de saldo para generar gráficas y estimación de consumo",
+                text = "Consulta los datos en al menos 2 días distintos para estimar el consumo, o concede el acceso de uso para consultar el tráfico de Android.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
@@ -1284,104 +1245,12 @@ fun EmptyUsageState(onRequestRefresh: (() -> Unit)? = null) {
     }
 }
 
-fun getMobileDataUsageToday(context: Context, subscriptionId: Int? = null): Long {
-    return try {
-        val networkStatsManager = context.getSystemService(Context.NETWORK_STATS_SERVICE) as? NetworkStatsManager
-            ?: return 0L
-
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        val startTime = calendar.timeInMillis
-        val endTime = System.currentTimeMillis()
-
-        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager
-        val subTelephony = if (subscriptionId != null && subscriptionId != android.telephony.SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
-            telephonyManager?.createForSubscriptionId(subscriptionId)
-        } else {
-            telephonyManager
-        }
-        val subscriberId = try {
-            subTelephony?.subscriberId
-        } catch (e: Exception) {
-            null
-        }
-
-        val bucket = networkStatsManager.querySummaryForDevice(ConnectivityManager.TYPE_MOBILE, subscriberId, startTime, endTime)
-        bucket.rxBytes + bucket.txBytes
-    } catch (e: SecurityException) {
-        android.util.Log.e("MegasCU", "Unhandled exception", e)
-        0L
-    } catch (e: IllegalStateException) {
-        android.util.Log.e("MegasCU", "Unhandled exception", e)
-        0L
-    } catch (e: NullPointerException) {
-        android.util.Log.e("MegasCU", "Unhandled exception", e)
-        0L
-    } catch (e: Exception) {
-        android.util.Log.e("MegasCU", "Unhandled exception", e)
-        0L
-    }
-}
+fun getMobileDataUsageToday(context: Context, subscriptionId: Int? = null): Long =
+    MobileDataUsageReader.lastDays(context, subscriptionId, 1)?.lastOrNull()?.bytes ?: 0L
 
 fun getDailyMobileDataUsageLast7Days(context: Context, subscriptionId: Int? = null): List<Pair<String, Float>> {
-    val results = mutableListOf<Pair<String, Float>>()
-    try {
-        val networkStatsManager = context.getSystemService(Context.NETWORK_STATS_SERVICE) as? NetworkStatsManager
-            ?: return emptyList()
-        val sdf = SimpleDateFormat("EEE dd", Locale.getDefault())
-
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-
-        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager
-        val subTelephony = if (subscriptionId != null && subscriptionId != android.telephony.SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
-            telephonyManager?.createForSubscriptionId(subscriptionId)
-        } else {
-            telephonyManager
-        }
-        val subscriberId = try {
-            subTelephony?.subscriberId
-        } catch (e: Exception) {
-            null
-        }
-
-        for (i in 6 downTo 0) {
-            val dayStartCal = cal.clone() as Calendar
-            dayStartCal.add(Calendar.DAY_OF_YEAR, -i)
-            val startTime = dayStartCal.timeInMillis
-
-            val dayEndCal = dayStartCal.clone() as Calendar
-            dayEndCal.add(Calendar.DAY_OF_YEAR, 1)
-            val endTime = if (i == 0) System.currentTimeMillis() else dayEndCal.timeInMillis
-
-            val bytes = try {
-                val bucket = networkStatsManager.querySummaryForDevice(ConnectivityManager.TYPE_MOBILE, subscriberId, startTime, endTime)
-                bucket.rxBytes + bucket.txBytes
-            } catch (e: SecurityException) {
-                0L
-            } catch (e: IllegalStateException) {
-                0L
-            } catch (e: Exception) {
-                0L
-            }
-
-            val gbUsed = bytes / (1024f * 1024f * 1024f)
-            val dateLabel = sdf.format(Date(startTime)).replace(" ", "").replace(".", "")
-            results.add(dateLabel to gbUsed)
-        }
-    } catch (e: SecurityException) {
-        android.util.Log.e("MegasCU", "Unhandled exception", e)
-    } catch (e: IllegalStateException) {
-        android.util.Log.e("MegasCU", "Unhandled exception", e)
-    } catch (e: Exception) {
-        android.util.Log.e("MegasCU", "Unhandled exception", e)
-    }
-
-    return results
+    val format = DateTimeFormatter.ofPattern("EEE dd", Locale.getDefault())
+    return MobileDataUsageReader.lastDays(context, subscriptionId)?.map {
+        format.format(it.date) to (it.bytes / (1024f * 1024f * 1024f))
+    } ?: emptyList()
 }

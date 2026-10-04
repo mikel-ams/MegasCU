@@ -122,11 +122,18 @@ fun SettingsBottomSheet(
     val coroutineScope = rememberCoroutineScope()
     var isCheckingUpdate by remember { mutableStateOf(false) }
     var autoUpdateCheck by remember { mutableStateOf(prefs.getBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, true)) }
+    var checkUpdatesOnLaunch by remember { mutableStateOf(prefs.getBoolean(GitHubUpdateChecker.PREF_CHECK_UPDATES_ON_LAUNCH, true)) }
     var lastCheckTimeStr by remember { mutableStateOf(GitHubUpdateChecker.getFormattedLastCheck(context)) }
     var updateResultToShow by remember { mutableStateOf<UpdateCheckResult?>(null) }
     var lastCheckedResult by remember { mutableStateOf<UpdateCheckResult?>(null) }
     var showUpToDateDialog by remember { mutableStateOf(false) }
     var updateErrorMessage by remember { mutableStateOf<String?>(null) }
+    var showMaterialIconsSheet by remember { mutableStateOf(false) }
+    var showWcagInspectorSheet by remember { mutableStateOf(false) }
+    var showLoadingIndicatorsLab by remember { mutableStateOf(false) }
+    var showSimulatedUpdateDialog by remember { mutableStateOf(false) }
+    var showSimulatedWhatsNewDialog by remember { mutableStateOf(false) }
+    var showChangelogFromDev by remember { mutableStateOf(false) }
 
     fun performUpdateCheck() {
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -251,7 +258,7 @@ fun SettingsBottomSheet(
             text = {
                 Text(
                     text = if (hasReleases) {
-                        "Tienes instalada la versión más reciente de MegasCU (v${BuildConfig.VERSION_NAME}). No hay nuevas actualizaciones en GitHub."
+                        "Tienes instalada la versión más reciente de MegasCU v${BuildConfig.VERSION_NAME}. No hay nuevas actualizaciones en GitHub."
                     } else {
                         "El repositorio '${GitHubUpdateChecker.DEFAULT_REPO}' no cuenta con publicaciones públicas en GitHub actualmente. Tienes instalada la versión v${BuildConfig.VERSION_NAME}."
                     },
@@ -290,6 +297,60 @@ fun SettingsBottomSheet(
                     Text("Cerrar")
                 }
             }
+        )
+    }
+
+    if (showSimulatedUpdateDialog) {
+        UpdateAvailableDialog(
+            updateResult = UpdateCheckResult(
+                isSuccess = true,
+                isUpdateAvailable = true,
+                latestVersionName = "0.9.2-beta_(259)",
+                latestVersionCode = 259,
+                releaseTitle = "MegasCU v0.9.2-beta (Build 259)",
+                changelog = "• Auto-lanzamiento de instalación tras descarga exitosa si el permiso está concedido.\n• Ajuste para activar o desactivar la comprobación de actualizaciones al iniciar.\n• Reorganización estructurada por categorías en opciones de desarrollo y pruebas.\n• Tipografía Space Mono aplicada en widgets configurables y vistas previas.\n• Consolidación limpia del registro de cambios.",
+                apkDownloadUrl = "https://github.com/mikel-ams/MegasCU/releases/download/v0.9.2-beta/MegasCU_0.9.2-beta_(259).apk",
+                releaseHtmlUrl = "https://github.com/mikel-ams/MegasCU/releases",
+                apkSizeMb = 14.8f,
+                publishedAt = "Hoy",
+                isPrerelease = true
+            ),
+            isSimulation = true,
+            onDismiss = { showSimulatedUpdateDialog = false }
+        )
+    }
+
+    if (showSimulatedWhatsNewDialog) {
+        WhatsNewDialog(
+            onDismiss = { showSimulatedWhatsNewDialog = false },
+            onViewFullChangelog = {
+                showSimulatedWhatsNewDialog = false
+                showChangelogFromDev = true
+            }
+        )
+    }
+
+    if (showWcagInspectorSheet) {
+        WcagContrastInspectorBottomSheet(
+            onDismissRequest = { showWcagInspectorSheet = false }
+        )
+    }
+
+    if (showMaterialIconsSheet) {
+        MaterialIconsBottomSheet(
+            onDismissRequest = { showMaterialIconsSheet = false }
+        )
+    }
+
+    if (showChangelogFromDev) {
+        ChangelogBottomSheet(
+            onDismiss = { showChangelogFromDev = false }
+        )
+    }
+
+    if (showLoadingIndicatorsLab) {
+        LoadingIndicatorsLabDialog(
+            onDismiss = { showLoadingIndicatorsLab = false }
         )
     }
 
@@ -1710,18 +1771,17 @@ fun SettingsBottomSheet(
 
                 if (showDeveloperSheet) {
                     val scope = rememberCoroutineScope()
-                    var showMaterialIconsSheet by remember { mutableStateOf(false) }
-                    var showWcagInspectorSheet by remember { mutableStateOf(false) }
-                    var showSimulatedUpdateDialog by remember { mutableStateOf(false) }
-                    var showSimulatedWhatsNewDialog by remember { mutableStateOf(false) }
-                    var showChangelogFromDev by remember { mutableStateOf(false) }
                     var isWcagPaletteActive by remember { mutableStateOf(prefs.getBoolean("pref_use_wcag_palette", false)) }
                     val devView = androidx.compose.ui.platform.LocalView.current
+                    val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
                     SideEffect {
                         var parent = devView.parent
                         while (parent != null) {
                             if (parent is androidx.compose.ui.window.DialogWindowProvider) {
-                                androidx.core.view.WindowCompat.setDecorFitsSystemWindows(parent.window, false)
+                                val window = parent.window
+                                androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+                                window.statusBarColor = android.graphics.Color.TRANSPARENT
+                                androidx.core.view.WindowCompat.getInsetsController(window, devView).isAppearanceLightStatusBars = !isDarkTheme
                                 break
                             }
                             parent = parent.parent
@@ -1737,9 +1797,10 @@ fun SettingsBottomSheet(
                     ) {
                         Surface(
                             modifier = Modifier.fillMaxSize(),
-                            color = MaterialTheme.colorScheme.surface
+                            color = MaterialTheme.colorScheme.surfaceContainer
                         ) {
                             Scaffold(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
                                 topBar = {
                                     TopAppBar(
                                         title = {
@@ -1801,7 +1862,7 @@ fun SettingsBottomSheet(
                                             }
                                         },
                                         colors = TopAppBarDefaults.topAppBarColors(
-                                            containerColor = MaterialTheme.colorScheme.surface
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainer
                                         )
                                     )
                                 },
@@ -2450,7 +2511,7 @@ fun SettingsBottomSheet(
                                                 color = MaterialTheme.colorScheme.error
                                             )
                                         }
-                                        Switch(
+                                        ExpressiveSwitch(
                                             checked = simAlertEnabled,
                                             onCheckedChange = { checked ->
                                                 simAlertEnabled = checked
@@ -2806,6 +2867,25 @@ fun SettingsBottomSheet(
 
                                     ExpressiveButton(
                                         onClick = {
+                                            showLoadingIndicatorsLab = true
+                                        },
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                        shape = RoundedCornerShape(14.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                        )
+                                    ) {
+                                        Icon(Icons.Rounded.Tune, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text("Laboratorio de Indicadores de Carga")
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    ExpressiveButton(
+                                        onClick = {
+                                            showDeveloperSheet = false
                                             showSimulatedUpdateDialog = true
                                         },
                                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
@@ -2824,6 +2904,7 @@ fun SettingsBottomSheet(
 
                                     ExpressiveOutlinedButton(
                                         onClick = {
+                                            showDeveloperSheet = false
                                             showSimulatedWhatsNewDialog = true
                                         },
                                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
@@ -2833,55 +2914,7 @@ fun SettingsBottomSheet(
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text("Simular Alerta de Novedades (What's New)")
                                     }
-
-                                    if (showWcagInspectorSheet) {
-                                        WcagContrastInspectorBottomSheet(
-                                            onDismissRequest = { showWcagInspectorSheet = false }
-                                        )
-                                    }
-
-                                    if (showMaterialIconsSheet) {
-                                        MaterialIconsBottomSheet(
-                                            onDismissRequest = { showMaterialIconsSheet = false }
-                                        )
-                                    }
                                 }
-                            }
-
-                            if (showSimulatedUpdateDialog) {
-                                UpdateAvailableDialog(
-                                    updateResult = UpdateCheckResult(
-                                        isSuccess = true,
-                                        isUpdateAvailable = true,
-                                        latestVersionName = "0.9.0-beta_(250)",
-                                        latestVersionCode = 250,
-                                        releaseTitle = "MegasCU v0.9.0-beta (Build 250)",
-                                        changelog = "• Nuevo simulador interactivo de descargas y actualizaciones en opciones de desarrollo.\n• Optimización integral de márgenes y scroll en ventana de descarga de GitHub.\n• Sistema de alerta 'Novedades de la versión' al iniciar la app tras una actualización.",
-                                        apkDownloadUrl = "https://github.com/mikel-ams/MegasCU/releases/download/v0.9.0-beta/MegasCU_0.9.0-beta_(250).apk",
-                                        releaseHtmlUrl = "https://github.com/mikel-ams/MegasCU/releases",
-                                        apkSizeMb = 14.5f,
-                                        publishedAt = "Hoy",
-                                        isPrerelease = true
-                                    ),
-                                    isSimulation = true,
-                                    onDismiss = { showSimulatedUpdateDialog = false }
-                                )
-                            }
-
-                            if (showSimulatedWhatsNewDialog) {
-                                WhatsNewDialog(
-                                    onDismiss = { showSimulatedWhatsNewDialog = false },
-                                    onViewFullChangelog = {
-                                        showSimulatedWhatsNewDialog = false
-                                        showChangelogFromDev = true
-                                    }
-                                )
-                            }
-
-                            if (showChangelogFromDev) {
-                                ChangelogBottomSheet(
-                                    onDismiss = { showChangelogFromDev = false }
-                                )
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -2920,12 +2953,35 @@ fun SettingsBottomSheet(
                 }
             }
 
-            Text(
-                text = "Gestor de Actualizaciones",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary,
+            val isUpdateAvailableHeader = (lastCheckedResult?.isUpdateAvailable == true) || 
+                (prefs.getBoolean(GitHubUpdateChecker.PREF_UPDATE_AVAILABLE, false) && 
+                 GitHubUpdateChecker.isVersionNewer(
+                     remoteTag = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME, "") ?: "",
+                     remoteReleaseName = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME, "") ?: "",
+                     remoteCode = prefs.getInt(GitHubUpdateChecker.PREF_UPDATE_VERSION_CODE, 0),
+                     currentCode = BuildConfig.VERSION_CODE,
+                     currentName = BuildConfig.VERSION_NAME
+                 ))
+
+            Box(
                 modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp)
-            )
+            ) {
+                Text(
+                    text = "Gestor de Actualizaciones",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = if (isUpdateAvailableHeader) 12.dp else 0.dp)
+                )
+                if (isUpdateAvailableHeader) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(top = 2.dp)
+                            .size(7.dp)
+                            .background(Color(0xFFE53935), CircleShape)
+                    )
+                }
+            }
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -3026,6 +3082,37 @@ fun SettingsBottomSheet(
                         )
                     }
 
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Switch for checking updates on app launch
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Buscar actualización al abrir la app",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Verificar automáticamente si hay una nueva versión disponible al iniciar",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        ExpressiveSwitch(
+                            checked = checkUpdatesOnLaunch,
+                            onCheckedChange = { checked ->
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                checkUpdatesOnLaunch = checked
+                                prefs.edit().putBoolean(GitHubUpdateChecker.PREF_CHECK_UPDATES_ON_LAUNCH, checked).apply()
+                            }
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(14.dp))
 
                     val isUpdateAvailable = (lastCheckedResult?.isUpdateAvailable == true) || 
@@ -3042,7 +3129,36 @@ fun SettingsBottomSheet(
                     ExpressiveButton(
                         onClick = { 
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            performUpdateCheck() 
+                            if (isUpdateAvailable) {
+                                if (lastCheckedResult != null && lastCheckedResult!!.isUpdateAvailable) {
+                                    updateResultToShow = lastCheckedResult
+                                } else {
+                                    val cachedVersionName = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_VERSION_NAME, "") ?: ""
+                                    val cachedVersionCode = prefs.getInt(GitHubUpdateChecker.PREF_UPDATE_VERSION_CODE, 0)
+                                    val cachedTitle = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_TITLE, "") ?: ""
+                                    val cachedChangelog = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_CHANGELOG, "") ?: ""
+                                    val cachedApkUrl = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_APK_URL, "") ?: ""
+                                    val cachedReleaseUrl = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_RELEASE_URL, "") ?: ""
+                                    val cachedSha256 = prefs.getString(GitHubUpdateChecker.PREF_UPDATE_SHA256, null)
+                                    if (cachedApkUrl.isNotBlank() && cachedVersionName.isNotBlank()) {
+                                        updateResultToShow = UpdateCheckResult(
+                                            isSuccess = true,
+                                            isUpdateAvailable = true,
+                                            latestVersionName = cachedVersionName,
+                                            latestVersionCode = cachedVersionCode,
+                                            releaseTitle = cachedTitle,
+                                            changelog = cachedChangelog,
+                                            apkDownloadUrl = cachedApkUrl,
+                                            releaseHtmlUrl = cachedReleaseUrl,
+                                            sha256Checksum = cachedSha256
+                                        )
+                                    } else {
+                                        performUpdateCheck()
+                                    }
+                                }
+                            } else {
+                                performUpdateCheck()
+                            }
                         },
                         enabled = !isCheckingUpdate,
                         modifier = Modifier.fillMaxWidth(),

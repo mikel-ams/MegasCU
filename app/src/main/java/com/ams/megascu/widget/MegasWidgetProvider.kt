@@ -30,75 +30,7 @@ open class MegasWidgetProvider(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID
         )
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
-            updateAllWidgets(context)
-            return
-        }
-
-        val app = context.applicationContext as? MegasApplication ?: return
-        val pendingResult = goAsync()
-        app.appScope.launch(Dispatchers.IO) {
-            try {
-                val widgetPrefs = context.getSharedPreferences("megas_widget_prefs", Context.MODE_PRIVATE)
-                val type = widgetPrefs.getString("widget_${appWidgetId}_type", "megas") ?: "megas"
-                val simSlot = widgetPrefs.getInt("widget_${appWidgetId}_sim_slot", 1).coerceIn(1, 2)
-                val ussdCode = when (type) {
-                    "saldo" -> "*222#"
-                    "megas" -> "*222*328#"
-                    "llamadas" -> "*222*869#"
-                    "mensajes" -> "*222*767#"
-                    "bono" -> "*222*266#"
-                    else -> "*222*328#"
-                }
-
-                val result = com.ams.megascu.data.ussd.UssdExecutor(context)
-                    .executeUssdSuspend(ussdCode, simSlot = simSlot, allowDialFallback = false)
-
-                val responseText = when (result) {
-                    is com.ams.megascu.data.ussd.UssdResult.Success -> result.response
-                    is com.ams.megascu.data.ussd.UssdResult.Error -> {
-                        android.util.Log.w("MegasWidgetProvider", "Widget USSD failed: ${result.errorType}")
-                        ""
-                    }
-                }
-
-                if (responseText.isNotBlank()) {
-                    val parsed = com.ams.megascu.data.ussd.EtecsaUssdParser.parseUssdResponse(responseText, ussdCode)
-                    val db = MegasDatabase.getDatabase(context)
-                    val planDao = db.planDao()
-                    val currentSubId = com.ams.megascu.data.ussd.SimOperatorUtils.getSubscriptionIdForSlot(context, simSlot)
-                    var currentStatus = planDao.getPlanStatusDirect(simSlot)
-                    if (currentStatus != null && currentSubId != null && currentStatus.subscriptionId != null && currentStatus.subscriptionId != currentSubId) {
-                        currentStatus = PlanStatusEntity(id = simSlot, subscriptionId = currentSubId)
-                    } else if (currentStatus == null) {
-                        currentStatus = PlanStatusEntity(id = simSlot, subscriptionId = currentSubId)
-                    }
-                    val updatedEntity = currentStatus.copy(
-                        id = simSlot,
-                        subscriptionId = currentSubId ?: currentStatus.subscriptionId,
-                        balanceCup = parsed.balanceCup ?: currentStatus.balanceCup,
-                        dataMb = parsed.dataMb ?: currentStatus.dataMb,
-                        dataLteMb = parsed.dataLteMb ?: currentStatus.dataLteMb,
-                        bonusDataMb = parsed.bonusMb ?: currentStatus.bonusDataMb,
-                        minutesStr = parsed.minutesStr ?: currentStatus.minutesStr,
-                        smsCount = parsed.sms ?: currentStatus.smsCount,
-                        dataDays = parsed.dataDays ?: currentStatus.dataDays,
-                        minutesDays = parsed.minutesDays ?: currentStatus.minutesDays,
-                        smsDays = parsed.smsDays ?: currentStatus.smsDays,
-                        nextRechargeDateStr = parsed.nextRechargeDateStr ?: currentStatus.nextRechargeDateStr,
-                        nextRechargeDays = parsed.nextRechargeDays ?: currentStatus.nextRechargeDays,
-                        lastUpdatedTimestamp = System.currentTimeMillis()
-                    )
-                    planDao.insertOrUpdatePlanStatus(updatedEntity)
-                }
-
-                updateAllWidgetsSuspend(context)
-            } catch (e: Exception) {
-                android.util.Log.e("MegasWidgetProvider", "Widget refresh failed", e)
-            } finally {
-                pendingResult.finish()
-            }
-        }
+        com.ams.megascu.service.WidgetRefreshWorker.enqueue(context, appWidgetId)
     }
 
     override fun onUpdate(
@@ -249,6 +181,7 @@ open class MegasWidgetProvider(
             val prefs = context.getSharedPreferences("megas_widget_plan_cache", Context.MODE_PRIVATE)
             val prefix = if (simSlot > 1) "sim_${simSlot}_" else ""
             prefs.edit()
+                .putInt("${prefix}subscriptionId", plan.subscriptionId ?: -1)
                 .putLong("${prefix}dataMb", plan.dataMb)
                 .putLong("${prefix}dataLteMb", plan.dataLteMb)
                 .putLong("${prefix}bonusDataMb", plan.bonusDataMb)
@@ -268,29 +201,13 @@ open class MegasWidgetProvider(
         private fun getCachedPlan(context: Context, simSlot: Int = 1): PlanStatusEntity? {
             val prefs = context.getSharedPreferences("megas_widget_plan_cache", Context.MODE_PRIVATE)
             val prefix = if (simSlot > 1) "sim_${simSlot}_" else ""
-            if (!prefs.contains("${prefix}lastUpdatedTimestamp")) {
-                if (simSlot == 1 && prefs.contains("lastUpdatedTimestamp")) {
-                    return PlanStatusEntity(
-                        id = 1,
-                        balanceCup = prefs.getFloat("balanceCup", 0f).toDouble(),
-                        dataMb = prefs.getLong("dataMb", 0L),
-                        dataLteMb = prefs.getLong("dataLteMb", 0L),
-                        bonusDataMb = prefs.getLong("bonusDataMb", 0L),
-                        minutesStr = prefs.getString("minutesStr", "") ?: "",
-                        smsCount = prefs.getInt("smsCount", 0),
-                        dataDays = prefs.getInt("dataDays", 0),
-                        minutesDays = prefs.getInt("minutesDays", 0),
-                        smsDays = prefs.getInt("smsDays", 0),
-                        dataExpirationTimestamp = prefs.getLong("dataExpirationTimestamp", 0L),
-                        nextRechargeDateStr = prefs.getString("nextRechargeDateStr", "") ?: "",
-                        nextRechargeDays = prefs.getInt("nextRechargeDays", 0),
-                        lastUpdatedTimestamp = prefs.getLong("lastUpdatedTimestamp", 0L)
-                    )
-                }
-                return null
-            }
+            val currentSubId = com.ams.megascu.data.ussd.SimOperatorUtils.getSubscriptionIdForSlot(context, simSlot)
+            if (!prefs.contains("${prefix}subscriptionId") ||
+                prefs.getInt("${prefix}subscriptionId", -1) != (currentSubId ?: -1) ||
+                !prefs.contains("${prefix}lastUpdatedTimestamp")) return null
             return PlanStatusEntity(
                 id = simSlot,
+                subscriptionId = currentSubId,
                 balanceCup = prefs.getFloat("${prefix}balanceCup", 0f).toDouble(),
                 dataMb = prefs.getLong("${prefix}dataMb", 0L),
                 dataLteMb = prefs.getLong("${prefix}dataLteMb", 0L),
@@ -319,7 +236,7 @@ open class MegasWidgetProvider(
                     val db = MegasDatabase.getDatabase(context)
                     val currentSubId = com.ams.megascu.data.ussd.SimOperatorUtils.getSubscriptionIdForSlot(context, simSlot)
                     val dbPlanRaw = db.planDao().getPlanStatusDirect(simSlot)
-                    val dbPlan = if (dbPlanRaw != null && (dbPlanRaw.subscriptionId == null || currentSubId == null || dbPlanRaw.subscriptionId == currentSubId)) {
+                    val dbPlan = if (dbPlanRaw != null && dbPlanRaw.subscriptionId == currentSubId) {
                         dbPlanRaw
                     } else null
 
@@ -344,13 +261,23 @@ open class MegasWidgetProvider(
                         views.setTextViewText(R.id.widget_label, paramData.label)
                         views.setTextViewText(R.id.widget_value, paramData.value)
                         
-                        // Badge chip superior desactivado para dejar unicamente el chip inferior
-                        views.setViewVisibility(R.id.widget_badge, android.view.View.GONE)
+                        // Adjust days remaining badge position based on widget size
+                        val isNarrowWidget = minWidthDp < 240
 
                         if (!paramData.daysText.isNullOrBlank()) {
-                            views.setViewVisibility(R.id.widget_days, android.view.View.VISIBLE)
-                            views.setTextViewText(R.id.widget_days, paramData.daysText)
+                            if (isNarrowWidget) {
+                                // 1x2 and 1x3: Badge in the top row, in front of the refresh button
+                                views.setViewVisibility(R.id.widget_badge, android.view.View.VISIBLE)
+                                views.setTextViewText(R.id.widget_badge, paramData.daysText)
+                                views.setViewVisibility(R.id.widget_days, android.view.View.GONE)
+                            } else {
+                                // 1x4 and 1x5: Keep current layout (Badge next to value in bottom row)
+                                views.setViewVisibility(R.id.widget_badge, android.view.View.GONE)
+                                views.setViewVisibility(R.id.widget_days, android.view.View.VISIBLE)
+                                views.setTextViewText(R.id.widget_days, paramData.daysText)
+                            }
                         } else {
+                            views.setViewVisibility(R.id.widget_badge, android.view.View.GONE)
                             views.setViewVisibility(R.id.widget_days, android.view.View.GONE)
                         }
                     } else {
@@ -435,6 +362,7 @@ open class MegasWidgetProvider(
                     // Refresh button logic (only in layouts with the refresh button)
                     val refreshIntent = Intent(context, MegasWidgetProvider::class.java).apply {
                         action = ACTION_WIDGET_REFRESH
+                        data = android.net.Uri.parse("megascu://widget/$appWidgetId/refresh")
                         putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                     }
                     val refreshPendingIntent = PendingIntent.getBroadcast(
@@ -448,6 +376,7 @@ open class MegasWidgetProvider(
                     // Click on card opens MainActivity
                     val mainIntent = Intent(context, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        putExtra("selected_sim_slot", simSlot)
                     }
                     val mainPendingIntent = PendingIntent.getActivity(
                         context,
@@ -457,7 +386,7 @@ open class MegasWidgetProvider(
                     )
                     views.setOnClickPendingIntent(R.id.widget_root, mainPendingIntent)
 
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
+                    appWidgetManager.updateAppWidget(appWidgetId, WidgetTextRenderer.render(context, appWidgetManager, appWidgetId, views, layoutResId))
                 } catch (e: Exception) {
                     android.util.Log.e("MegasCU", "Unhandled exception", e)
                 }

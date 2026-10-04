@@ -5,6 +5,8 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Build
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,12 +20,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.rounded.DataUsage
 import androidx.compose.material.icons.rounded.MonetizationOn
 import androidx.compose.material.icons.rounded.PhoneInTalk
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,12 +38,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ams.megascu.ui.theme.MegasTheme
+import com.ams.megascu.ui.theme.SpaceMono
 import com.ams.megascu.ui.components.ExpressiveButton
 import com.ams.megascu.ui.components.ExpressiveOutlinedButton
+import com.ams.megascu.R
 
 abstract class BaseWidgetConfigActivity : ComponentActivity() {
 
@@ -47,6 +55,15 @@ abstract class BaseWidgetConfigActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        window.setBackgroundDrawableResource(android.R.color.transparent)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        window.setDimAmount(0.30f)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            window.attributes = window.attributes.apply {
+                blurBehindRadius = (24 * resources.displayMetrics.density).toInt()
+            }
+        }
 
         val extras = intent.extras
         if (extras != null) {
@@ -67,10 +84,7 @@ abstract class BaseWidgetConfigActivity : ComponentActivity() {
 
         setContent {
             MegasTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+                Box(modifier = Modifier.fillMaxSize()) {
                     WidgetConfigScreen(
                         onSave = { param1 ->
                             savePreferences(param1)
@@ -107,7 +121,6 @@ class WidgetConfigActivity : BaseWidgetConfigActivity()
 
 class Widget2x1ConfigActivity : BaseWidgetConfigActivity()
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetConfigScreen(
     onSave: (String) -> Unit,
@@ -115,100 +128,77 @@ fun WidgetConfigScreen(
 ) {
     var selectedParam by remember { mutableStateOf("megas") }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.size(38.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Widgets,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-                        Text(
-                            "Configurar Widget 2x1",
-                            fontWeight = FontWeight.ExtraBold,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
-            )
-        }
-    ) { padding ->
-        Column(
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+                .fillMaxWidth(0.92f)
+                .heightIn(max = maxHeight - 32.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Text(
-                text = "Selecciona el parámetro que se mostrará en el widget compacto 2x1 en tu pantalla de inicio.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
-            )
-
-            // Dynamic Live Preview Card
-            Text(
-                "Vista previa en tiempo real",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            WidgetLivePreviewCard(selectedParam = selectedParam)
-
-            Text(
-                "Selecciona la métrica principal",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            ExpressiveOptionGrid(
-                selectedId = selectedParam,
-                onSelected = { selectedParam = it }
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Action Buttons with M3 Expressive Morphing
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                ExpressiveOutlinedButton(
-                    onClick = onCancel,
-                    modifier = Modifier.weight(1f).height(50.dp)
-                ) {
-                    Text("Cancelar", fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(38.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.Widgets, contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(22.dp))
+                        }
+                    }
+                    Text("Configurar Widget 2x1", fontWeight = FontWeight.ExtraBold,
+                        fontFamily = SpaceMono, style = MaterialTheme.typography.titleMedium)
                 }
 
-                ExpressiveButton(
-                    onClick = { onSave(selectedParam) },
-                    modifier = Modifier.weight(1f).height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                Text(
+                    "Selecciona el parámetro que se mostrará en el widget compacto 2x1 en tu pantalla de inicio.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = SpaceMono,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Text("Vista previa", style = MaterialTheme.typography.labelLarge,
+                    fontFamily = SpaceMono, fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary)
+                WidgetLivePreviewCard(selectedParam = selectedParam)
+
+                Text("Selecciona la métrica principal", style = MaterialTheme.typography.labelLarge,
+                    fontFamily = SpaceMono, fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary)
+                ExpressiveOptionGrid(selectedId = selectedParam, onSelected = { selectedParam = it })
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Guardar", fontWeight = FontWeight.Bold)
+                    ExpressiveOutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f).height(50.dp)) {
+                        Text("Cancelar", fontWeight = FontWeight.Bold, fontFamily = SpaceMono)
+                    }
+                    ExpressiveButton(
+                        onClick = { onSave(selectedParam) },
+                        modifier = Modifier.weight(1f).height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Text("Guardar", fontWeight = FontWeight.Bold, fontFamily = SpaceMono)
+                    }
                 }
             }
         }
@@ -218,79 +208,48 @@ fun WidgetConfigScreen(
 @Composable
 fun WidgetLivePreviewCard(selectedParam: String) {
     val (label, value, badge) = when (selectedParam) {
-        "saldo" -> Triple("Saldo Principal", "816.44 CUP", "22-08-26")
-        "llamadas" -> Triple("Llamadas (Voz)", "0 Min", "Sin plan")
-        "mensajes" -> Triple("Mensajes (SMS)", "86 SMS", "22d")
-        else -> Triple("Datos Disponibles", "8.88 GB", "22d")
+        "saldo" -> Triple("Saldo", "1030.64", "21d")
+        "llamadas" -> Triple("Minutos", "17:39", "26d")
+        "mensajes" -> Triple("SMS", "89 SMS", "26d")
+        else -> Triple("Datos", "14.53 GB", "25d")
     }
 
+    // The preview follows the compact home-screen widget's proportions and colors.
     Surface(
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+        shape = RoundedCornerShape(28.dp),
+        color = colorResource(R.color.widget_card_bg),
+        border = BorderStroke(1.5.dp, colorResource(R.color.widget_card_border)),
         modifier = Modifier
+            .widthIn(max = 280.dp)
             .fillMaxWidth()
-            .height(110.dp)
+            .aspectRatio(1.8f)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+        Column(
+            modifier = Modifier.fillMaxSize().padding(18.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = label,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    ) {
-                        Text(
-                            text = "2x1",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                        )
-                    }
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(label, modifier = Modifier.weight(1f), fontFamily = SpaceMono,
+                    fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                    color = colorResource(R.color.widget_card_text_secondary))
+                Surface(shape = RoundedCornerShape(16.dp), color = colorResource(R.color.widget_card_badge_bg)) {
+                    Text(badge, modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                        fontFamily = SpaceMono, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                        color = colorResource(R.color.widget_card_text_primary))
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+                Surface(
+                    modifier = Modifier.padding(start = 6.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = colorResource(R.color.widget_card_badge_bg)
                 ) {
-                    Text(
-                        text = value,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    ) {
-                        Text(
-                            text = badge,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
+                    Icon(Icons.Rounded.Refresh, contentDescription = "Actualizar",
+                        modifier = Modifier.size(30.dp).padding(5.dp),
+                        tint = colorResource(R.color.widget_card_text_secondary))
                 }
             }
+            Text(value, fontFamily = SpaceMono, fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = colorResource(R.color.widget_card_text_primary))
         }
     }
 }
@@ -397,6 +356,7 @@ fun ExpressiveOptionCard(
                 text = option.title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
+                fontFamily = SpaceMono,
                 color = contentColor
             )
         }
@@ -409,4 +369,3 @@ data class WidgetOption(
     val icon: ImageVector,
     val description: String
 )
-

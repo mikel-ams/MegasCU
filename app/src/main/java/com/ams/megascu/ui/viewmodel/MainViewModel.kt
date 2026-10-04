@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.ams.megascu.BuildConfig
 import com.ams.megascu.MegasApplication
 import com.ams.megascu.data.db.PlanStatusEntity
+import com.ams.megascu.data.ussd.UssdBatchReport
+import com.ams.megascu.data.ussd.UssdStatusSync
+import com.ams.megascu.data.ussd.UssdResult
 import com.ams.megascu.data.ussd.EtecsaUssdParser
 import com.ams.megascu.data.ussd.SimOperatorUtils
 import com.ams.megascu.data.ussd.UssdCallback
@@ -345,7 +348,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!checkSimOperatorCompatibility(simSlot)) {
             return
         }
-        if (isAnyUssdRunning.value || ussdExecutor.isBusy()) {
+        if (_isRefreshing.value || _isIndividualQueryRunning.value || ussdExecutor.isBusy()) {
             android.widget.Toast.makeText(
                 getApplication(),
                 "Hay una consulta USSD en progreso. Por favor, espera a que finalice.",
@@ -360,7 +363,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!checkSimOperatorCompatibility(simSlot)) {
             return
         }
-        if (isAnyUssdRunning.value || ussdExecutor.isBusy()) {
+        if (_isRefreshing.value || _isIndividualQueryRunning.value || ussdExecutor.isBusy()) {
             if (!silent) {
                 android.widget.Toast.makeText(
                     getApplication(),
@@ -370,55 +373,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             return
         }
-        if (code == "vigencia_special") {
-            viewModelScope.launch {
-                _isIndividualQueryRunning.value = true
-                try {
-                    if (showLoading) {
-                        _ussdState.value = UssdUiState.Executing("Consultando...", title)
-                    }
-                    executeUssdQuerySuspend("*222#", simSlot, useSimulationIfError, true)
-                    kotlinx.coroutines.delay(1000)
-                    executeUssdQuerySuspend("*222*328#", simSlot, useSimulationIfError, true)
-                    kotlinx.coroutines.delay(1000)
-                    executeUssdQuerySuspend("*222*266#", simSlot, useSimulationIfError, true)
-                    delay(1000)
-                    executeUssdQuerySuspend("*222*869#", simSlot, useSimulationIfError, true)
-                    kotlinx.coroutines.delay(1000)
-                    executeUssdQuerySuspend("*222*767#", simSlot, useSimulationIfError, true)
-                    kotlinx.coroutines.delay(1000)
-                    executeUssdQuerySuspend("*222*732#", simSlot, useSimulationIfError, true)
-                    _ussdState.value = UssdUiState.Success(code, "Vigencia consultada", "Consulta de datos, saldo y vigencias completada.", title)
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    _ussdState.value = UssdUiState.Idle
-                } catch (e: Exception) {
-                    _ussdState.value = UssdUiState.Error(code, e.localizedMessage ?: "Error al consultar vigencias", title)
-                } finally {
-                    _isIndividualQueryRunning.value = false
-                }
-            }
-            return
-        }
-
+        _isIndividualQueryRunning.value = true
         viewModelScope.launch {
-            _isIndividualQueryRunning.value = true
-            if (!silent && showLoading) {
-                _ussdState.value = UssdUiState.Executing(code, title)
-            }
             try {
-                when (val result = ussdExecutor.executeUssdSuspend(code, simSlot = simSlot, allowDialFallback = false)) {
-                    is com.ams.megascu.data.ussd.UssdResult.Success -> {
-                        processAndSaveUssdResponse(code, result.response, silent = silent, title = title, simSlot = simSlot)
+                if (!silent && showLoading) _ussdState.value = UssdUiState.Executing(code, title)
+                val sync = UssdStatusSync(app, ussdExecutor)
+                if (code == "vigencia_special") {
+                    val report = sync.run(UssdBatchReport.STATUS_CODES, simSlot)
+                    if (!silent) {
+                        _ussdState.value = if (report.isComplete) {
+                            UssdUiState.Success(code, "Vigencia consultada", report.message(simSlot), title)
+                        } else UssdUiState.Error(code, report.message(simSlot), title)
                     }
-                    is com.ams.megascu.data.ussd.UssdResult.Error -> {
-                        if (useSimulationIfError && ussdExecutor.isEmulator()) {
-                            val simResponse = ussdExecutor.simulateUssdResponse(code)
-                            processAndSaveUssdResponse(code, simResponse, isSimulated = true, silent = silent, title = title, simSlot = simSlot)
-                        } else if (!silent) {
+                    if (!report.isComplete) showRefreshResult(report, simSlot)
+                } else {
+                    when (val result = sync.query(code, simSlot)) {
+                        is UssdResult.Success -> if (!silent) {
+                            _ussdState.value = UssdUiState.Success(code, result.response, result.response, title)
+                        }
+                        is UssdResult.Error -> if (!silent) {
                             _ussdState.value = UssdUiState.Error(code, result.message, title)
                         }
                     }
                 }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                if (!silent) _ussdState.value = UssdUiState.Idle
+                throw cancelled
+            } catch (error: Exception) {
+                if (!silent) _ussdState.value = UssdUiState.Error(code, "No se pudo completar la consulta.", title)
+                android.util.Log.e("MegasCU", "Consulta fallida", error)
             } finally {
                 _isIndividualQueryRunning.value = false
             }
@@ -428,7 +411,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun processAndSaveUssdResponse(code: String, responseText: String, isSimulated: Boolean = false, silent: Boolean = false, title: String? = null, simSlot: Int = _selectedSimSlot.value) {
         viewModelScope.launch {
             val parsed = EtecsaUssdParser.parseUssdResponse(responseText, code)
-            repository.saveParsedData(parsed, responseText, simSlot = simSlot)
+            repository.saveParsedData(parsed, responseText, simSlot = simSlot, recordDataSample = code == "*222*328#")
             if (!silent) {
                 val successMsg = if (isSimulated) {
                     "Simulado (SIM $simSlot):\n$responseText"
@@ -469,7 +452,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!checkSimOperatorCompatibility(simSlot)) {
             return
         }
-        if (isAnyUssdRunning.value || ussdExecutor.isBusy()) {
+        if (_isRefreshing.value || _isIndividualQueryRunning.value || ussdExecutor.isBusy()) {
             android.widget.Toast.makeText(
                 getApplication(),
                 "Hay una consulta USSD en curso. Por favor, espera a que finalice.",
@@ -477,72 +460,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             ).show()
             return
         }
-        val startTime = System.currentTimeMillis()
-        val codes = listOf("*222#", "*222*328#", "*222*266#", "*222*869#", "*222*767#", "*222*732#")
         refreshJob?.cancel()
+        _isRefreshing.value = true
         refreshJob = viewModelScope.launch {
-            _isRefreshing.value = true
             try {
-                val isEmu = ussdExecutor.isEmulator()
-                codes.forEach { code ->
-                    executeUssdQuerySuspend(code, simSlot = simSlot, useSimulationIfError = isEmu, silent = true)
-                    kotlinx.coroutines.delay(1000)
+                val sync = UssdStatusSync(app, ussdExecutor)
+                val report = sync.run(UssdBatchReport.STATUS_CODES, simSlot)
+                // Retry failures once; a valid zero balance is not a failed query.
+                for (code in report.failedCodes()) {
+                    delay(1000L)
+                    report.record(code, sync.query(code, simSlot))
                 }
-
-                // Verification pass: If key status metrics are 0, perform a secondary retry for data packages
-                val currentStatus = repository.getPlanStatusDirect(simSlot)
-                if (currentStatus != null) {
-                    if (currentStatus.dataMb == 0L || currentStatus.dataLteMb == 0L) {
-                        executeUssdQuerySuspend("*222*328#", simSlot = simSlot, useSimulationIfError = isEmu, silent = true)
-                    }
-                    if (currentStatus.balanceCup == 0.0) {
-                        executeUssdQuerySuspend("*222#", simSlot = simSlot, useSimulationIfError = isEmu, silent = true)
-                    }
-                }
-
-                val elapsedMs = System.currentTimeMillis() - startTime
-                val secondsStr = String.format(java.util.Locale.US, "%.1f", elapsedMs / 1000.0)
-                android.widget.Toast.makeText(
-                    getApplication(),
-                    "Actualización SIM $simSlot completada en $secondsStr s",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                // Cancelled gracefully
-            } catch (e: Exception) {
-                android.util.Log.e("MegasCU", "Unhandled exception", e)
+                showRefreshResult(report, simSlot)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.widget.Toast.makeText(app, "No se completó la actualización de SIM $simSlot.", android.widget.Toast.LENGTH_LONG).show()
+                android.util.Log.e("MegasCU", "Actualización incompleta", error)
             } finally {
                 _isRefreshing.value = false
             }
         }
     }
 
-    private suspend fun executeUssdQuerySuspend(code: String, simSlot: Int = 1, useSimulationIfError: Boolean = true, silent: Boolean = false) {
-        if (!silent) {
-            _ussdState.value = UssdUiState.Executing(code)
-        }
-
-        when (val result = ussdExecutor.executeUssdSuspend(code, simSlot = simSlot, allowDialFallback = false)) {
-            is com.ams.megascu.data.ussd.UssdResult.Success -> {
-                val parsed = EtecsaUssdParser.parseUssdResponse(result.response, code)
-                repository.saveParsedData(parsed, result.response, simSlot = simSlot)
-                if (!silent) {
-                    _ussdState.value = UssdUiState.Success(code, result.response, result.response)
-                }
-            }
-            is com.ams.megascu.data.ussd.UssdResult.Error -> {
-                if (useSimulationIfError && ussdExecutor.isEmulator()) {
-                    val simResponse = ussdExecutor.simulateUssdResponse(code)
-                    val parsed = EtecsaUssdParser.parseUssdResponse(simResponse, code)
-                    repository.saveParsedData(parsed, simResponse, simSlot = simSlot)
-                    if (!silent) {
-                        _ussdState.value = UssdUiState.Success(code, simResponse, "Simulado (SIM $simSlot):\n$simResponse")
-                    }
-                } else if (!silent) {
-                    _ussdState.value = UssdUiState.Error(code, result.message)
-                }
-            }
-        }
+    private fun showRefreshResult(report: UssdBatchReport, simSlot: Int) {
+        android.widget.Toast.makeText(app, report.message(simSlot),
+            if (report.isComplete) android.widget.Toast.LENGTH_SHORT else android.widget.Toast.LENGTH_LONG).show()
     }
 
     fun completeOnboarding() {
@@ -605,8 +548,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val prefs = app.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE)
+                val checkOnLaunch = prefs.getBoolean(GitHubUpdateChecker.PREF_CHECK_UPDATES_ON_LAUNCH, true)
                 val autoCheck = prefs.getBoolean(GitHubUpdateChecker.PREF_AUTO_UPDATE_CHECK, true)
-                if (!autoCheck) {
+                if (!checkOnLaunch || !autoCheck) {
                     refreshPendingUpdateBadge()
                     return@launch
                 }

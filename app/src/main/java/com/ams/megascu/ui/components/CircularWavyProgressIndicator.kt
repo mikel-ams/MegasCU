@@ -28,11 +28,11 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CircularWavyProgressIndicator(
-    modifier: Modifier = Modifier.size(24.dp),
+    modifier: Modifier = Modifier.size(LoadingIndicatorsConfig.circularWavySize.dp),
     color: Color = Color.White,
     trackColor: Color = color.copy(alpha = 0.25f),
-    trackThickness: Dp = 2.dp,
-    cornerSize: Dp = 1.dp,
+    trackThickness: Dp = LoadingIndicatorsConfig.circularWavyStroke.dp,
+    cornerSize: Dp = LoadingIndicatorsConfig.circularWavyAmplitude.dp,
     gapSize: Dp = 3.dp
 ) {
     val density = LocalDensity.current
@@ -48,7 +48,7 @@ fun CircularWavyProgressIndicator(
         stroke = stroke,
         trackStroke = stroke,
         gapSize = gapSize,
-        amplitude = 1.0f
+        amplitude = LoadingIndicatorsConfig.circularWavyAmplitude
     )
 }
 

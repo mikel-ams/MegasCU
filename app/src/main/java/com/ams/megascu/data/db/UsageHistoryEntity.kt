@@ -1,5 +1,6 @@
 package com.ams.megascu.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -12,5 +13,6 @@ data class UsageHistoryEntity(
     val bonusDataMb: Long = 0,
     val timestamp: Long = System.currentTimeMillis(),
     val simSlot: Int = 1,
-    val subscriptionId: Int? = null
+    val subscriptionId: Int? = null,
+    @ColumnInfo(defaultValue = "0") val isDataObservation: Boolean = false
 )

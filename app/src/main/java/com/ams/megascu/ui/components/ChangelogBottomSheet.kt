@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,8 +22,10 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,24 +62,66 @@ object ChangelogRepository {
 
     private val defaultFallback = listOf(
         ChangelogVersion(
-            version = "0.9.2-beta_(258)",
-            date = "2026-09-24",
+            version = "0.9.4-beta_(262)",
+            date = "2026-10-04",
             isLatest = true,
             sections = listOf(
                 ChangelogSection(
                     category = ChangeCategory.ADDED,
                     items = listOf(
-                        "Enlace al Repositorio en Acerca de: Nuevo botón de acceso directo al repositorio de GitHub con icono distintivo.",
-                        "Animaciones Expressive al Pulsar: Transición táctil con escala y rebote elástico en botones sociales, enlaces de soporte y versión.",
-                        "Transición Fluida en Ventana Acerca de: Animación suave de apertura y cierre con escalado sutil, desvanecimiento y sincronización de desenfoque.",
-                        "Indicador PullToRefresh M3 Expressive: Integración del indicador de carga nativo con transformación de formas durante la actualización."
+                        "Historial para consumo real: Las consultas de datos guardan observaciones verificadas incluso con saldo sin cambios. La migración de base de datos 8→9 conserva el historial previo y separa las nuevas mediciones de datos de las copias de saldo en caché. La gráfica estima disminuciones de datos generales y LTE de la misma SIM tras consultas en al menos dos fechas distintas, sin inventar puntos ni contar recargas como consumo.",
+                        "Acceso a estadísticas de Android: Lectura compartida del tráfico móvil cuando está disponible, diferenciando cero consumo de estadísticas inaccesibles y ofreciendo acceso al permiso desde la app y el widget sin historial."
                     )
                 ),
                 ChangelogSection(
                     category = ChangeCategory.CHANGED,
                     items = listOf(
-                        "Mayor Grosor en Indicadores de Interruptores: Incremento del trazo en los símbolos de verificación y cierre con terminaciones redondeadas.",
-                        "Reorganización en Acerca de: Reubicación de la versión debajo de los créditos de desarrollo y eliminación del contorno de la tarjeta."
+                        "Configuración del widget 2x1: Ventana flotante con el launcher desenfocado y una vista previa que reproduce las proporciones y el estilo del widget compacto.",
+                        "Consultas y persistencia unificadas: App, sincronización periódica y widgets usan el mismo guardado transaccional de estado e historial; se evita mezclar registros o caché de distintas SIM.",
+                        "Gráficas transparentes: Se indican las estimaciones por historial, los últimos siete días y el estado de recopilación inicial. La comprobación SHA-256 continúa desactivada y su lógica se conserva."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Chips en widgets compactos: El fondo de los indicadores se ajusta al ancho real del texto Space Mono en 3x1 y 4x1; el control de actualización también se presenta en un chip sin cambiar su función.",
+                        "Éxito aparente en consultas: El resultado final distingue actualización completa, parcial y fallida e identifica las consultas pendientes. Se valida la respuesta antes de guardar y el éxito se muestra después del guardado. Se reintentan fallos en la actualización de la app sin tratar saldos cero como error.",
+                        "Actualización de widgets: Los botones ejecutan consultas mediante WorkManager, respetan la SIM configurada y notifican el resultado. Se evita depender de la duración limitada del receptor y se limpia la caché al borrar los datos.",
+                        "Space Mono en widgets: Los textos de los widgets compactos y de resumen se renderizan con la fuente incluida, preservando tamaños, colores, distribución, controles y accesibilidad.",
+                        "Tarjetas del historial de cambios: Una sola transición controla la altura al abrir y contraer las tarjetas, moviendo las siguientes durante toda la animación y evitando el salto por animaciones superpuestas."
+                    )
+                )
+            )
+        ),
+        ChangelogVersion(
+            version = "0.9.3-beta_(260)",
+            date = "2026-09-27",
+            isLatest = false,
+            sections = listOf(
+                ChangelogSection(
+                    category = ChangeCategory.ADDED,
+                    items = listOf(
+                        "Fondo Desenfocado y Fades en Modales: Efecto de desenfoque de fondo dinámico (Blur) en ventanas de actualizaciones y difuminados progresivos gaussianos (progressiveBlur) superior e inferior en la hoja modal de Acción Rápida.",
+                        "Búsqueda Automatizada de Actualizaciones e Instalación OTA: Verificación silenciosa en segundo plano al iniciar la app, persistencia de indicadores rojos de alerta en ajustes e inicio automático del instalador tras la descarga.",
+                        "Línea de Tiempo y Separación Ajustada en Historial: Timeline con puntos y líneas continuas para versiones anteriores, separación ajustada de 2dp y puntos rellenos para versiones estables.",
+                        "Acceso Directo al Repositorio Oficial: Enlace oficial con icono representativo a GitHub Releases en la ventana Acerca de."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.CHANGED,
+                    items = listOf(
+                        "Tipografía Space Mono y Refinamiento de Widgets: Aplicación consistente de la fuente Space Mono en todos los widgets y pantallas de configuración, alineación visual a la tarjeta de estado y actualización en tiempo real desde widgets.",
+                        "Pulsación Expressive y Microinteracciones: Animaciones táctiles de rebote elástico en botones, versión, enlaces de soporte y acción rápida sin desalineaciones ni hundimiento.",
+                        "Rediseño de Iconos y Formas: Iconos de consultas rápidas sin contornos para un aspecto minimalista y forma de galleta lobulada de 9 lados en el éxito de bienvenida (Cookie9LadosShape).",
+                        "Indicadores de Progreso y Descarga: Sustitución de la barra de límite diario por un indicador lineal estándar de Material 3 (LinearProgressIndicator Determinate), ondas suaves en la barra de descarga y ocultamiento fluido de notas durante la descarga activa.",
+                        "Optimización y Limpieza en Actualizaciones: Módulo de actualización optimizado sin verificaciones redundantes para agilizar la instalación manual y eliminación de etiquetas de firma innecesarias."
+                    )
+                ),
+                ChangelogSection(
+                    category = ChangeCategory.FIXED,
+                    items = listOf(
+                        "Descarga OTA y Compatibilidad de Redirecciones: Enrutamiento y validación de URLs optimizado para garantizar compatibilidad con redirecciones dinámicas de GitHub Releases y AWS S3.",
+                        "Transición Fluida en Tarjetas del Historial: Animación de apertura y cierre fluida en tarjetas colapsables del historial sin saltos ni tirones visuales."
                     )
                 )
             )
@@ -88,34 +134,28 @@ object ChangelogRepository {
                 ChangelogSection(
                     category = ChangeCategory.ADDED,
                     items = listOf(
-                        "Punto de notificación de Compra y Recarga (< 5 días): Incorporación de indicador de notificación cuando restan 5 días o menos para recargar saldo o renovar paquetes de datos.",
-                        "Punto de notificación de Actualización: Indicador rojo en el botón de ajustes visible al detectar una nueva versión.",
-                        "Notificación Enriquecida de Actualización Disponible: Mejora de la notificación del sistema de actualización.",
-                        "Gestor de Actualizaciones en Ajustes: Rediseño de la tarjeta de actualizaciones con visualización directa de la versión instalada y transición dinámica del botón de búsqueda.",
-                        "Rediseño Interactivo del Historial de Cambios: Nueva cabecera con versión destacada, insignias, métricas resumidas por categoría y tarjetas colapsables para versiones anteriores.",
-                        "Tarjeta Material 3 Expressive de Alerta en Menú de Compras: Nueva tarjeta en el catálogo de Compras para alerta de compra de planes y saldo, conteo dinámico de días y botón de apertura directa de Transfermóvil.",
-                        "Sistema de Alerta Unificada: Detección y notificación consolidada cuando coinciden la necesidad de recarga de saldo principal y el vencimiento inminente de paquetes de datos y planes.",
-                        "Acceso Directo a Compras desde Historial USSD: Incorporación de botón \"Ir a Compras\" en el diálogo de resultado USSD tras consultar la acción rápida de Historial de Recargas e indica disponibilidad de recarga.",
-                        "Opción de Acción Rápida \"Historial de Recargas\": Integración de la consulta *222*732# en el selector de acciones rápidas para acceso directo desde la pantalla principal.",
-                        "Restauración de Indicadores en Switches: Reincorporación de los iconos indicadores de estado (Check y Close) en el thumb de los interruptores."
+                        "Punto de Notificación de Compra y Recarga (< 5 días): Indicador visual de alerta cuando restan 5 días o menos para recargar saldo o renovar paquetes de datos.",
+                        "Tarjeta de Alerta M3 Expressive en Menú de Compras: Tarjeta de advertencia para compra de planes y saldo con conteo dinámico de días y botón directo a Transfermóvil.",
+                        "Sistema de Alerta Unificada: Detección consolidada cuando coinciden la recarga de saldo principal y el vencimiento inminente de paquetes.",
+                        "Acceso a Compras desde Historial USSD: Botón directo a Compras en el diálogo de resultado USSD tras consultar el Historial de Recargas (*222*732#).",
+                        "Acción Rápida \"Historial de Recargas\": Integración de la consulta *222*732# en el selector de acciones rápidas de la pantalla principal."
                     )
                 ),
                 ChangelogSection(
                     category = ChangeCategory.CHANGED,
                     items = listOf(
-                        "Rediseño y Estilización de Tarjeta de Recarga de Saldo: Aplicación de tono de color rojo en tarjeta y elementos interactivos, icono de pagos, descripción detallada de recarga y unificación del botón de acción a \"Abrir Transfermóvil\".",
-                        "Disipación Continua de Desenfoque en Cierre de BottomSheets: Sincronización precisa del progreso de desenfoque con la posición física de la hoja durante el recorrido de cierre, alcanzando exactamente 0px de intensidad 2.5dp antes de cerrarse completamente.",
-                        "Efecto de Desenfoque Progresivo Nativo Android: Sustitución integral de dependencias externas por modificadores nativos de Compose y RenderEffect.",
-                        "Difuminado Progresivo con Scroll en Compras: Ajuste del efecto de desenfoque superior en la ventana de Compras para que aparezca gradualmente al desplazarse, evitando difuminados prematuros de elementos superiores.",
-                        "Optimización Integral con R8 en Modo Completo: Activación de minificación R8 Full Mode y reducción agresiva de recursos en Gradle para minimizar el tamaño del APK y maximizar el rendimiento."
+                        "Rediseño de Tarjeta de Recarga de Saldo: Tono rojo distintivo, icono de pagos, descripción detallada y botón unificado para abrir Transfermóvil.",
+                        "Disipación Continua de Desenfoque en Cierre de Ventanas: Sincronización del efecto de desenfoque con la posición física del modal hasta disiparse por completo antes del cierre.",
+                        "Difuminado Progresivo con Scroll en Compras: Aparición gradual del desenfoque superior al desplazarse en el catálogo de compras.",
+                        "Optimización Integral con R8 en Modo Completo: Minificación R8 Full Mode y reducción agresiva de recursos para maximizar el rendimiento."
                     )
                 ),
                 ChangelogSection(
                     category = ChangeCategory.FIXED,
                     items = listOf(
-                        "Fluidez y Persistencia Visual en Cierre de Modales: Corrección de la pérdida prematura de desenfoque y eliminación de saltos bruscos al soltar o deslizar las ventanas hacia abajo.",
-                        "Desenfoque de Fondo en Ventana Acerca de: Corrección de la renderización del efecto desenfoque gaussiano limpio en la capa posterior de la ventana modal Acerca de.",
-                        "Detección y Formato de Disponibilidad de Recarga: Actualización del analizador USSD para reconocer el mensaje \"Ud puede recargar un monto de 360,00CUP en un plazo de 30 dias\" y reflejar el estado \"Puede recargar saldo\" al vencer el plazo de espera o recibir confirmación de recarga disponible."
+                        "Fluidez y Persistencia Visual en Cierre de Modales: Eliminación de saltos bruscos y pérdida prematura del desenfoque al deslizar las ventanas hacia abajo.",
+                        "Desenfoque de Fondo en Ventana Acerca de: Corrección de la renderización del efecto desenfoque gaussiano limpio en la capa posterior.",
+                        "Detección y Formato de Disponibilidad de Recarga: Reconocimiento de los plazos de 30 días en el analizador USSD y actualización al estado \"Puede recargar saldo\"."
                     )
                 )
             )
@@ -304,10 +344,16 @@ private fun getCategoryColors(category: ChangeCategory): Pair<Color, Color> {
             MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
             MaterialTheme.colorScheme.primary
         )
-        ChangeCategory.CHANGED -> Pair(
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
-            MaterialTheme.colorScheme.tertiary
-        )
+        ChangeCategory.CHANGED -> {
+            val isDark = isSystemInDarkTheme()
+            val textColor = if (isDark) Color(0xFFE8DDFF) else Color(0xFF140033)
+            val bgColor = if (isDark) {
+                Color(0xFF381E72).copy(alpha = 0.55f)
+            } else {
+                Color(0xFFE8DEF8).copy(alpha = 0.85f)
+            }
+            Pair(bgColor, textColor)
+        }
         ChangeCategory.DEPRECATED -> Pair(
             MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
             MaterialTheme.colorScheme.secondary
@@ -361,26 +407,6 @@ fun ChangelogBottomSheet(
                 .align(Alignment.CenterHorizontally)
                 .navigationBarsPadding()
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
-            ) {
-                AppIcon(
-                    imageVector = Icons.Rounded.History,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Historial de Cambios",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-
             val scrollState = rememberScrollState()
             val fadeAlpha by remember { derivedStateOf { (scrollState.value / 40f).coerceIn(0f, 1f) } }
 
@@ -389,26 +415,119 @@ fun ChangelogBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .verticalScroll(scrollState)
-                        .padding(horizontal = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(start = 16.dp, end = 20.dp, top = 16.dp, bottom = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
-                    Spacer(modifier = Modifier.height(2.dp))
+                    // Cabecera principal restablecida arriba fuera de las tarjetas
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.History,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Historial de Cambios",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 20.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
 
                     if (changelogList.isNotEmpty()) {
-                        // 1. Tarjeta de la última versión
-                        LatestChangelogCard(item = changelogList.first())
+                        // 1. Tarjeta de la versión activa / actual
+                        Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+                            LatestChangelogCard(item = changelogList.first())
+                        }
 
-                        // 2. Versiones anteriores
+                        // 2. Sección Versiones Anteriores con timeline
                         if (changelogList.size > 1) {
                             Text(
                                 text = "Versiones Anteriores",
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, fontSize = 12.5.sp),
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 15.sp
+                                ),
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 0.dp)
+                                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                             )
 
-                            changelogList.drop(1).forEach { previousItem ->
-                                PreviousChangelogCard(item = previousItem)
+                            changelogList.drop(1).forEachIndexed { index, previousItem ->
+                                val isStable = !isBetaVersion(previousItem.version)
+                                val lineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                                val dotColor = MaterialTheme.colorScheme.primary
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().drawBehind {
+                                        val centerX = 8.dp.toPx()
+                                        val dotCenterY = 24.dp.toPx()
+                                        val dotRadius = 4.dp.toPx()
+                                        val gap = 4.dp.toPx()
+
+                                        // 1. Draw top line if index > 0
+                                        if (index > 0) {
+                                            val topYEnd = dotCenterY - dotRadius - gap
+                                            if (topYEnd > 0f) {
+                                                drawLine(
+                                                    color = lineColor,
+                                                    start = androidx.compose.ui.geometry.Offset(centerX, 0f),
+                                                    end = androidx.compose.ui.geometry.Offset(centerX, topYEnd),
+                                                    strokeWidth = 2.dp.toPx()
+                                                )
+                                            }
+                                        }
+
+                                        // 2. Draw bottom line if not the last item
+                                        if (index < changelogList.size - 2) {
+                                            val bottomYStart = dotCenterY + dotRadius + gap
+                                            if (bottomYStart < size.height) {
+                                                drawLine(
+                                                    color = lineColor,
+                                                    start = androidx.compose.ui.geometry.Offset(centerX, bottomYStart),
+                                                    end = androidx.compose.ui.geometry.Offset(centerX, size.height),
+                                                    strokeWidth = 2.dp.toPx()
+                                                )
+                                            }
+                                        }
+
+                                        // 3. Draw the dot
+                                        if (isStable) {
+                                            drawCircle(
+                                                color = dotColor,
+                                                radius = dotRadius,
+                                                center = androidx.compose.ui.geometry.Offset(centerX, dotCenterY)
+                                            )
+                                        } else {
+                                            drawCircle(
+                                                color = dotColor,
+                                                radius = dotRadius,
+                                                center = androidx.compose.ui.geometry.Offset(centerX, dotCenterY),
+                                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx())
+                                            )
+                                        }
+                                    },
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Box(modifier = Modifier.weight(1f).padding(bottom = 12.dp)) {
+                                        PreviousChangelogCard(item = previousItem)
+                                    }
+                                }
                             }
                         }
                     }
@@ -538,12 +657,12 @@ fun LatestChangelogCard(item: ChangelogVersion) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
                             color = catBgColor,
-                            border = BorderStroke(1.dp, catTextColor.copy(alpha = 0.3f))
+                            border = BorderStroke(1.dp, catTextColor.copy(alpha = 0.4f))
                         ) {
                             Text(
-                                text = "($count ${getCategoryCountLabel(section.category, count)})",
+                                text = "$count ${getCategoryCountLabel(section.category, count)}",
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.ExtraBold,
                                     fontSize = 11.sp
                                 ),
                                 color = catTextColor,
@@ -580,15 +699,24 @@ fun PreviousChangelogCard(item: ChangelogVersion) {
     val codeTextColor = MaterialTheme.colorScheme.primary
     val isBeta = isBetaVersion(item.version)
 
+    val arrowRotation by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = tween(320, easing = FastOutSlowInEasing),
+        label = "arrowRotation"
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -645,17 +773,25 @@ fun PreviousChangelogCard(item: ChangelogVersion) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Icon(
-                    imageVector = if (isExpanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
                     contentDescription = if (isExpanded) "Colapsar" else "Expandir",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier
+                        .size(22.dp)
+                        .graphicsLayer { rotationZ = arrowRotation }
                 )
             }
 
             AnimatedVisibility(
                 visible = isExpanded,
-                enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
-                exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+                enter = expandVertically(
+                    animationSpec = tween(320, easing = FastOutSlowInEasing),
+                    expandFrom = Alignment.Top
+                ) + fadeIn(animationSpec = tween(220)),
+                exit = shrinkVertically(
+                    animationSpec = tween(320, easing = FastOutSlowInEasing),
+                    shrinkTowards = Alignment.Top
+                ) + fadeOut(animationSpec = tween(160))
             ) {
                 Column(
                     modifier = Modifier
@@ -697,11 +833,12 @@ private fun RenderChangelogSections(
         Surface(
             shape = RoundedCornerShape(6.dp),
             color = catBgColor,
+            border = BorderStroke(1.dp, catTextColor.copy(alpha = 0.35f)),
             modifier = Modifier.padding(bottom = 6.dp)
         ) {
             Text(
                 text = section.category.label,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 11.sp),
                 color = catTextColor,
                 modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
             )
