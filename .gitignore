@@ -19,7 +19,6 @@ local.properties
 # Keystore files & Sensitive credentials
 *.jks
 *.keystore
-*.zip
 *.tar
 *.gz
 *.7z

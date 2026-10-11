@@ -7,6 +7,18 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.9.5-beta_(263)] - 2026-10-10
+
+### Cambiado
+- **Entrada de valores en tarjeta principal:** Saldo y datos comienzan en 00.00 CUP y 0 GB; tras un segundo se muestran los valores consultados con la transición existente. Los chips de días entran con fade-in.
+- **Tasa de Consumo:** El texto calculado para los días restantes y el indicador de consumo aparecen con fade-in; los cambios de texto se funden sin saltos.
+
+### Corregido
+- **Aviso transitorio de estadísticas:** Se espera al resultado del permiso y a la lectura de tráfico de la SIM antes de mostrar un aviso. Cuando el permiso existe pero Android no ofrece datos, el mensaje indica la causa correcta.
+- **Aviso incorrecto de recarga:** La disponibilidad para recargar deja de interpretarse como una urgencia de compra con saldo suficiente. La alerta de vencimiento de paquetes se conserva.
+
+---
+
 ## [0.9.4-beta_(262)] - 2026-10-04
 
 ### Añadido

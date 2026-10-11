@@ -1,6 +1,6 @@
 # Próximas instrucciones y estado de MegasCU
 
-## Estado actual: 0.9.4-beta_(262)
+## Estado actual: 0.9.5-beta_(263)
 
 - Entrega solicitada: ZIP con archivos modificados y nuevos, conservando rutas; no APK ni publicación.
 - SHA-256: comparación desactivada, lógica original intacta por decisión del usuario.

@@ -84,7 +84,11 @@ object PurchaseAlertHelper {
 
         // Conditions: alert when less than or equal to 5 days remain
         val isDataAlert = dataDays in 1..5
-        val isRechargeAlert = rechargeDays in 0..5
+        // *222*732# reports when a recharge is ALLOWED, not when one is due.
+        // A usable balance is never a reason to show a purchase warning. Keep the
+        // developer simulation independent so the preview controls still work.
+        val isRechargeAlert = rechargeDays in 0..5 && (isSimulated ||
+            (planStatus != null && planStatus.nextRechargeDateStr.isNotBlank() && planStatus.balanceCup <= 0.0))
         val isUnified = isDataAlert && isRechargeAlert
         val hasAlert = isDataAlert || isRechargeAlert
 
@@ -96,7 +100,8 @@ object PurchaseAlertHelper {
             isUnified -> {
                 Pair(
                     "Alerta de Vencimiento y Recarga",
-                    "Tus paquetes vencen en $dataDays ${if (dataDays == 1) "día" else "días"} y quedan $rechargeDays ${if (rechargeDays == 1) "día" else "días"} para recargar tu saldo. Renueva y recarga para no perder tus recursos acumulados."
+                    if (isSimulated) "Tus paquetes vencen en $dataDays días y quedan $rechargeDays días para recargar tu saldo."
+                    else "Tus paquetes vencen en $dataDays ${if (dataDays == 1) "día" else "días"} y tu saldo está agotado. Renueva y recarga para mantener tus recursos."
                 )
             }
             isDataAlert -> {
@@ -107,11 +112,12 @@ object PurchaseAlertHelper {
             }
             isRechargeAlert -> {
                 Pair(
-                    "Recarga de Saldo Necesaria",
-                    if (rechargeDays <= 0) {
-                        "Ya puedes realizar la recarga de tu saldo. Recarga a través de Transfermóvil para mantener tu línea y servicios activos."
+                    if (isSimulated) "Recarga de Saldo Necesaria" else "Saldo Agotado",
+                    if (isSimulated) "Quedan $rechargeDays días para la recarga simulada."
+                    else if (rechargeDays <= 0) {
+                        "Tu saldo está agotado y ya puedes recargarlo a través de Transfermóvil."
                     } else {
-                        "Quedan $rechargeDays ${if (rechargeDays == 1) "día" else "días"} para la recarga de tu saldo. Recarga oportunamente para mantener tu línea activa."
+                        "Tu saldo está agotado. Podrás recargarlo en $rechargeDays ${if (rechargeDays == 1) "día" else "días"}."
                     }
                 )
             }

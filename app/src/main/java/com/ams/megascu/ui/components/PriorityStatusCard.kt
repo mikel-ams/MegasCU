@@ -200,25 +200,34 @@ fun ExpressiveDaysChip(
     containerColor: Color,
     contentColor: Color,
     modifier: Modifier = Modifier,
-    suffix: String = "d"
+    suffix: String = "d",
+    reveal: Boolean = true
 ) {
-    Surface(
+    var show by remember(days, reveal) { mutableStateOf(false) }
+    LaunchedEffect(days, reveal) { show = reveal }
+    AnimatedVisibility(
+        visible = show,
         modifier = modifier,
-        shape = RoundedCornerShape(6.dp),
-        color = containerColor,
-        contentColor = contentColor
+        enter = fadeIn(animationSpec = tween(450)),
+        exit = fadeOut(animationSpec = tween(180))
     ) {
-        Text(
-            text = "$days$suffix",
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 10.5.sp,
-                fontFamily = FontFamily.Monospace
-            ),
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.5.dp),
-            maxLines = 1,
-            softWrap = false
-        )
+        Surface(
+            shape = RoundedCornerShape(6.dp),
+            color = containerColor,
+            contentColor = contentColor
+        ) {
+            Text(
+                text = "$days$suffix",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.5.sp,
+                    fontFamily = FontFamily.Monospace
+                ),
+                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.5.dp),
+                maxLines = 1,
+                softWrap = false
+            )
+        }
     }
 }
 
@@ -379,6 +388,13 @@ fun PriorityStatusCard(
     onCardClick: () -> Unit = {}
 ) {
     val showCard = planStatus != null
+    var revealPrimaryValues by remember(selectedSimSlot, showCard) { mutableStateOf(false) }
+    LaunchedEffect(selectedSimSlot, showCard) {
+        if (showCard) {
+            kotlinx.coroutines.delay(1000)
+            revealPrimaryValues = true
+        }
+    }
     var showLastUpdated by rememberSaveable { mutableStateOf(false) }
     val simStatus = rememberSimStatusState()
     val context = LocalContext.current
@@ -479,14 +495,19 @@ fun PriorityStatusCard(
                     Column(modifier = Modifier.fillMaxWidth()) {
  
                     val balanceText = buildAnnotatedString {
-                        append(String.format(Locale.US, "%.2f", planStatus?.balanceCup ?: 0.0))
+                        append(if (revealPrimaryValues) String.format(Locale.US, "%.2f", planStatus?.balanceCup ?: 0.0) else "00.00")
                         withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) {
                             append("\u00A0CUP")
                         }
                     }
 
                     val totalDataMb = (planStatus?.dataMb ?: 0L) + (planStatus?.dataLteMb ?: 0L)
-                    val dataFormatted = if (totalDataMb >= 1024L) {
+                    val dataFormatted = if (!revealPrimaryValues) {
+                        buildAnnotatedString {
+                            append("0")
+                            withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append("\u00A0GB") }
+                        }
+                    } else if (totalDataMb >= 1024L) {
                         buildAnnotatedString {
                             append(String.format(Locale.US, "%.2f", totalDataMb.toFloat() / 1024f))
                             withStyle(style = SpanStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)) { append("\u00A0GB") }
@@ -546,7 +567,8 @@ fun PriorityStatusCard(
                                     ExpressiveDaysChip(
                                         days = planStatus?.dataDays ?: 0,
                                         containerColor = daysBadgeBg,
-                                        contentColor = daysBadgeText
+                                        contentColor = daysBadgeText,
+                                        reveal = revealPrimaryValues
                                     )
                                 }
                             }
@@ -625,7 +647,8 @@ fun PriorityStatusCard(
                                         ExpressiveDaysChip(
                                             days = planStatus?.dataDays ?: 0,
                                             containerColor = daysBadgeBg,
-                                            contentColor = daysBadgeText
+                                            contentColor = daysBadgeText,
+                                            reveal = revealPrimaryValues
                                         )
                                     }
                                 }
@@ -701,7 +724,8 @@ fun PriorityStatusCard(
                                         ExpressiveDaysChip(
                                             days = planStatus?.dataDays ?: 0,
                                             containerColor = daysBadgeBg,
-                                            contentColor = daysBadgeText
+                                            contentColor = daysBadgeText,
+                                            reveal = revealPrimaryValues
                                         )
                                     }
                                 }
@@ -745,7 +769,8 @@ fun PriorityStatusCard(
                                         ExpressiveDaysChip(
                                             days = planStatus?.dataDays ?: 0,
                                             containerColor = daysBadgeBg,
-                                            contentColor = daysBadgeText
+                                            contentColor = daysBadgeText,
+                                            reveal = revealPrimaryValues
                                         )
                                     }
                                 }
@@ -805,7 +830,8 @@ fun PriorityStatusCard(
                                     ExpressiveDaysChip(
                                         days = minDays,
                                         containerColor = minBadgeBg,
-                                        contentColor = minBadgeText
+                                        contentColor = minBadgeText,
+                                        reveal = revealPrimaryValues
                                     )
                                 }
                             }
@@ -856,7 +882,8 @@ fun PriorityStatusCard(
                                     ExpressiveDaysChip(
                                         days = smsDays,
                                         containerColor = smsBadgeBg,
-                                        contentColor = smsBadgeText
+                                        contentColor = smsBadgeText,
+                                        reveal = revealPrimaryValues
                                     )
                                 }
                             }
@@ -896,7 +923,8 @@ fun PriorityStatusCard(
                                 ExpressiveDaysChip(
                                     days = rechargeDays,
                                     containerColor = badgeBgColor,
-                                    contentColor = contentColor
+                                    contentColor = contentColor,
+                                    reveal = revealPrimaryValues
                                 )
                             }
                         }
@@ -1009,6 +1037,14 @@ fun SimplePriorityStatusCard(
     onRefresh: () -> Unit = {},
     onOpenPlanes: () -> Unit = {}
 ) {
+    val hasPlan = planStatus != null
+    var revealPrimaryValues by remember(selectedSimSlot, hasPlan) { mutableStateOf(false) }
+    LaunchedEffect(selectedSimSlot, hasPlan) {
+        if (hasPlan) {
+            kotlinx.coroutines.delay(1000)
+            revealPrimaryValues = true
+        }
+    }
     var showLastUpdated by rememberSaveable { mutableStateOf(false) }
     val simStatus = rememberSimStatusState()
     val context = LocalContext.current
@@ -1183,15 +1219,16 @@ fun SimplePriorityStatusCard(
                             )
                         }
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = String.format(Locale.US, "%.2f\u00A0CUP", planStatus?.balanceCup ?: 0.0),
+                        AnimatedAnnotatedText(
+                            targetText = buildAnnotatedString {
+                                append(if (revealPrimaryValues) String.format(Locale.US, "%.2f", planStatus?.balanceCup ?: 0.0) else "00.00")
+                                append("\u00A0CUP")
+                            },
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp
                             ),
-                            color = contentColor,
-                            maxLines = 1,
-                            softWrap = false
+                            color = contentColor
                         )
                     }
                 }
@@ -1237,28 +1274,29 @@ fun SimplePriorityStatusCard(
                                 ExpressiveDaysChip(
                                     days = dataDays,
                                     containerColor = daysBadgeBg,
-                                    contentColor = daysBadgeText
+                                    contentColor = daysBadgeText,
+                                    reveal = revealPrimaryValues
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(4.dp))
                         val totalDataMb = (planStatus?.dataMb ?: 0L) + (planStatus?.dataLteMb ?: 0L)
-                        val dataFormatted = if (totalDataMb >= 1024L) {
+                        val dataFormatted = if (!revealPrimaryValues) {
+                            "0\u00A0GB"
+                        } else if (totalDataMb >= 1024L) {
                             String.format(Locale.US, "%.2f\u00A0GB", totalDataMb.toFloat() / 1024f)
                         } else {
                             String.format(Locale.US, "%.0f\u00A0MB", totalDataMb.toFloat())
                         }
 
-                        Text(
-                            text = dataFormatted,
+                        AnimatedAnnotatedText(
+                            targetText = buildAnnotatedString { append(dataFormatted) },
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp
                             ),
-                            color = contentColor,
-                            maxLines = 1,
-                            softWrap = false
+                            color = contentColor
                         )
                     }
                 }
@@ -1366,7 +1404,8 @@ fun SimplePriorityStatusCard(
                                 ExpressiveDaysChip(
                                     days = minutesDays,
                                     containerColor = minBadgeBg,
-                                    contentColor = minBadgeText
+                                    contentColor = minBadgeText,
+                                    reveal = revealPrimaryValues
                                 )
                             }
                         }
@@ -1424,7 +1463,8 @@ fun SimplePriorityStatusCard(
                                 ExpressiveDaysChip(
                                     days = smsDays,
                                     containerColor = smsBadgeBg,
-                                    contentColor = smsBadgeText
+                                    contentColor = smsBadgeText,
+                                    reveal = revealPrimaryValues
                                 )
                             }
                         }

@@ -8,6 +8,7 @@ import android.content.Context
 import kotlin.math.roundToInt
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -69,15 +70,23 @@ fun UsageHistoryChart(
 
     var systemDailyTrends by remember(planStatus?.id, planStatus?.subscriptionId) { mutableStateOf<List<Pair<String, Float>>>(emptyList()) }
     var effectivePermission by remember { mutableStateOf(hasUsagePermission) }
+    val requestKey = Triple(hasUsagePermission, planStatus?.subscriptionId, planStatus?.lastUpdatedTimestamp)
+    var completedRequest by remember(planStatus?.id, planStatus?.subscriptionId) {
+        mutableStateOf<Triple<Boolean, Int?, Long?>?>(null)
+    }
+    // A new response is pending from the very first composition, before LaunchedEffect runs.
+    val usageCheckPending = completedRequest != requestKey
 
-    LaunchedEffect(hasUsagePermission, planStatus?.subscriptionId, planStatus?.lastUpdatedTimestamp) {
+    LaunchedEffect(requestKey) {
         val granted = hasUsagePermission || PermissionUtils.hasUsageStatsPermission(context)
-        effectivePermission = granted
-        systemDailyTrends = if (granted) {
+        val trends = if (granted) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 getDailyMobileDataUsageLast7Days(context, planStatus?.subscriptionId)
             }
         } else emptyList()
+        effectivePermission = granted
+        systemDailyTrends = trends
+        completedRequest = requestKey
     }
 
     val lineHistory = remember(usageHistory, planStatus?.id, planStatus?.subscriptionId) {
@@ -102,13 +111,14 @@ fun UsageHistoryChart(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Banner de estado de permiso / estimador alternativo cuando falta PACKAGE_USAGE_STATS
-        if (!effectivePermission || systemDailyTrends.isEmpty()) {
+        if (planStatus != null && !usageCheckPending && (!effectivePermission || systemDailyTrends.isEmpty())) {
+            val informational = effectivePermission || useAlternativeEstimator
             Surface(
                 shape = RoundedCornerShape(18.dp),
-                color = if (useAlternativeEstimator) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.85f),
+                color = if (informational) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.85f),
                 border = androidx.compose.foundation.BorderStroke(
                     1.dp,
-                    if (useAlternativeEstimator) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.error.copy(alpha = 0.4f)
+                    if (informational) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.error.copy(alpha = 0.4f)
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -117,9 +127,9 @@ fun UsageHistoryChart(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = if (useAlternativeEstimator) Icons.Rounded.Info else Icons.Rounded.Warning,
+                        imageVector = if (informational) Icons.Rounded.Info else Icons.Rounded.Warning,
                         contentDescription = null,
-                        tint = if (useAlternativeEstimator) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                        tint = if (informational) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -127,16 +137,18 @@ fun UsageHistoryChart(
                         Text(
                             text = if (effectivePermission) "Estadísticas no disponibles para esta SIM" else if (useAlternativeEstimator) "Estimador Alternativo Activo" else "Permiso de Estadísticas No Concedido",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = if (useAlternativeEstimator) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer
+                            color = if (informational) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = if (useAlternativeEstimator)
+                            text = if (effectivePermission)
+                                "El permiso está concedido, pero Android todavía no ofrece estadísticas para esta SIM. Puedes usar el historial de saldos para estimar el consumo tras consultas en 2 días distintos."
+                            else if (useAlternativeEstimator)
                                 "Comparamos saldos de datos de la misma SIM: se necesitan consultas en al menos 2 días. Las recargas no cuentan como consumo. El acceso de uso permite consultar el tráfico móvil registrado por Android; algunas SIM pueden restringirlo."
                             else
                                 "El permiso de uso de Android está denegado o restringido. Puedes concederlo en Ajustes del Sistema o activar el Estimador Alternativo.",
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp, lineHeight = 15.sp),
-                            color = if (useAlternativeEstimator) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.9f)
+                            color = if (informational) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.9f)
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -231,6 +243,11 @@ fun TasaConsumoCard(
     }
 
     val dataDays = planStatus?.dataDays ?: 0
+    val calculationText = if (dataDays > 0) "Calculado para los $dataDays días restantes" else "Ritmo de uso según historial"
+    var subtitleRevealed by remember(planStatus?.id) { mutableStateOf(false) }
+    LaunchedEffect(planStatus?.id) { subtitleRevealed = true }
+    val recommendationVisibility = remember(planStatus?.id) { MutableTransitionState(false) }
+    LaunchedEffect(recommendedDailyMb) { recommendationVisibility.targetState = recommendedDailyMb != null }
     val containerColor = MaterialTheme.colorScheme.surfaceVariant
     val onContainerColor = MaterialTheme.colorScheme.onSurfaceVariant
     
@@ -263,52 +280,70 @@ fun TasaConsumoCard(
                         ),
                         color = onContainerColor
                     )
-                    Text(
-                        text = if (dataDays > 0) "Calculado para los $dataDays días restantes" else "Ritmo de uso según historial",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        ),
-                        color = textSecondaryColor
-                    )
+                    AnimatedVisibility(visible = subtitleRevealed, enter = fadeIn(tween(450))) {
+                        AnimatedContent(
+                            targetState = calculationText,
+                            transitionSpec = { fadeIn(tween(350)) togetherWith fadeOut(tween(180)) },
+                            label = "calculationDaysFade"
+                        ) { displayedText ->
+                            Text(
+                                text = displayedText,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp
+                                ),
+                                color = textSecondaryColor
+                            )
+                        }
+                    }
                 }
 
-                if (recommendedDailyMb != null) {
-                    val isOptimal = avgDailyMb <= recommendedDailyMb
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (isOptimal) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                AnimatedVisibility(
+                    visibleState = recommendationVisibility,
+                    enter = fadeIn(tween(450)),
+                    exit = fadeOut(tween(180))
+                ) {
+                    val isOptimal = recommendedDailyMb?.let { avgDailyMb <= it } ?: true
+                    AnimatedContent(
+                        targetState = isOptimal,
+                        transitionSpec = { fadeIn(tween(350)) togetherWith fadeOut(tween(180)) },
+                        label = "consumptionStatusFade"
+                    ) { optimal ->
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (optimal) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f)
                         ) {
-                            Icon(
-                                imageVector = if (isOptimal) Icons.Rounded.CheckCircle else Icons.Rounded.Warning,
-                                contentDescription = null,
-                                tint = if (isOptimal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Column {
-                                Text(
-                                    text = if (isOptimal) "Consumo" else "Alerta de",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = if (isOptimal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                                        fontSize = 11.sp,
-                                        lineHeight = 12.sp
-                                    )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = if (optimal) Icons.Rounded.CheckCircle else Icons.Rounded.Warning,
+                                    contentDescription = null,
+                                    tint = if (optimal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(18.dp)
                                 )
-                                Text(
-                                    text = if (isOptimal) "Óptimo" else "Consumo",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = if (isOptimal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                                        fontSize = 11.sp,
-                                        lineHeight = 12.sp
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Column {
+                                    Text(
+                                        text = if (optimal) "Consumo" else "Alerta de",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = if (optimal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                            fontSize = 11.sp,
+                                            lineHeight = 12.sp
+                                        )
                                     )
-                                )
+                                    Text(
+                                        text = if (optimal) "Óptimo" else "Consumo",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = if (optimal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                            fontSize = 11.sp,
+                                            lineHeight = 12.sp
+                                        )
+                                    )
+                                }
                             }
                         }
                     }

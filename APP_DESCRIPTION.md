@@ -9,7 +9,7 @@
 
 **MegasCU** es una suite de herramientas de telecomunicaciones de código abierto desarrollada en Kotlin y Jetpack Compose para dispositivos Android. Diseñada a medida para optimizar y simplificar la gestión de saldo, planes LTE, paquetes combinados, bonos y llamadas en la red de **ETECSA / Cubacel** en Cuba.
 
-Esta versión **v0.9.4-beta_(262)** incorpora optimizaciones integrales en la interfaz de usuario con Material 3 Expressive, animaciones morfológicas de cambio de forma en botones, soporte completo para Markdown en notas de versión, gestos predictivos de retroceso y un robusto sistema de seguridad con Android Keystore.
+Esta versión **v0.9.5-beta_(263)** incorpora optimizaciones integrales en la interfaz de usuario con Material 3 Expressive, animaciones morfológicas de cambio de forma en botones, soporte completo para Markdown en notas de versión, gestos predictivos de retroceso y un robusto sistema de seguridad con Android Keystore.
 
 ---
 

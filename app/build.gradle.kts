@@ -17,8 +17,8 @@ android {
     applicationId = "com.ams.megascu"
     minSdk = 30
     targetSdk = 36
-    versionCode = 262
-    versionName = "0.9.4-beta_(262)"
+    versionCode = 263
+    versionName = "0.9.5-beta_(263)"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
