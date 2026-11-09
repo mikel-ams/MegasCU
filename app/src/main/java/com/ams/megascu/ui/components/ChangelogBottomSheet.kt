@@ -62,9 +62,23 @@ object ChangelogRepository {
 
     private val defaultFallback = listOf(
         ChangelogVersion(
+            version = "0.9.6-beta_(264)",
+            date = "2026-11-08",
+            isLatest = true,
+            sections = listOf(
+                ChangelogSection(ChangeCategory.ADDED, listOf(
+                    "Compartir aplicación: Envía el APK instalado desde Ajustes usando el menú de compartir de Android, incluso sin datos móviles."
+                )),
+                ChangelogSection(ChangeCategory.FIXED, listOf(
+                    "Color de widgets: Respeta el ajuste de colores dinámicos y usa los colores propios de MegasCU según el tema claro u oscuro del sistema cuando está desactivado.",
+                    "Texto de widgets: Los valores en cero conservan las proporciones de la tipografía Space Mono."
+                ))
+            )
+        ),
+        ChangelogVersion(
             version = "0.9.5-beta_(263)",
             date = "2026-10-10",
-            isLatest = true,
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(ChangeCategory.CHANGED, listOf(
                     "Entrada de valores en tarjeta principal: Saldo y datos comienzan en 00.00 CUP y 0 GB; tras un segundo se muestran los valores consultados con la transición existente. Los chips de días entran con fade-in.",

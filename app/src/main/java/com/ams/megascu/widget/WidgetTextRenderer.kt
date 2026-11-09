@@ -18,7 +18,7 @@ import com.ams.megascu.R
 internal object WidgetTextRenderer {
     fun render(context: Context, manager: AppWidgetManager, widgetId: Int, source: RemoteViews, layoutId: Int): RemoteViews {
         val options = manager.getAppWidgetOptions(widgetId)
-        val compact = layoutId == R.layout.widget_megas_2x1
+        val compact = layoutId == R.layout.widget_megas_2x1 || layoutId == R.layout.widget_megas_2x1_fixed
         val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it > 0 } ?: if (compact) 110 else 260
         val maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH).takeIf { it > 0 } ?: minWidth
         val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT).takeIf { it > 0 } ?: if (compact) 60 else 150

@@ -247,7 +247,12 @@ open class MegasWidgetProvider(
                         getCachedPlan(context, simSlot)
                     }
 
-                    val views = RemoteViews(context.packageName, layoutResId)
+                    val fixedColors = !context.getSharedPreferences("megas_prefs", Context.MODE_PRIVATE)
+                        .getBoolean("pref_use_dynamic_colors", false)
+                    val themedLayout = if (fixedColors) {
+                        if (layoutResId == R.layout.widget_megas_2x1) R.layout.widget_megas_2x1_fixed else R.layout.widget_megas_4x2_fixed
+                    } else layoutResId
+                    val views = RemoteViews(context.packageName, themedLayout)
 
                     if (layoutResId == R.layout.widget_megas_2x1) {
                         val widgetPrefs = context.getSharedPreferences("megas_widget_prefs", Context.MODE_PRIVATE)
@@ -386,7 +391,7 @@ open class MegasWidgetProvider(
                     )
                     views.setOnClickPendingIntent(R.id.widget_root, mainPendingIntent)
 
-                    appWidgetManager.updateAppWidget(appWidgetId, WidgetTextRenderer.render(context, appWidgetManager, appWidgetId, views, layoutResId))
+                    appWidgetManager.updateAppWidget(appWidgetId, WidgetTextRenderer.render(context, appWidgetManager, appWidgetId, views, themedLayout))
                 } catch (e: Exception) {
                     android.util.Log.e("MegasCU", "Unhandled exception", e)
                 }

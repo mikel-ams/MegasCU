@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="6dp"
+    android:clipToOutline="true"
+    android:background="@drawable/widget_card_background_fixed"
+    tools:ignore="UseAppTint">
+    
+    <ImageView
+        android:id="@+id/widget_chart_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerInside" />
+
+    <ImageView
+        android:id="@+id/widget_refresh_btn"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:padding="5dp"
+        android:src="@android:drawable/ic_popup_sync"
+        android:background="@drawable/widget_card_chip_bg_fixed"
+        android:tint="@color/widget_card_chip_text_fixed"
+        android:contentDescription="Actualizar"
+        android:clickable="true"
+        android:focusable="true" />
+</FrameLayout>

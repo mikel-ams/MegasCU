@@ -7,6 +7,17 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.9.6-beta_(264)] - 2026-11-08
+
+### Añadido
+- **Compartir aplicación:** Envía el APK instalado desde Ajustes mediante el menú de compartir de Android, incluso sin datos móviles.
+
+### Corregido
+- **Color de widgets:** Respeta el ajuste de colores dinámicos y usa los colores propios de MegasCU según el tema claro u oscuro del sistema cuando está desactivado.
+- **Texto de widgets:** Los valores en cero conservan las proporciones de la tipografía Space Mono.
+
+---
+
 ## [0.9.5-beta_(263)] - 2026-10-10
 
 ### Cambiado

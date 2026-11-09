@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:clipToOutline="true"
+    android:background="@drawable/widget_card_background_fixed"
+    tools:ignore="UseAppTint">
+
+    <!-- Top Row: Label & Badge Chip -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <FrameLayout android:id="@+id/widget_label_font_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:id="@+id/widget_label"
+            android:text="Datos Disponibles"
+            android:fontFamily="@font/space_mono_bold"
+            android:textColor="@color/widget_card_text_secondary_fixed"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:ellipsize="end"
+            android:maxLines="1" />
+            <ImageView android:id="@+id/widget_label_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
+
+        <FrameLayout android:id="@+id/widget_badge_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:id="@+id/widget_badge"
+            android:background="@drawable/widget_card_badge_bg_fixed"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:fontFamily="@font/space_mono_bold"
+            android:textColor="@color/widget_card_text_primary_fixed"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+            <ImageView android:id="@+id/widget_badge_font_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/widget_refresh_btn"
+            android:layout_width="30dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="6dp"
+            android:padding="5dp"
+            android:background="@drawable/widget_card_badge_bg_fixed"
+            android:src="@android:drawable/ic_popup_sync"
+            android:tint="@color/widget_card_text_secondary_fixed"
+            android:contentDescription="Actualizar"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Main Value Row & Days Chip -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        
+        <FrameLayout android:id="@+id/widget_value_font_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:id="@+id/widget_value"
+            android:text="0.00 GB"
+            android:fontFamily="@font/space_mono_bold"
+            android:textColor="@color/widget_card_text_primary_fixed"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:maxLines="1" />
+            <ImageView android:id="@+id/widget_value_font_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
+
+        <FrameLayout android:id="@+id/widget_days_font_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:id="@+id/widget_days"
+            android:background="@drawable/widget_card_badge_bg_fixed"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:text="0 días restantes"
+            android:fontFamily="@font/space_mono_bold"
+            android:textColor="@color/widget_card_text_primary_fixed"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:maxLines="1" />
+            <ImageView android:id="@+id/widget_days_font_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
+    </LinearLayout>
+
+</LinearLayout>

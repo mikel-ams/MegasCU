@@ -38,7 +38,7 @@
             <ImageView android:id="@+id/widget_megas_4x2_text_1_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -56,7 +56,7 @@
             <ImageView android:id="@+id/widget_balance_cup_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -97,7 +97,7 @@
             <ImageView android:id="@+id/widget_megas_4x2_text_3_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -132,7 +132,7 @@
             <ImageView android:id="@+id/widget_megas_4x2_text_4_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -157,7 +157,7 @@
             <ImageView android:id="@+id/widget_data_value_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -180,7 +180,7 @@
             <ImageView android:id="@+id/widget_data_days_badge_font_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -207,7 +207,7 @@
             <ImageView android:id="@+id/widget_megas_4x2_text_7_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -232,7 +232,7 @@
             <ImageView android:id="@+id/widget_bonus_value_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -255,7 +255,7 @@
             <ImageView android:id="@+id/widget_bonus_days_badge_font_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -291,7 +291,7 @@
             <ImageView android:id="@+id/widget_megas_4x2_text_10_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -316,7 +316,7 @@
             <ImageView android:id="@+id/widget_calls_value_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -339,7 +339,7 @@
             <ImageView android:id="@+id/widget_calls_days_badge_font_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -366,7 +366,7 @@
             <ImageView android:id="@+id/widget_megas_4x2_text_13_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -391,7 +391,7 @@
             <ImageView android:id="@+id/widget_sms_value_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -414,7 +414,7 @@
             <ImageView android:id="@+id/widget_sms_days_badge_font_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -453,7 +453,7 @@
             <ImageView android:id="@+id/widget_recharge_text_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -476,7 +476,7 @@
             <ImageView android:id="@+id/widget_recharge_days_badge_font_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>

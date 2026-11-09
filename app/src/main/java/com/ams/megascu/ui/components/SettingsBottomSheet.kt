@@ -23,6 +23,10 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.ui.platform.LocalContext
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.core.content.FileProvider
+import java.io.File
 import android.widget.Toast
 import com.ams.megascu.utils.PurchaseAlertHelper
 import androidx.compose.ui.Alignment
@@ -3183,6 +3187,52 @@ fun SettingsBottomSheet(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(if (isUpdateAvailable) "Actualización disponible" else "Buscar Actualización")
                         }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Compartir MegasCU", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Envía el APK directamente a otro dispositivo sin usar datos ni la red móvil.",
+                        style = MaterialTheme.typography.bodySmall)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ExpressiveButton(
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            coroutineScope.launch {
+                                try {
+                                    val apk = kotlinx.coroutines.withContext(Dispatchers.IO) {
+                                        val source = File(context.applicationInfo.sourceDir)
+                                        val directory = File(context.cacheDir, "shared-apk").apply { mkdirs() }
+                                        val target = File(directory, "MegasCU_${BuildConfig.VERSION_NAME}.apk")
+                                        source.copyTo(target, overwrite = true)
+                                        target
+                                    }
+                                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apk)
+                                    val intent = Intent(Intent.ACTION_SEND).apply {
+                                        type = "application/vnd.android.package-archive"
+                                        putExtra(Intent.EXTRA_STREAM, uri)
+                                        clipData = android.content.ClipData.newUri(context.contentResolver, "MegasCU APK", uri)
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                    context.startActivity(Intent.createChooser(intent, "Compartir MegasCU"))
+                                } catch (error: Exception) {
+                                    Toast.makeText(context, "No se pudo compartir el APK.", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Compartir APK")
                     }
                 }
             }

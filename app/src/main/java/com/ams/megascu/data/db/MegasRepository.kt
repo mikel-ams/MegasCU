@@ -425,6 +425,7 @@ class MegasRepository(
     fun setUseDynamicColors(enabled: Boolean) {
         prefs.edit().putBoolean("pref_use_dynamic_colors", enabled).apply()
         _useDynamicColors.value = enabled
+        com.ams.megascu.widget.MegasWidgetProvider.updateAllWidgets(context)
     }
 
     fun setDisableBlurEffects(disabled: Boolean) {

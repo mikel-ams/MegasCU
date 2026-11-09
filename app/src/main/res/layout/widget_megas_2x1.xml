@@ -34,7 +34,7 @@
             <ImageView android:id="@+id/widget_label_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -55,7 +55,7 @@
             <ImageView android:id="@+id/widget_badge_font_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -97,7 +97,7 @@
             <ImageView android:id="@+id/widget_value_font_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>
@@ -120,7 +120,7 @@
             <ImageView android:id="@+id/widget_days_font_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scaleType="fitXY"
+                android:scaleType="centerInside"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
         </FrameLayout>

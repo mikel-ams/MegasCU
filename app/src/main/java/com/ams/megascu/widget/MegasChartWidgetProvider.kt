@@ -129,7 +129,8 @@ class MegasChartWidgetProvider : AppWidgetProvider() {
                         createEmptyChartBitmap(context, appWidgetManager, appWidgetId, totalGb, isNightMode, hasPermission)
                     }
 
-                    val views = RemoteViews(context.packageName, R.layout.widget_megas_chart_3x2)
+                    val views = RemoteViews(context.packageName, if (context.getSharedPreferences("megas_prefs", Context.MODE_PRIVATE)
+                        .getBoolean("pref_use_dynamic_colors", false)) R.layout.widget_megas_chart_3x2 else R.layout.widget_megas_chart_3x2_fixed)
                     views.setImageViewBitmap(R.id.widget_chart_image, chartBitmap)
 
                     val mainIntent = Intent(context, MainActivity::class.java).apply {

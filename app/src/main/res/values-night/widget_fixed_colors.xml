@@ -1,0 +1,13 @@
+<resources>
+    <color name="widget_container_bg_fixed">#1E1B4B</color>
+    <color name="widget_card_item_bg_fixed">#2E2A72</color>
+    <color name="widget_text_primary_fixed">#FFFFFF</color>
+    <color name="widget_text_secondary_fixed">#B3FFFFFF</color>
+    <color name="widget_card_bg_fixed">#1D0C38</color>
+    <color name="widget_card_border_fixed">#3B226A</color>
+    <color name="widget_card_text_primary_fixed">#FFFFFF</color>
+    <color name="widget_card_text_secondary_fixed">#D0BCFF</color>
+    <color name="widget_card_badge_bg_fixed">#25D0BCFF</color>
+    <color name="widget_card_chip_bg_fixed">#7C3AED</color>
+    <color name="widget_card_chip_text_fixed">#FFFFFF</color>
+</resources>
