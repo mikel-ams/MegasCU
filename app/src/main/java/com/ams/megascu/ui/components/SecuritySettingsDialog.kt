@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ams.megascu.ui.viewmodel.MainViewModel
+import com.ams.megascu.security.PinVault
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.draw.shadow
@@ -490,6 +491,7 @@ fun PinVerifyDialog(
     onVerified: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     var enteredPin by remember { mutableStateOf("") }
     var error by remember { mutableStateOf(false) }
@@ -623,7 +625,7 @@ fun PinVerifyDialog(
                                                     enteredPin = next
                                                     error = false
                                                     if (next.length == 4) {
-                                                        if (next == correctPin) {
+                                                        if (PinVault.verify(context, next, correctPin)) {
                                                             onVerified()
                                                         } else {
                                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -691,7 +693,7 @@ fun PinVerifyDialog(
                     Spacer(modifier = Modifier.width(10.dp))
                     ExpressiveButton(
                         onClick = {
-                            if (enteredPin == correctPin) {
+                            if (PinVault.verify(context, enteredPin, correctPin)) {
                                 onVerified()
                             } else {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)

@@ -392,7 +392,14 @@ fun SettingsBottomSheet(
         sheetState = sheetState,
         modifier = Modifier
             .statusBarsPadding()
-            .padding(top = 40.dp),
+            .padding(top = 40.dp)
+            .then(
+                if (!disableBlurEffects && obscuringSheetProgress > 0f) {
+                    Modifier.blur(24.dp * obscuringSheetProgress.coerceIn(0f, 1f))
+                } else {
+                    Modifier
+                }
+            ),
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -407,13 +414,6 @@ fun SettingsBottomSheet(
                 .widthIn(max = 680.dp)
                 .align(Alignment.CenterHorizontally)
                 .navigationBarsPadding()
-                .then(
-                    if (!disableBlurEffects && obscuringSheetProgress > 0f) {
-                        Modifier.blur(24.dp * obscuringSheetProgress.coerceIn(0f, 1f))
-                    } else {
-                        Modifier
-                    }
-                )
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

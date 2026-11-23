@@ -71,7 +71,8 @@ object ChangelogRepository {
                 )),
                 ChangelogSection(ChangeCategory.FIXED, listOf(
                     "Alertas de consumo diario: La primera alerta se muestra al detectar el exceso y se repite cada hora mientras continúe, indicando los megas sobrepasados, el consumo total y el límite recomendado.",
-                    "Ventanas inferiores: Las ventanas BottomSheet vuelven a entrar animadas desde el pie de la pantalla y el desenfoque del contenido posterior sigue progresivamente su apertura, arrastre y cierre, incluso al abrir Seguridad y Control sobre Configuración."
+                    "Ventanas inferiores: Las ventanas BottomSheet vuelven a entrar animadas desde el pie de la pantalla y el desenfoque del contenido posterior sigue progresivamente su apertura, arrastre y cierre, incluso al abrir Seguridad y Control sobre Configuración.",
+                    "Verificación del PIN: El PIN cifrado se valida correctamente al desactivar Seguridad y Control; un almacén vacío deja de aceptarse como credencial válida."
                 ))
             )
         ),

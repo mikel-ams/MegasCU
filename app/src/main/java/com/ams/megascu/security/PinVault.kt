@@ -49,7 +49,7 @@ object PinVault {
     }
 
     fun verify(context: Context, pin: String, stored: String): Boolean {
-        if (stored.isBlank()) return true
+        if (stored.isBlank()) return false
         if (!stored.startsWith("v1:")) return stored == pin
         return runCatching {
             val parts = stored.split(':')
