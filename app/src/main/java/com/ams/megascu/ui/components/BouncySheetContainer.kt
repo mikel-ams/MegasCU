@@ -64,6 +64,7 @@ fun SheetProgressTracker(
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 private data class SheetProgressSnapshot(
     val offset: Float?,
     val currentValue: androidx.compose.material3.SheetValue,
