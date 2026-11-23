@@ -66,10 +66,15 @@ object ChangelogRepository {
             date = "2026-11-22",
             isLatest = true,
             sections = listOf(
+                ChangelogSection(ChangeCategory.ADDED, listOf(
+                    "Calendario: Consulta desde la pantalla principal las fechas de recarga y vencimiento de datos, llamadas y SMS."
+                )),
                 ChangelogSection(ChangeCategory.CHANGED, listOf(
+                    "Telegram: Acerca de enlaza al canal oficial de MegasCU.",
                     "Monitoreo del límite diario: Comprueba el consumo en segundo plano cada 15 minutos para detectar a tiempo cuándo se supera el límite recomendado."
                 )),
                 ChangelogSection(ChangeCategory.FIXED, listOf(
+                    "Alertas de vencimiento: Cada recurso se evalúa por separado. Si coinciden avisos, se priorizan datos, llamadas y SMS, en ese orden.",
                     "Alertas de consumo diario: La primera alerta se muestra al detectar el exceso y se repite cada hora mientras continúe, indicando los megas sobrepasados, el consumo total y el límite recomendado.",
                     "Ventanas inferiores: Las ventanas BottomSheet vuelven a entrar animadas desde el pie de la pantalla y el desenfoque y sombreado del contenido posterior siguen progresivamente su apertura, arrastre y cierre, incluso al abrir Seguridad y Control sobre Configuración. Configuración e Historial de Cambios usan una presentación de altura completa detrás de la barra de estado.",
                     "Verificación del PIN: El PIN cifrado se valida correctamente al desactivar Seguridad y Control; un almacén vacío deja de aceptarse como credencial válida."

@@ -596,7 +596,7 @@ fun AboutBottomSheet(
                             contentDescription = "Telegram",
                             backgroundColor = Color(0xFF229ED9)
                         ) {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/migue_appmovilshop")))
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/megascu_app")))
                         }
                         SocialIcon(
                             icon = FontAwesomeIcons.Brands.Instagram,

@@ -77,120 +77,38 @@ object PlanExpirationAlertManager {
     fun checkAndNotifyExpiration(context: Context, plan: PlanStatusEntity) {
         val prefs = context.getSharedPreferences("megas_prefs", Context.MODE_PRIVATE)
 
-        val activeMap = mutableMapOf<String, Int>()
-
-        val totalDataMb = plan.dataMb + plan.dataLteMb + plan.bonusDataMb
-        if (plan.dataDays > 0 || totalDataMb > 0) {
-            activeMap["datos"] = plan.dataDays
-        }
-
-        val hasMinutes = plan.minutesStr.isNotBlank() && plan.minutesStr != "0" && plan.minutesStr != "0 min"
-        if (plan.minutesDays > 0 || hasMinutes) {
-            activeMap["llamadas"] = plan.minutesDays
-        }
-
-        if (plan.smsDays > 0 || plan.smsCount > 0) {
-            activeMap["mensajes"] = plan.smsDays
-        }
-
-        if (activeMap.isEmpty()) return
-
-        val validDaysList = activeMap.values.filter { it > 0 }
-        if (validDaysList.isEmpty()) return
-
-        val minDays = validDaysList.minOrNull() ?: return
-        val expirationAlertDays = prefs.getInt("pref_expiration_alert_days", 5)
-        val secondExpirationAlertEnabled = prefs.getBoolean("pref_second_expiration_alert_enabled", false)
-        val secondExpirationAlertDays = prefs.getInt("pref_second_expiration_alert_days", 2)
-
-        val shouldAlert = (minDays == 1) || 
-                          (minDays == expirationAlertDays) || 
-                          (secondExpirationAlertEnabled && minDays == secondExpirationAlertDays)
-
-        if (!shouldAlert) return
-
-        val componentsWithMinDays = activeMap.filter { it.value == minDays }.keys
-
-        val isAllSameDays = activeMap.values.distinct().size == 1
-
-        val componentTitle = if (isAllSameDays) {
-            "paquete"
-        } else {
-            val names = componentsWithMinDays.map {
-                when (it) {
-                    "datos" -> "datos"
-                    "llamadas" -> "llamadas"
-                    "mensajes" -> "mensajes"
-                    else -> it
-                }
-            }
-            if (names.size == 1) names.first() else names.joinToString(" y ")
-        }
-
-        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        val prefix = plan.subscriptionId?.let { "sub_${it}_" } ?: if (plan.id > 1) "sim_${plan.id}_" else ""
-
-        if (minDays == 1) {
-            val lastDate1Day = prefs.getString("${prefix}last_exp_alert_date_1day", "") ?: ""
-            var count1Day = prefs.getInt("${prefix}last_exp_alert_count_1day", 0)
-
-            if (lastDate1Day == todayStr && count1Day >= 2) {
-                return
-            }
-
-            count1Day = if (lastDate1Day == todayStr) count1Day + 1 else 1
-            prefs.edit()
-                .putString("${prefix}last_exp_alert_date_1day", todayStr)
-                .putInt("${prefix}last_exp_alert_count_1day", count1Day)
-                .apply()
-        } else {
-            val lastAlertKey = "${prefix}last_exp_alert_date_${minDays}days"
-            val lastDate = prefs.getString(lastAlertKey, "") ?: ""
-            if (lastDate == todayStr) {
-                return
-            }
-            prefs.edit().putString(lastAlertKey, todayStr).apply()
-        }
-
-        val resourcesLossList = mutableListOf<String>()
-
-        if (totalDataMb > 0) {
-            val dataFormatted = if (totalDataMb >= 1024) {
-                String.format(Locale.US, "%.2f GB", totalDataMb / 1024.0)
-            } else {
-                "$totalDataMb MB"
-            }
-            resourcesLossList.add(dataFormatted)
-        }
-
-        if (hasMinutes) {
-            val minFormatted = if (plan.minutesStr.contains("min", ignoreCase = true)) plan.minutesStr else "${plan.minutesStr} min"
-            resourcesLossList.add(minFormatted)
-        }
-
-        if (plan.smsCount > 0) {
-            resourcesLossList.add("${plan.smsCount} SMS")
-        }
-
-        val lossWarningText = if (resourcesLossList.isNotEmpty()) {
-            "Se perderán los ${resourcesLossList.joinToString(", ")} actuales perdiendo la posibilidad de acumularlos."
-        } else ""
-
-        val title = if (minDays == 1) {
-            "🚨 ¡ÚLTIMO DÍA! Vencimiento de $componentTitle"
-        } else {
-            "⚠️ ALERTA: Vencimiento de $componentTitle ($minDays días restantes)"
-        }
-
-        val body = if (minDays == 1) {
-            "Tu $componentTitle vence hoy. ${if (lossWarningText.isNotEmpty()) lossWarningText + " " else ""}Marque *133# para renovar tu plan."
-        } else {
-            "Quedan $minDays días para el vencimiento de tu $componentTitle. ${if (lossWarningText.isNotEmpty()) lossWarningText + " " else ""}Marque *133# para no perder tus recursos."
-        }
-
-        val notificationId = getExpirationNotificationId(plan.id, plan.subscriptionId)
-        sendNotification(context, title, body, notificationId)
         checkAndNotifyRechargeAvailability(context, plan)
+        val today = java.time.LocalDate.now()
+        val prefix = plan.subscriptionId?.let { "sub_${it}_" } ?: "sim_${plan.id}_"
+        val thresholds = buildSet {
+            add(prefs.getInt("pref_expiration_alert_days", 5))
+            if (prefs.getBoolean("pref_second_expiration_alert_enabled", false)) {
+                add(prefs.getInt("pref_second_expiration_alert_days", 2))
+            }
+            add(1)
+            add(0)
+        }
+        val editor = prefs.edit()
+        val due = plan.upcomingExpirations(today).mapNotNull { event ->
+            val days = java.time.temporal.ChronoUnit.DAYS.between(today, event.date).toInt()
+            if (days !in thresholds) return@mapNotNull null
+            val key = "${prefix}expiration_${event.label}_$days"
+            val count = if (prefs.getString("${key}_date", null) == today.toString()) {
+                prefs.getInt("${key}_count", 0)
+            } else 0
+            if (count >= if (days == 1) 2 else 1) return@mapNotNull null
+            editor.putString("${key}_date", today.toString()).putInt("${key}_count", count + 1)
+            val whenText = when (days) {
+                0 -> "vence hoy"
+                1 -> "vence mañana"
+                else -> "vence en $days días"
+            }
+            "${event.label} · ${event.amount} · $whenText"
+        }
+        if (due.isEmpty()) return
+        sendNotification(context, due.first(), due.joinToString("\n"),
+            getExpirationNotificationId(plan.id, plan.subscriptionId))
+        editor.apply()
     }
 
     fun checkAndNotifyRechargeAvailability(context: Context, plan: PlanStatusEntity) {
