@@ -62,9 +62,23 @@ object ChangelogRepository {
 
     private val defaultFallback = listOf(
         ChangelogVersion(
+            version = "0.9.7-beta_(265)",
+            date = "2026-11-22",
+            isLatest = true,
+            sections = listOf(
+                ChangelogSection(ChangeCategory.CHANGED, listOf(
+                    "Monitoreo del límite diario: Comprueba el consumo en segundo plano cada 15 minutos para detectar a tiempo cuándo se supera el límite recomendado."
+                )),
+                ChangelogSection(ChangeCategory.FIXED, listOf(
+                    "Alertas de consumo diario: La primera alerta se muestra al detectar el exceso y se repite cada hora mientras continúe, indicando los megas sobrepasados, el consumo total y el límite recomendado.",
+                    "Ventanas inferiores: Ajustes, registro de cambios, guía y las demás ventanas BottomSheet vuelven a mostrar su contenido correctamente."
+                ))
+            )
+        ),
+        ChangelogVersion(
             version = "0.9.6-beta_(264)",
             date = "2026-11-08",
-            isLatest = true,
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(ChangeCategory.ADDED, listOf(
                     "Compartir aplicación: Envía el APK instalado desde Ajustes usando el menú de compartir de Android, incluso sin datos móviles."
@@ -409,7 +423,7 @@ fun ChangelogBottomSheet(
     onProgress: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, confirmValueChange = { it != SheetValue.PartiallyExpanded })
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Expanded)
     val changelogList = remember(context) { ChangelogRepository.getChangelogList(context) }
 
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)

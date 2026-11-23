@@ -51,7 +51,7 @@ fun GuideBottomSheet(
         }
     }
 
-    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, confirmValueChange = { it != SheetValue.PartiallyExpanded })
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Expanded)
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)
 
     ModalBottomSheet(

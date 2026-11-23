@@ -7,6 +7,17 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
+## [0.9.7-beta_(265)] - 2026-11-22
+
+### Cambiado
+- **Monitoreo del límite diario:** Comprueba el consumo en segundo plano cada 15 minutos para detectar a tiempo cuándo se supera el límite recomendado.
+
+### Corregido
+- **Alertas de consumo diario:** La primera alerta se muestra al detectar el exceso y se repite cada hora mientras continúe, indicando los megas sobrepasados, el consumo total y el límite recomendado.
+- **Ventanas inferiores:** Ajustes, registro de cambios, guía y las demás ventanas `BottomSheet` vuelven a mostrar su contenido correctamente.
+
+---
+
 ## [0.9.6-beta_(264)] - 2026-11-08
 
 ### Añadido
