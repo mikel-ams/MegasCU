@@ -577,7 +577,7 @@ fun TasaConsumoCard(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
-                        progress = animatedProgress.value,
+                        progress = { animatedProgress.value },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(LoadingIndicatorsConfig.linearDetHeight.dp)
@@ -1212,13 +1212,6 @@ fun ConsumoYRegistrosCard(
                                         val smsStr = "${planStatus?.smsCount ?: 0}"
 
                                         ListItem(
-                                            headlineContent = {
-                                                Text(
-                                                    text = dateString,
-                                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
-                                            },
                                             supportingContent = {
                                                 Text(
                                                     text = "Saldo: $saldoStr • Datos: $dataStr • Minutos: $minutosStr • SMS: $smsStr",
@@ -1227,7 +1220,13 @@ fun ConsumoYRegistrosCard(
                                                 )
                                             },
                                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                                        )
+                                        ) {
+                                            Text(
+                                                text = dateString,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
                                     }
                                 }
                             }

@@ -264,7 +264,7 @@ fun LastUpdatedBanner(
             val now = System.currentTimeMillis()
             val diffMinutes = (now - timestamp) / (60 * 1000)
             val timeFormat = java.text.SimpleDateFormat("h:mm a", Locale.getDefault())
-            val dateFormat = java.text.SimpleDateFormat("dd-MM-yy", Locale("es", "ES"))
+            val dateFormat = java.text.SimpleDateFormat("dd-MM-yy", Locale.forLanguageTag("es-ES"))
             val formattedDate = dateFormat.format(date)
             val formattedHour = timeFormat.format(date).lowercase()
 

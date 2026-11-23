@@ -369,7 +369,7 @@ object GitHubUpdateChecker {
         return runCatching {
             val instant = Instant.parse(rawDate)
             DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-                .withLocale(Locale("es", "ES"))
+                .withLocale(Locale.forLanguageTag("es-ES"))
                 .withZone(ZoneId.systemDefault())
                 .format(instant)
         }.getOrElse { rawDate.take(10) }
