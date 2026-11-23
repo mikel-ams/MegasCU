@@ -903,8 +903,6 @@ fun MegasMainApp(
                                 onOpenPlanes = { showPlanesSheet = true }
                             )
 
-                            ExpirationCalendarButton(planStatus)
-
                             // Loading Bar
                             AnimatedVisibility(visible = isRefreshing || ussdState is UssdUiState.Executing) {
                                 Column(
@@ -960,8 +958,6 @@ fun MegasMainApp(
                                 onCardClick = { safeRunUssd { viewModel.refreshAllStatus(simSlot = selectedSimSlot) } }
                             )
                         }
-
-                        ExpirationCalendarButton(planStatus)
 
                         // Loading Bar under Main Card when loading/refreshing
                         AnimatedVisibility(visible = isRefreshing || ussdState is UssdUiState.Executing) {

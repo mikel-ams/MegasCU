@@ -36,12 +36,18 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
-internal fun ExpirationCalendarButton(plan: PlanStatusEntity?) {
+internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?) {
     var open by remember { mutableStateOf(false) }
-    TextButton(onClick = { open = true }) {
-        Icon(Icons.Rounded.DateRange, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text("Calendario")
+    FilledTonalIconButton(
+        onClick = { open = true },
+        modifier = Modifier.size(40.dp),
+        shape = CircleShape
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.DateRange,
+            contentDescription = "Calendario",
+            modifier = Modifier.size(20.dp)
+        )
     }
     if (!open) return
 

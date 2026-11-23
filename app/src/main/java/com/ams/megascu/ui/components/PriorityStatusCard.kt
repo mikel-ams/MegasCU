@@ -901,7 +901,7 @@ fun PriorityStatusCard(
                                 imageVector = Icons.Rounded.DateRange,
                                 contentDescription = "Recarga",
                                 tint = secondaryContentColor,
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             val isRechargeNow = planStatus?.nextRechargeDateStr == "Puede recargar saldo" ||
@@ -911,6 +911,7 @@ fun PriorityStatusCard(
                             val rechargeLabel = if (isRechargeNow) "Puede recargar saldo" else "Puede recargar el ${planStatus?.nextRechargeDateStr}"
                             Text(
                                 text = rechargeLabel,
+                                modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Medium,
                                     color = secondaryContentColor
@@ -927,6 +928,8 @@ fun PriorityStatusCard(
                                     reveal = revealPrimaryValues
                                 )
                             }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            ExpirationCalendarIconButton(planStatus)
                         }
                     }
 
@@ -1488,7 +1491,8 @@ fun SimplePriorityStatusCard(
             if (!planStatus?.nextRechargeDateStr.isNullOrBlank()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.DateRange,
@@ -1504,6 +1508,7 @@ fun SimplePriorityStatusCard(
                     val rechargeLabel = if (isRechargeNow) "Puede recargar saldo" else "Puede recargar el ${planStatus?.nextRechargeDateStr}"
                     Text(
                         text = rechargeLabel,
+                        modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
