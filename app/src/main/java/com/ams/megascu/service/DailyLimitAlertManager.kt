@@ -17,6 +17,7 @@ import java.util.Locale
 object DailyLimitAlertManager {
 
     const val NOTIFICATION_ID_DAILY_LIMIT = 8802
+    private const val REPEAT_INTERVAL_MS = 60 * 60 * 1000L
 
     fun getDailyLimitNotificationId(simSlot: Int, subscriptionId: Int?): Int {
         return subscriptionId?.let { 880200 + (it % 1000) } ?: (NOTIFICATION_ID_DAILY_LIMIT + (simSlot - 1) * 10)
@@ -70,21 +71,24 @@ object DailyLimitAlertManager {
                 val prefix = plan.subscriptionId?.let { "sub_${it}_" } ?: if (plan.id > 1) "sim_${plan.id}_" else ""
                 val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                 val lastExceededDay = prefs.getString("${prefix}last_daily_exceeded_alert_date", "") ?: ""
+                val lastExceededAt = prefs.getLong("${prefix}last_daily_exceeded_alert_time", 0L)
                 val lastNearDay = prefs.getString("${prefix}last_daily_near_alert_date", "") ?: ""
 
                 val notificationId = getDailyLimitNotificationId(simSlot, plan.subscriptionId)
 
                 // Condition 1: Exceeded recommended limit (100%)
                 if (todayMb >= recommendedDailyMb) {
-                    if (lastExceededDay != todayStr) {
+                    val now = System.currentTimeMillis()
+                    if (lastExceededDay != todayStr || now - lastExceededAt >= REPEAT_INTERVAL_MS) {
                         sendNotification(
                             context = context,
                             title = "🚨 ¡Límite diario superado!",
-                            body = "Has consumido ${formatMb(todayMb)} hoy, superando el límite recomendado de ${formatMb(recommendedDailyMb)}/día.",
+                            body = "Has superado el límite recomendado por ${formatMb(todayMb - recommendedDailyMb)}. Consumo hoy: ${formatMb(todayMb)}; límite: ${formatMb(recommendedDailyMb)}.",
                             notificationId = notificationId
                         )
                         prefs.edit()
                             .putString("${prefix}last_daily_exceeded_alert_date", todayStr)
+                            .putLong("${prefix}last_daily_exceeded_alert_time", now)
                             .apply()
                     }
                 }

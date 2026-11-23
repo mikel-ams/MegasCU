@@ -49,6 +49,7 @@ class MegasApplication : Application(), Configuration.Provider {
         }
         try {
             scheduleExpirationWorker()
+            scheduleDailyUsageWorker()
         } catch (e: Throwable) {
             android.util.Log.e("MegasApplication", "Error scheduling ExpirationWorker", e)
         }
@@ -88,6 +89,13 @@ class MegasApplication : Application(), Configuration.Provider {
             "ExpirationCheck",
             androidx.work.ExistingPeriodicWorkPolicy.UPDATE,
             workRequest
+        )
+    }
+
+    private fun scheduleDailyUsageWorker() {
+        val request = PeriodicWorkRequestBuilder<com.ams.megascu.service.DailyUsageWorker>(15, TimeUnit.MINUTES).build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "DailyUsageCheck", androidx.work.ExistingPeriodicWorkPolicy.KEEP, request
         )
     }
 

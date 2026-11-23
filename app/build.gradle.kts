@@ -162,7 +162,6 @@ dependencies {
 val validateReleaseSigningSecrets = tasks.register("validateReleaseSigningSecrets") {
   description = "Valida que los secretos obligatorios para la firma de producción (Release) estén configurados."
   val requiredSecrets = listOf(
-    "RELEASE_KEYSTORE_BASE64",
     "RELEASE_STORE_PASSWORD",
     "RELEASE_KEY_ALIAS",
     "RELEASE_KEY_PASSWORD"
@@ -179,6 +178,10 @@ val validateReleaseSigningSecrets = tasks.register("validateReleaseSigningSecret
         "Faltan los siguientes secretos requeridos para la firma Release: " +
           "${missing.joinToString(", ")}. Por favor, configúrelos en el panel de Secretos de AI Studio o como variables de entorno."
       )
+    }
+    if (providers.environmentVariable("RELEASE_KEYSTORE_BASE64").orElse(providers.gradleProperty("RELEASE_KEYSTORE_BASE64")).orNull.isNullOrBlank() &&
+        providers.environmentVariable("RELEASE_KEYSTORE_PATH").orElse(providers.gradleProperty("RELEASE_KEYSTORE_PATH")).orNull.isNullOrBlank()) {
+      throw GradleException("Falta RELEASE_KEYSTORE_BASE64 o RELEASE_KEYSTORE_PATH.")
     }
   }
 }
