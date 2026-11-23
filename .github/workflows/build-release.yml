@@ -28,7 +28,7 @@ jobs:
         run: |
           test -n "$RELEASE_KEYSTORE_BASE64" || { echo 'Missing RELEASE_KEYSTORE_BASE64'; exit 1; }
           mkdir -p "$RUNNER_TEMP/megascu-signing"
-          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/megascu-signing/release-key.jks" || { echo 'Invalid keystore Base64'; exit 1; }
+          printf '%s' "$RELEASE_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/megascu-signing/release-key.jks" || { echo 'Invalid keystore Base64'; exit 1; }
           test -s "$RUNNER_TEMP/megascu-signing/release-key.jks" || { echo 'Empty keystore'; exit 1; }
 
       - name: Build signed release APK
