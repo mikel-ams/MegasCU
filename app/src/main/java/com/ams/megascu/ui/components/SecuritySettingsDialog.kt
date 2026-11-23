@@ -110,7 +110,7 @@ fun SecuritySettingsBottomSheet(
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
         dragHandle = { ExpressiveDragHandle() },
-        scrimColor = Color.Transparent,
+        scrimColor = Color.Black.copy(alpha = 0.18f),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
         Column(
