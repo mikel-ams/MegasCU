@@ -257,7 +257,10 @@ fun WcagContrastInspectorBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        sheetState = rememberBottomSheetState(initialValue = SheetValue.Expanded),
+        sheetState = rememberBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+        ),
         modifier = Modifier
             .statusBarsPadding()
             .padding(top = 24.dp),

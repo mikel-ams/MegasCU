@@ -25,19 +25,31 @@ fun SheetProgressTracker(
     val cutoffThresholdPx = remember(density) { with(density) { 2.5.dp.toPx() } }
 
     LaunchedEffect(sheetState) {
-        var expandedOffsetPx = -1f
+        var expandedOffsetPx: Float? = null
         snapshotFlow {
-            runCatching { sheetState.requireOffset() }.getOrNull()
-        }.collect { offset ->
-            if (offset != null) {
-                if (expandedOffsetPx < 0f || offset < expandedOffsetPx) {
+            SheetProgressSnapshot(
+                offset = runCatching { sheetState.requireOffset() }.getOrNull(),
+                currentValue = sheetState.currentValue,
+                targetValue = sheetState.targetValue,
+                isAnimationRunning = sheetState.isAnimationRunning
+            )
+        }.collect { snapshot ->
+            snapshot.offset?.let { offset ->
+                if (
+                    snapshot.currentValue == androidx.compose.material3.SheetValue.Expanded &&
+                    snapshot.targetValue == androidx.compose.material3.SheetValue.Expanded &&
+                    !snapshot.isAnimationRunning
+                ) {
                     expandedOffsetPx = offset
                 }
                 val cutoffOffsetPx = windowHeightPx - cutoffThresholdPx
                 if (offset >= cutoffOffsetPx) {
                     onProgress(0f)
                 } else {
-                    val effectiveRange = (cutoffOffsetPx - expandedOffsetPx).coerceAtLeast(1f)
+                    val effectiveRange = expandedOffsetPx
+                        ?.let { cutoffOffsetPx - it }
+                        ?.coerceAtLeast(1f)
+                        ?: cutoffOffsetPx.coerceAtLeast(1f)
                     val progress = ((cutoffOffsetPx - offset) / effectiveRange).coerceIn(0f, 1f)
                     onProgress(progress)
                 }
@@ -51,6 +63,13 @@ fun SheetProgressTracker(
         }
     }
 }
+
+private data class SheetProgressSnapshot(
+    val offset: Float?,
+    val currentValue: androidx.compose.material3.SheetValue,
+    val targetValue: androidx.compose.material3.SheetValue,
+    val isAnimationRunning: Boolean
+)
 
 @Composable
 fun BouncySheetContainer(

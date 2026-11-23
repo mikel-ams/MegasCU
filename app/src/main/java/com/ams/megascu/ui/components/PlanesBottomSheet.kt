@@ -181,7 +181,10 @@ fun PlanesBottomSheet(
         }
     }
 
-    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Expanded)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)
 
     ModalBottomSheet(

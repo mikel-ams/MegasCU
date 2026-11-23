@@ -598,7 +598,8 @@ fun MegasMainApp(
         viewModel.checkSimOperatorCompatibility(selectedSimSlot)
     }
 
-    var activeSheetProgress by remember { mutableFloatStateOf(0f) }
+    var primarySheetProgress by remember { mutableFloatStateOf(0f) }
+    var securitySheetProgress by remember { mutableFloatStateOf(0f) }
 
     val purchaseAlertState = remember(planStatus, prefs) {
         PurchaseAlertHelper.calculateAlertState(planStatus, prefs)
@@ -618,6 +619,7 @@ fun MegasMainApp(
         label = "DialogBlurFraction"
     )
 
+    val activeSheetProgress = maxOf(primarySheetProgress, securitySheetProgress)
     val effectiveBlurAmount = maxOf(dialogBlurFraction, activeSheetProgress)
     val backgroundBlurRadius = if (disableBlurEffects) 0.dp else (24.dp * effectiveBlurAmount).coerceIn(0.dp, 24.dp)
     val isDarkScrimDialog = (showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
@@ -1094,7 +1096,7 @@ fun MegasMainApp(
                     },
                     onRequestRefresh = { safeRunUssd { viewModel.refreshAllStatus(simSlot = selectedSimSlot) } },
                     disableBlur = disableBlurEffects,
-                    onProgress = { activeSheetProgress = it }
+                    onProgress = { primarySheetProgress = it }
                 )
             }
             if (showGuideSheet) {
@@ -1108,7 +1110,7 @@ fun MegasMainApp(
                         safeRunUssd { viewModel.executeUssdQuery(code, title = title, simSlot = selectedSimSlot) }
                         showGuideSheet = false
                     },
-                    onProgress = { activeSheetProgress = it }
+                    onProgress = { primarySheetProgress = it }
                 )
             }
             if (showQuickActionSelector) {
@@ -1118,7 +1120,7 @@ fun MegasMainApp(
                     onSelectCode = { code, label ->
                         viewModel.setQuickAction(code, label)
                     },
-                    onProgress = { activeSheetProgress = it }
+                    onProgress = { primarySheetProgress = it }
                 )
             }
             
@@ -1192,8 +1194,12 @@ fun MegasMainApp(
                     onExecutePurchase = { code ->
                         safeRunUssd { viewModel.executePurchaseUssd(code, selectedSimSlot) }
                     },
-                    onDismiss = { showSettingsSheet = false },
-                    onProgress = { activeSheetProgress = it }
+                    onDismiss = {
+                        showSecuritySettings = false
+                        showSettingsSheet = false
+                    },
+                    onProgress = { primarySheetProgress = it },
+                    obscuringSheetProgress = securitySheetProgress
                 )
             }
 
@@ -1202,7 +1208,7 @@ fun MegasMainApp(
                     viewModel = viewModel,
                     onDismiss = { showSecuritySettings = false },
                     onSecurityUnlocked = onSecurityUnlocked,
-                    onProgress = { activeSheetProgress = it }
+                    onProgress = { securitySheetProgress = it }
                 )
             }
             if (showAbout) {
@@ -1212,13 +1218,13 @@ fun MegasMainApp(
                         showAbout = false
                         showChangelogSheet = true
                     },
-                    onProgress = { activeSheetProgress = it }
+                    onProgress = { primarySheetProgress = it }
                 )
             }
             if (showChangelogSheet) {
                 ChangelogBottomSheet(
                     onDismiss = { showChangelogSheet = false },
-                    onProgress = { activeSheetProgress = it }
+                    onProgress = { primarySheetProgress = it }
                 )
             }
             if (showMatrixTerminal) {

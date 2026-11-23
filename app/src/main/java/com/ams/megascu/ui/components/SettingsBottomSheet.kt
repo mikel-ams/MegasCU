@@ -48,6 +48,7 @@ import com.ams.megascu.ui.theme.EmeraldGreen
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.luminance
 
 import com.ams.megascu.BuildConfig
@@ -109,12 +110,12 @@ fun SettingsBottomSheet(
     onExecuteConsulta: ((String, String) -> Unit)? = null,
     onExecutePurchase: ((String) -> Unit)? = null,
     onDismiss: () -> Unit,
-    onProgress: (Float) -> Unit = {}
+    onProgress: (Float) -> Unit = {},
+    obscuringSheetProgress: Float = 0f
 ) {
     val context = LocalContext.current
     val prefs = remember(context) { context.getSharedPreferences("megas_prefs", android.content.Context.MODE_PRIVATE) }
     var showClearDataConfirm by remember { mutableStateOf(false) }
-    var showSecuritySettings by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
 
     var localExpirationAlertDays by remember(expirationAlertDays) { mutableStateOf(expirationAlertDays) }
@@ -370,7 +371,10 @@ fun SettingsBottomSheet(
         }
     }
 
-    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Expanded)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)
 
     var isDeveloperMode by remember { mutableStateOf(prefs.getBoolean("developer_mode_enabled", false)) }
@@ -403,6 +407,13 @@ fun SettingsBottomSheet(
                 .widthIn(max = 680.dp)
                 .align(Alignment.CenterHorizontally)
                 .navigationBarsPadding()
+                .then(
+                    if (!disableBlurEffects && obscuringSheetProgress > 0f) {
+                        Modifier.blur(24.dp * obscuringSheetProgress.coerceIn(0f, 1f))
+                    } else {
+                        Modifier
+                    }
+                )
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

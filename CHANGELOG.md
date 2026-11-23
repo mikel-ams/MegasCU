@@ -14,7 +14,7 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ### Corregido
 - **Alertas de consumo diario:** La primera alerta se muestra al detectar el exceso y se repite cada hora mientras continúe, indicando los megas sobrepasados, el consumo total y el límite recomendado.
-- **Ventanas inferiores:** Ajustes, registro de cambios, guía y las demás ventanas `BottomSheet` vuelven a mostrar su contenido correctamente.
+- **Ventanas inferiores:** Las ventanas `BottomSheet` vuelven a entrar animadas desde el pie de la pantalla y el desenfoque del contenido posterior sigue progresivamente su apertura, arrastre y cierre, incluso al abrir Seguridad y Control sobre Configuración.
 
 ---
 
