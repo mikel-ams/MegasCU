@@ -167,7 +167,7 @@ fun MaterialIconsBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, skipPartiallyExpanded = true),
         modifier = Modifier
             .statusBarsPadding()
             .padding(top = 24.dp),

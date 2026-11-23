@@ -101,7 +101,7 @@ fun QuickActionSelectorBottomSheet(
         }
     }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, skipPartiallyExpanded = true)
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)
 
     val scope = rememberCoroutineScope()

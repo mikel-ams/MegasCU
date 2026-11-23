@@ -370,7 +370,7 @@ fun SettingsBottomSheet(
         }
     }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, skipPartiallyExpanded = true)
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)
 
     var isDeveloperMode by remember { mutableStateOf(prefs.getBoolean("developer_mode_enabled", false)) }

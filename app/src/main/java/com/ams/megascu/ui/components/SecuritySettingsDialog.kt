@@ -79,7 +79,7 @@ fun SecuritySettingsBottomSheet(
     var showVerifyPinForDisable by remember { mutableStateOf(false) }
     var showDisableWarning by remember { mutableStateOf(false) }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, skipPartiallyExpanded = true)
 
     val view = androidx.compose.ui.platform.LocalView.current
     SideEffect {
