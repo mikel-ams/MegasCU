@@ -409,7 +409,7 @@ fun ChangelogBottomSheet(
     onProgress: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, skipPartiallyExpanded = true)
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, confirmValueChange = { it != SheetValue.PartiallyExpanded })
     val changelogList = remember(context) { ChangelogRepository.getChangelogList(context) }
 
     SheetProgressTracker(sheetState = sheetState, onProgress = onProgress)
