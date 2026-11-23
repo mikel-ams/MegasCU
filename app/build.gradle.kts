@@ -67,8 +67,8 @@ android {
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      val relConfig = signingConfigs.getByName("release")
-      signingConfig = if (relConfig.storeFile?.isFile == true && !relConfig.storePassword.isNullOrBlank()) relConfig else signingConfigs.getByName("debug")
+      // Never silently produce a release APK signed with the debug key.
+      signingConfig = signingConfigs.getByName("release")
     }
     debug {
       isDebuggable = true
