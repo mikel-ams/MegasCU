@@ -71,7 +71,7 @@ object ChangelogRepository {
                 )),
                 ChangelogSection(ChangeCategory.FIXED, listOf(
                     "Alertas de consumo diario: La primera alerta se muestra al detectar el exceso y se repite cada hora mientras continúe, indicando los megas sobrepasados, el consumo total y el límite recomendado.",
-                    "Ventanas inferiores: Las ventanas BottomSheet vuelven a entrar animadas desde el pie de la pantalla y el desenfoque del contenido posterior sigue progresivamente su apertura, arrastre y cierre, incluso al abrir Seguridad y Control sobre Configuración.",
+                    "Ventanas inferiores: Las ventanas BottomSheet vuelven a entrar animadas desde el pie de la pantalla y el desenfoque del contenido posterior sigue progresivamente su apertura, arrastre y cierre, incluso al abrir Seguridad y Control sobre Configuración. Configuración e Historial de Cambios usan una presentación de altura completa detrás de la barra de estado.",
                     "Verificación del PIN: El PIN cifrado se valida correctamente al desactivar Seguridad y Control; un almacén vacío deja de aceptarse como credencial válida."
                 ))
             )
@@ -435,14 +435,12 @@ fun ChangelogBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = Modifier
-            .statusBarsPadding()
-            .padding(top = 24.dp),
+        modifier = Modifier.fillMaxHeight(),
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
-        dragHandle = { ExpressiveDragHandle() },
+        dragHandle = { ExpressiveDragHandle(modifier = Modifier.statusBarsPadding()) },
         scrimColor = Color.Black.copy(alpha = 0.35f),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
@@ -450,6 +448,7 @@ fun ChangelogBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f)
                 .widthIn(max = 680.dp)
                 .align(Alignment.CenterHorizontally)
                 .navigationBarsPadding()

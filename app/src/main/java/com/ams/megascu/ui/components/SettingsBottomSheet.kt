@@ -391,8 +391,7 @@ fun SettingsBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         modifier = Modifier
-            .statusBarsPadding()
-            .padding(top = 40.dp)
+            .fillMaxHeight()
             .then(
                 if (!disableBlurEffects && obscuringSheetProgress > 0f) {
                     Modifier.blur(24.dp * obscuringSheetProgress.coerceIn(0f, 1f))
@@ -404,13 +403,14 @@ fun SettingsBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
-        dragHandle = { ExpressiveDragHandle() },
+        dragHandle = { ExpressiveDragHandle(modifier = Modifier.statusBarsPadding()) },
         scrimColor = Color.Black.copy(alpha = 0.35f),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f)
                 .widthIn(max = 680.dp)
                 .align(Alignment.CenterHorizontally)
                 .navigationBarsPadding()
