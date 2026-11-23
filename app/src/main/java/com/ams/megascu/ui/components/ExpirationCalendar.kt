@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
@@ -58,8 +59,16 @@ internal fun ExpirationCalendarButton(plan: PlanStatusEntity?) {
     val start = month.atDay(1).dayOfWeek.value % 7
     val haptic = LocalHapticFeedback.current
     Dialog(onDismissRequest = { open = false }) {
+        var entered by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { entered = true }
+        val entrance by animateFloatAsState(if (entered) 1f else 0f, label = "calendarEntrance")
         Surface(
-            modifier = Modifier.fillMaxWidth().expressiveModalEntrance(),
+            modifier = Modifier.fillMaxWidth().graphicsLayer {
+                alpha = entrance
+                scaleX = 0.94f + 0.06f * entrance
+                scaleY = scaleX
+                translationY = 12.dp.toPx() * (1f - entrance)
+            },
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
