@@ -96,7 +96,7 @@ object UpdateNotificationHelper {
         }
 
         val notificationBuilder = NotificationCompat.Builder(context, MegasApplication.CHANNEL_UPDATES_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_stat_sms_alert)
             .setContentTitle("Nueva versión disponible: $versionName")
             .setContentText(shortSummary)
             .setStyle(

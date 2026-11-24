@@ -62,7 +62,7 @@ object ChangelogRepository {
 
     private val defaultFallback = listOf(
         ChangelogVersion(
-            version = "0.9.7-beta_(265)",
+            version = "0.10.0_(266)",
             date = "2026-11-22",
             isLatest = true,
             sections = listOf(

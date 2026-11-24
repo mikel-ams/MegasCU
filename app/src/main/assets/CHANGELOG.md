@@ -7,16 +7,19 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
-## [0.9.7-beta_(265)] - 2026-11-22
+## [0.10.0_(266)] - 2026-11-24 — Estable
 
 ### Añadido
 - **Calendario:** Consulta desde la pantalla principal las fechas de recarga y vencimiento de datos, llamadas y SMS.
 
 ### Cambiado
+- **Versión estable:** Primera publicación estable de la serie 0.10.0, sin etiqueta beta.
+- **Actualización de la aplicación:** Botones más breves para descargar, instalar y consultar el historial de cambios.
 - **Telegram:** Acerca de enlaza al canal oficial de MegasCU.
 - **Monitoreo del límite diario:** Comprueba el consumo en segundo plano cada 15 minutos para detectar a tiempo cuándo se supera el límite recomendado.
 
 ### Corregido
+- **Icono de notificación:** Usa un icono monocromático de 24 × 24 dp.
 - **Alertas de vencimiento:** Cada recurso se evalúa por separado y muestra su propio plazo. Si coinciden avisos, se priorizan datos, llamadas y SMS, en ese orden.
 - **Alertas de consumo diario:** La primera alerta se muestra al detectar el exceso y se repite cada hora mientras continúe, indicando los megas sobrepasados, el consumo total y el límite recomendado.
 - **Ventanas inferiores:** Las ventanas `BottomSheet` vuelven a entrar animadas desde el pie de la pantalla y el desenfoque y sombreado del contenido posterior siguen progresivamente su apertura, arrastre y cierre, incluso al abrir Seguridad y Control sobre Configuración. Configuración e Historial de Cambios usan una presentación de altura completa detrás de la barra de estado.

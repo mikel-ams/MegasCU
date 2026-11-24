@@ -463,8 +463,11 @@ fun UpdateAvailableDialog(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = if (isSimulation) "Simular Descarga e Instalación" else "Descargar e Instalar Actualización",
-                                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                                        text = if (isSimulation) "Simular Descarga e Instalación" else "Actualizar",
+                                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
@@ -685,8 +688,11 @@ fun UpdateAvailableDialog(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = if (isSimulation) "Simular Instalación" else if (hasInstallPermission) "Instalar Actualización Ahora" else "Permitir e Instalar",
-                                        fontWeight = FontWeight.Bold
+                                        text = if (isSimulation) "Simular Instalación" else if (hasInstallPermission) "Instalar Actualización Ahora" else "Instalar",
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
 
