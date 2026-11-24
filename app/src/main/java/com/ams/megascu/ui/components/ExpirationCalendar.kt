@@ -208,7 +208,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                                 (if (date == today) ", hoy" else "") +
                                                                 dayEvents.joinToString("") { ", ${it.label}" }
                                                         }
-                                                        .clickable(interactionSource = interaction, indication = ripple()) {
+                                                        .clickable(interactionSource = interaction, indication = null) {
                                                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                                             selectedDay = date
                                                         },
