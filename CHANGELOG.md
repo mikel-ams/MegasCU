@@ -7,7 +7,7 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 
 ---
 
-## [0.9.7-beta_(265)] - 2026-11-22
+## [0.10.0_(266)] - 2026-11-24 — Estable
 
 ### Añadido
 - **Calendario:** Consulta las fechas de recarga y vencimiento de datos, llamadas y SMS desde la tarjeta de Saldo Principal.
@@ -15,10 +15,13 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 ### Cambiado
 - **Calendario:** Navegación animada con flechas o gestos desde el mes actual. Los días con eventos muestran píldoras con iconos y los meses futuros repiten las fechas como referencia. La ventana comparte el diseño de Acerca de. La pantalla de fondo se desenfoca al abrirlo si el efecto está habilitado.
 - **Saldo Principal:** Mejor contraste del botón de calendario en tema oscuro, contador junto a la fecha de recarga y desenfoque al mostrar u ocultar la última actualización.
+- **Actualización de la aplicación:** Botones más breves para descargar, instalar y consultar el historial de cambios, con el texto ajustado a una sola línea.
+- **Versión estable:** Primera publicación estable de la serie 0.10.0, sin etiqueta beta.
 - **Telegram:** Acerca de enlaza al canal oficial de MegasCU.
 - **Monitoreo del límite diario:** Comprueba el consumo en segundo plano cada 15 minutos para detectar a tiempo cuándo se supera el límite recomendado.
 
 ### Corregido
+- **Icono de notificación:** Usa un icono monocromático de 24 × 24 dp para las alertas y los avisos de actualización.
 - **Alertas de vencimiento:** Cada recurso se evalúa por separado y muestra su propio plazo. Si coinciden avisos, se priorizan datos, llamadas y SMS, en ese orden.
 - **Alertas de consumo diario:** La primera alerta se muestra al detectar el exceso y se repite cada hora mientras continúe, indicando los megas sobrepasados, el consumo total y el límite recomendado.
 - **Ventanas inferiores:** Las ventanas `BottomSheet` vuelven a entrar animadas desde el pie de la pantalla y el desenfoque y sombreado del contenido posterior siguen progresivamente su apertura, arrastre y cierre, incluso al abrir Seguridad y Control sobre Configuración. Configuración e Historial de Cambios usan una presentación de altura completa detrás de la barra de estado.
