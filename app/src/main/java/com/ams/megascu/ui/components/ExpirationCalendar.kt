@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.border
@@ -89,7 +90,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
     val events = plan?.upcomingExpirations(today).orEmpty() + listOfNotNull(
         plan?.nextRechargeDateStr?.takeIf { it.any(Char::isDigit) }?.let {
             EtecsaUssdParser.evaluateExpiration(it).first
-        }?.takeIf { it >= 0 }?.let { PlanExpiration("Recarga disponible", today.plusDays(it), "") }
+        }?.takeIf { it >= 0 }?.let { PlanExpiration("Recargar", today.plusDays(it), "") }
     )
     fun eventsFor(target: YearMonth) = events.mapNotNull { event ->
         val originalMonth = YearMonth.from(event.date)
@@ -125,7 +126,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                Column(Modifier.verticalScroll(rememberScrollState()).padding(start = 12.dp, top = 24.dp, end = 12.dp, bottom = 8.dp)) {
+                Column(Modifier.verticalScroll(rememberScrollState()).padding(start = 12.dp, top = 24.dp, end = 12.dp, bottom = 12.dp)) {
                     Icon(Icons.Rounded.DateRange, null, Modifier.align(Alignment.CenterHorizontally),
                         tint = MaterialTheme.colorScheme.primary)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -215,7 +216,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                     verticalArrangement = Arrangement.Center
                                                 ) {
                                                     val colors = MaterialTheme.colorScheme
-                                                    val shape = MaterialTheme.shapes.extraLarge
+                                                    val shape = CircleShape
                                                     val background by animateColorAsState(
                                                         when {
                                                             chosen -> colors.primaryContainer
@@ -224,14 +225,13 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                             date == today -> colors.secondaryContainer
                                                             else -> Color.Transparent
                                                         },
+                                                        animationSpec = tween(durationMillis = 180),
                                                         label = "calendarSelection"
                                                     )
                                                     Column(
                                                         Modifier.scale(scale)
-                                                            .then(
-                                                                if (dayEvents.isEmpty() && date != today && !chosen) Modifier else
-                                                                    Modifier.widthIn(min = 36.dp).heightIn(min = 54.dp)
-                                                            )
+                                                            .widthIn(min = 36.dp)
+                                                            .heightIn(min = 54.dp)
                                                             .background(background, shape)
                                                             .then(if (date == today) Modifier.border(1.dp, colors.primary, shape) else Modifier)
                                                             .padding(horizontal = 3.dp, vertical = 4.dp),
