@@ -607,7 +607,8 @@ fun MegasMainApp(
 
     val isUpdateModalOpen = updateCheckResult != null && updateCheckResult!!.isUpdateAvailable
 
-    val isAnyDialogOnlyOpen = showAbout || showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
+    var isCalendarOpen by remember { mutableStateOf(false) }
+    val isAnyDialogOnlyOpen = isCalendarOpen || showAbout || showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
             (ussdState !is UssdUiState.Idle && ussdState !is UssdUiState.Executing)
 
     val dialogBlurFraction by animateFloatAsState(
@@ -955,6 +956,7 @@ fun MegasMainApp(
                                 dualSimEnabled = dualSimEnabled,
                                 onSelectSimSlot = { viewModel.selectSimSlot(it, context) },
                                 onExecuteConsulta = { code, title -> safeRunUssd { viewModel.executeUssdQuery(code, title = title, simSlot = selectedSimSlot) } },
+                                onCalendarOpenChanged = { isCalendarOpen = it },
                                 onCardClick = { safeRunUssd { viewModel.refreshAllStatus(simSlot = selectedSimSlot) } }
                             )
                         }

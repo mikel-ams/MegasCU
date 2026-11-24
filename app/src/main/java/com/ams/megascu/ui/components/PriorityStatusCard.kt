@@ -385,7 +385,8 @@ fun PriorityStatusCard(
     dualSimEnabled: Boolean = false,
     onSelectSimSlot: (Int) -> Unit = {},
     onExecuteConsulta: (code: String, title: String?) -> Unit = { _, _ -> },
-    onCardClick: () -> Unit = {}
+    onCardClick: () -> Unit = {},
+    onCalendarOpenChanged: (Boolean) -> Unit = {}
 ) {
     val showCard = planStatus != null
     var revealPrimaryValues by remember(selectedSimSlot, showCard) { mutableStateOf(false) }
@@ -929,7 +930,7 @@ fun PriorityStatusCard(
                                 )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
-                            ExpirationCalendarIconButton(planStatus)
+                            ExpirationCalendarIconButton(planStatus, onCalendarOpenChanged)
                         }
                     }
 
