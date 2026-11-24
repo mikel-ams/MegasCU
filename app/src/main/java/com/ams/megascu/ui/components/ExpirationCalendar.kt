@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -29,7 +30,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
@@ -55,7 +58,13 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
     FilledTonalIconButton(
         onClick = { open = true },
         modifier = Modifier.size(40.dp),
-        shape = CircleShape
+        shape = CircleShape,
+        colors = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) {
+            IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
+        } else IconButtonDefaults.filledTonalIconButtonColors()
     ) {
         Icon(
             imageVector = Icons.Rounded.DateRange,
@@ -82,7 +91,17 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
             EtecsaUssdParser.evaluateExpiration(it).first
         }?.takeIf { it >= 0 }?.let { PlanExpiration("Recarga disponible", today.plusDays(it), "") }
     )
-    val monthEvents = events.filter { YearMonth.from(it.date) == month }.sortedBy { it.date }
+    fun eventsFor(target: YearMonth) = events.mapNotNull { event ->
+        val originalMonth = YearMonth.from(event.date)
+        when {
+            target == originalMonth -> event
+            target > originalMonth -> event.copy(
+                date = target.atDay(event.date.dayOfMonth.coerceAtMost(target.lengthOfMonth()))
+            )
+            else -> null
+        }
+    }.sortedBy { it.date }
+    val monthEvents = eventsFor(month)
     val byDate = monthEvents.groupBy { it.date }
     val haptic = LocalHapticFeedback.current
     Dialog(
@@ -105,7 +124,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                Column(Modifier.verticalScroll(rememberScrollState()).padding(12.dp)) {
+                Column(Modifier.verticalScroll(rememberScrollState()).padding(start = 12.dp, top = 24.dp, end = 12.dp, bottom = 8.dp)) {
                     Icon(Icons.Rounded.DateRange, null, Modifier.align(Alignment.CenterHorizontally),
                         tint = MaterialTheme.colorScheme.primary)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -139,6 +158,22 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                         }
                     }
                     AnimatedContent(
+                        modifier = Modifier.pointerInput(month, currentMonth) {
+                            var drag = 0f
+                            detectHorizontalDragGestures(
+                                onDragStart = { drag = 0f },
+                                onDragEnd = {
+                                    val threshold = 48.dp.toPx()
+                                    if (drag < -threshold) requestedMonth = month.plusMonths(1)
+                                    if (drag > threshold && month > currentMonth) {
+                                        requestedMonth = month.minusMonths(1)
+                                    }
+                                }
+                            ) { change, amount ->
+                                change.consume()
+                                drag += amount
+                            }
+                        },
                         targetState = month,
                         transitionSpec = {
                             val direction = if (targetState > initialState) 1 else -1
@@ -149,7 +184,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                     ) { gridMonth ->
                         val start = gridMonth.atDay(1).dayOfWeek.value % 7
                         val gridEvents = if (gridMonth == month) byDate else
-                            events.filter { YearMonth.from(it.date) == gridMonth }.groupBy { it.date }
+                            eventsFor(gridMonth).groupBy { it.date }
                         Column {
                             repeat(6) { week ->
                                 Row {
@@ -185,6 +220,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                             chosen -> colors.primaryContainer
                                                             dayEvents.size == 1 -> eventColor(dayEvents.first().label).copy(alpha = 0.22f)
                                                             dayEvents.isNotEmpty() -> colors.surfaceContainerHighest
+                                                            date == today -> colors.secondaryContainer
                                                             else -> Color.Transparent
                                                         },
                                                         label = "calendarSelection"
@@ -192,7 +228,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                     Column(
                                                         Modifier.scale(scale)
                                                             .then(
-                                                                if (dayEvents.isEmpty()) Modifier else
+                                                                if (dayEvents.isEmpty() && date != today) Modifier else
                                                                     Modifier.widthIn(min = 36.dp).heightIn(min = 54.dp)
                                                             )
                                                             .background(background, shape)
@@ -222,7 +258,10 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                             }
                         }
                     }
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(Modifier.padding(vertical = 4.dp))
+                    if (month > currentMonth && monthEvents.isNotEmpty()) {
+                        Text("Las fechas repetidas son orientativas", style = MaterialTheme.typography.labelSmall)
+                    }
                     val shown = byDate[selectedDay] ?: monthEvents
                     AnimatedContent(
                         targetState = shown,
@@ -260,7 +299,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                             }
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(4.dp))
                     ExpressiveButton(
                         onClick = { open = false },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),

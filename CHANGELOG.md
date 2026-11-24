@@ -13,7 +13,8 @@ y este proyecto se adhiere a [Semantic Versioning v2.0.0](https://semver.org/lan
 - **Calendario:** Consulta las fechas de recarga y vencimiento de datos, llamadas y SMS desde la tarjeta de Saldo Principal.
 
 ### Cambiado
-- **Calendario:** Navegación animada entre meses con iconos Material y encabezado centrado. Los días con eventos muestran píldoras con iconos y el detalle usa etiquetas con fecha. La pantalla de fondo se desenfoca al abrirlo si el efecto está habilitado.
+- **Calendario:** Navegación animada con flechas o gestos desde el mes actual. Los días con eventos muestran píldoras con iconos y los meses futuros repiten las fechas como referencia. La ventana comparte el diseño de Acerca de. La pantalla de fondo se desenfoca al abrirlo si el efecto está habilitado.
+- **Saldo Principal:** Mejor contraste del botón de calendario en tema oscuro, contador junto a la fecha de recarga y desenfoque al mostrar u ocultar la última actualización.
 - **Telegram:** Acerca de enlaza al canal oficial de MegasCU.
 - **Monitoreo del límite diario:** Comprueba el consumo en segundo plano cada 15 minutos para detectar a tiempo cuándo se supera el límite recomendado.
 

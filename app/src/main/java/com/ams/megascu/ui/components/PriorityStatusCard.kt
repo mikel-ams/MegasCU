@@ -7,6 +7,8 @@ import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
@@ -37,6 +39,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -910,24 +913,29 @@ fun PriorityStatusCard(
                                     (planStatus?.nextRechargeDateStr?.isNotBlank() == true && !planStatus.nextRechargeDateStr.contains("-") && !planStatus.nextRechargeDateStr.contains("/") && !planStatus.nextRechargeDateStr.contains(".")) ||
                                     (planStatus?.nextRechargeDateStr?.isNotBlank() == true && com.ams.megascu.data.ussd.EtecsaUssdParser.evaluateExpiration(planStatus.nextRechargeDateStr).first?.let { it <= 0 } == true)
                             val rechargeLabel = if (isRechargeNow) "Puede recargar saldo" else "Puede recargar el ${planStatus?.nextRechargeDateStr}"
-                            Text(
-                                text = rechargeLabel,
+                            Row(
                                 modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Medium,
-                                    color = secondaryContentColor
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = rechargeLabel,
+                                    modifier = Modifier.weight(1f, fill = false),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = FontWeight.Medium,
+                                        color = secondaryContentColor
+                                    )
                                 )
-                            )
 
-                            val rechargeDays = planStatus?.nextRechargeDays ?: 0
-                            if (rechargeDays > 0) {
-                                Spacer(modifier = Modifier.width(4.dp))
-                                ExpressiveDaysChip(
-                                    days = rechargeDays,
-                                    containerColor = badgeBgColor,
-                                    contentColor = contentColor,
-                                    reveal = revealPrimaryValues
-                                )
+                                val rechargeDays = planStatus?.nextRechargeDays ?: 0
+                                if (rechargeDays > 0) {
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    ExpressiveDaysChip(
+                                        days = rechargeDays,
+                                        containerColor = badgeBgColor,
+                                        contentColor = contentColor,
+                                        reveal = revealPrimaryValues
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             ExpirationCalendarIconButton(planStatus, onCalendarOpenChanged)
@@ -972,14 +980,19 @@ fun PriorityStatusCard(
                             )
                         ) + scaleOut(targetScale = 0.92f)
                     ) {
+                        val blurRadius by transition.animateDp(label = "lastUpdatedBlur") {
+                            if (it == EnterExitState.Visible) 0.dp else 8.dp
+                        }
                         Column {
                             Spacer(modifier = Modifier.height(10.dp))
-                            LastUpdatedBanner(
-                                timestamp = planStatus?.lastUpdatedTimestamp ?: System.currentTimeMillis(),
-                                contentColor = contentColor,
-                                secondaryContentColor = secondaryContentColor,
-                                badgeBgColor = badgeBgColor
-                            )
+                            Box(Modifier.blur(blurRadius)) {
+                                LastUpdatedBanner(
+                                    timestamp = planStatus?.lastUpdatedTimestamp ?: System.currentTimeMillis(),
+                                    contentColor = contentColor,
+                                    secondaryContentColor = secondaryContentColor,
+                                    badgeBgColor = badgeBgColor
+                                )
+                            }
                         }
                     }
                 }
