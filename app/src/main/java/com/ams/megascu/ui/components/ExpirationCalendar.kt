@@ -103,6 +103,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
     }.sortedBy { it.date }
     val monthEvents = eventsFor(month)
     val byDate = monthEvents.groupBy { it.date }
+    val calendarTextStyle = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
     val haptic = LocalHapticFeedback.current
     Dialog(
         onDismissRequest = { open = false },
@@ -154,7 +155,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                     }
                     Row {
                         for (day in listOf("D", "L", "M", "X", "J", "V", "S")) {
-                            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Text(day) }
+                            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Text(day, style = calendarTextStyle) }
                         }
                     }
                     AnimatedContent(
@@ -190,7 +191,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                 Row {
                                     repeat(7) { index ->
                                         val number = week * 7 + index - start + 1
-                                        Box(Modifier.weight(1f).height(64.dp), contentAlignment = Alignment.Center) {
+                                        Box(Modifier.weight(1f).height(58.dp), contentAlignment = Alignment.Center) {
                                             if (number in 1..gridMonth.lengthOfMonth()) {
                                                 val date = gridMonth.atDay(number)
                                                 val dayEvents = gridEvents[date].orEmpty()
@@ -228,7 +229,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                     Column(
                                                         Modifier.scale(scale)
                                                             .then(
-                                                                if (dayEvents.isEmpty() && date != today) Modifier else
+                                                                if (dayEvents.isEmpty() && date != today && !chosen) Modifier else
                                                                     Modifier.widthIn(min = 36.dp).heightIn(min = 54.dp)
                                                             )
                                                             .background(background, shape)
@@ -239,7 +240,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                     ) {
                                                         Text(
                                                             "$number",
-                                                            style = MaterialTheme.typography.labelLarge,
+                                                            style = calendarTextStyle,
                                                             color = if (chosen) colors.onPrimaryContainer else colors.onSurface
                                                         )
                                                         dayEvents.chunked(2).forEach { group ->
@@ -260,7 +261,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                     }
                     HorizontalDivider(Modifier.padding(vertical = 4.dp))
                     if (month > currentMonth && monthEvents.isNotEmpty()) {
-                        Text("Las fechas repetidas son orientativas", style = MaterialTheme.typography.labelSmall)
+                        Text("Las fechas repetidas son orientativas", style = calendarTextStyle)
                     }
                     val shown = byDate[selectedDay] ?: monthEvents
                     AnimatedContent(
@@ -269,7 +270,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                         label = "calendarDetails"
                     ) { details ->
                         if (details.isEmpty()) {
-                            Text("Sin fechas registradas para este mes")
+                            Text("Sin fechas registradas para este mes", style = calendarTextStyle)
                         } else {
                             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 details.forEach { event ->
@@ -281,7 +282,10 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                             selectedDay = event.date
                                         },
                                         label = {
-                                            Text("${event.label} · ${event.date.format(DateTimeFormatter.ofPattern("dd MMM", spanish))}")
+                                            Text(
+                                                "${event.label} · ${event.date.format(DateTimeFormatter.ofPattern("dd MMM", spanish))}",
+                                                style = calendarTextStyle
+                                            )
                                         },
                                         leadingIcon = {
                                             val shape = MaterialTheme.shapes.extraLarge
