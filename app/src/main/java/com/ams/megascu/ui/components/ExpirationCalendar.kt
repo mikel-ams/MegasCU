@@ -16,6 +16,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -24,6 +25,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -35,6 +38,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.ams.megascu.R
 import com.ams.megascu.data.db.PlanStatusEntity
 import com.ams.megascu.data.ussd.EtecsaUssdParser
 import com.ams.megascu.service.PlanExpiration
@@ -68,7 +72,9 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
     }
 
     val today = LocalDate.now()
-    var month by remember { mutableStateOf(YearMonth.from(today)) }
+    val currentMonth = YearMonth.from(today)
+    var requestedMonth by remember { mutableStateOf(currentMonth) }
+    val month = maxOf(requestedMonth, currentMonth)
     var selectedDay by remember { mutableStateOf(today) }
     val spanish = Locale.forLanguageTag("es")
     val events = plan?.upcomingExpirations(today).orEmpty() + listOfNotNull(
@@ -87,22 +93,26 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
             var entered by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) { entered = true }
             val entrance by animateFloatAsState(if (entered) 1f else 0f, label = "calendarEntrance")
-            Surface(
+            Card(
                 modifier = Modifier.widthIn(max = 460.dp).fillMaxWidth().graphicsLayer {
                     alpha = entrance
                     scaleX = 0.94f + 0.06f * entrance
                     scaleY = scaleX
                     translationY = 12.dp.toPx() * (1f - entrance)
                 },
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Column(Modifier.verticalScroll(rememberScrollState()).padding(12.dp)) {
                     Icon(Icons.Rounded.DateRange, null, Modifier.align(Alignment.CenterHorizontally),
                         tint = MaterialTheme.colorScheme.primary)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { month = month.minusMonths(1) }) {
+                        IconButton(
+                            enabled = month > currentMonth,
+                            onClick = { if (month > currentMonth) requestedMonth = month.minusMonths(1) }
+                        ) {
                             Icon(Icons.Rounded.ChevronLeft, "Mes anterior")
                         }
                         AnimatedContent(
@@ -119,7 +129,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
-                        IconButton(onClick = { month = month.plusMonths(1) }) {
+                        IconButton(onClick = { requestedMonth = month.plusMonths(1) }) {
                             Icon(Icons.Rounded.ChevronRight, "Mes siguiente")
                         }
                     }
@@ -145,7 +155,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                 Row {
                                     repeat(7) { index ->
                                         val number = week * 7 + index - start + 1
-                                        Box(Modifier.weight(1f).height(48.dp), contentAlignment = Alignment.Center) {
+                                        Box(Modifier.weight(1f).height(64.dp), contentAlignment = Alignment.Center) {
                                             if (number in 1..gridMonth.lengthOfMonth()) {
                                                 val date = gridMonth.atDay(number)
                                                 val dayEvents = gridEvents[date].orEmpty()
@@ -173,6 +183,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                     val background by animateColorAsState(
                                                         when {
                                                             chosen -> colors.primaryContainer
+                                                            dayEvents.size == 1 -> eventColor(dayEvents.first().label).copy(alpha = 0.22f)
                                                             dayEvents.isNotEmpty() -> colors.surfaceContainerHighest
                                                             else -> Color.Transparent
                                                         },
@@ -180,10 +191,15 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                     )
                                                     Column(
                                                         Modifier.scale(scale)
+                                                            .then(
+                                                                if (dayEvents.isEmpty()) Modifier else
+                                                                    Modifier.widthIn(min = 36.dp).heightIn(min = 54.dp)
+                                                            )
                                                             .background(background, shape)
                                                             .then(if (date == today) Modifier.border(1.dp, colors.primary, shape) else Modifier)
-                                                            .padding(horizontal = 3.dp, vertical = 3.dp),
-                                                        horizontalAlignment = Alignment.CenterHorizontally
+                                                            .padding(horizontal = 3.dp, vertical = 4.dp),
+                                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                                        verticalArrangement = Arrangement.Center
                                                     ) {
                                                         Text(
                                                             "$number",
@@ -193,7 +209,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                                                         dayEvents.chunked(2).forEach { group ->
                                                             Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
                                                                 group.forEach { event ->
-                                                                    Icon(eventIcon(event.label), null, Modifier.size(10.dp), eventColor(event.label))
+                                                                    Icon(eventIcon(event.label), null, Modifier.size(if (dayEvents.size == 1) 20.dp else 13.dp), eventColor(event.label))
                                                                 }
                                                             }
                                                         }
@@ -244,7 +260,18 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                             }
                         }
                     }
-                    TextButton(onClick = { open = false }, modifier = Modifier.align(Alignment.End)) { Text("Cerrar") }
+                    Spacer(Modifier.height(16.dp))
+                    ExpressiveButton(
+                        onClick = { open = false },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.btn_close),
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
                 }
             }
         }
