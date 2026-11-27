@@ -2,9 +2,14 @@ name: Build signed APK
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Etiqueta de la Release a la que adjuntar el APK'
+        required: false
+        type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   release:
@@ -45,3 +50,9 @@ jobs:
           name: MegasCU-release-${{ github.sha }}
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+
+      - name: Attach APK to GitHub Release
+        if: ${{ inputs.release_tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ inputs.release_tag }}" app/build/outputs/apk/release/*.apk --clobber

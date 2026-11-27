@@ -122,7 +122,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                     translationY = 12.dp.toPx() * (1f - entrance)
                 },
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
