@@ -63,8 +63,23 @@ object ChangelogRepository {
     private val defaultFallback = listOf(
         ChangelogVersion(
             version = "0.10.0_(266)",
-            date = "2026-11-22",
+            date = "2026-11-27",
             isLatest = true,
+            sections = listOf(
+                ChangelogSection(ChangeCategory.CHANGED, listOf(
+                    "Calendario: Filas ajustadas a cada mes, etiquetas compactas en dos columnas cuando hay espacio, fondo tonal y selección con píldoras redondeadas.",
+                    "Actualización de la aplicación: Botones más breves para actualizar, instalar y consultar el historial, en una sola línea."
+                )),
+                ChangelogSection(ChangeCategory.FIXED, listOf(
+                    "Calendario: Se eliminó el sombreado cuadrado al pulsar un día y se suavizó la animación de selección.",
+                    "Icono de notificación: Icono monocromático de 24 × 24 dp para alertas y avisos de actualización."
+                ))
+            )
+        ),
+        ChangelogVersion(
+            version = "0.9.7-beta_(265)",
+            date = "2026-11-22",
+            isLatest = false,
             sections = listOf(
                 ChangelogSection(ChangeCategory.ADDED, listOf(
                     "Calendario: Consulta desde la pantalla principal las fechas de recarga y vencimiento de datos, llamadas y SMS."

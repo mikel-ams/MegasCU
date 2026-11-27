@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -188,7 +189,7 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                         val gridEvents = if (gridMonth == month) byDate else
                             eventsFor(gridMonth).groupBy { it.date }
                         Column {
-                            repeat(6) { week ->
+                            repeat((start + gridMonth.lengthOfMonth() + 6) / 7) { week ->
                                 Row {
                                     repeat(7) { index ->
                                         val number = week * 7 + index - start + 1
@@ -272,33 +273,45 @@ internal fun ExpirationCalendarIconButton(plan: PlanStatusEntity?, onOpenChanged
                         if (details.isEmpty()) {
                             Text("Sin fechas registradas para este mes", style = calendarTextStyle)
                         } else {
-                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                details.forEach { event ->
-                                    val accent = eventColor(event.label)
-                                    InputChip(
-                                        selected = selectedDay == event.date,
-                                        onClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                            selectedDay = event.date
-                                        },
-                                        label = {
-                                            Text(
-                                                "${event.label} · ${event.date.format(DateTimeFormatter.ofPattern("dd MMM", spanish))}",
-                                                style = calendarTextStyle
+                            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                                val fontScale = LocalDensity.current.fontScale
+                                val columns = if (maxWidth >= (296 * fontScale).dp) 2 else 1
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    maxItemsInEachRow = columns
+                                ) {
+                                    details.forEach { event ->
+                                        val accent = eventColor(event.label)
+                                        val label = when (event.label) {
+                                            "Recargar" -> "Recarga"
+                                            "Llamadas" -> "Llamada"
+                                            else -> event.label
+                                        }
+                                        InputChip(
+                                            selected = selectedDay == event.date,
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                selectedDay = event.date
+                                            },
+                                            label = {
+                                                Text(
+                                                    "$label · ${event.date.format(DateTimeFormatter.ofPattern("dd MMM", spanish))}",
+                                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                                                )
+                                            },
+                                            leadingIcon = {
+                                                val shape = MaterialTheme.shapes.extraLarge
+                                                Box(Modifier.background(accent.copy(alpha = 0.14f), shape).padding(2.dp)) {
+                                                    Icon(eventIcon(event.label), null, Modifier.size(14.dp), accent)
+                                                }
+                                            },
+                                            shape = MaterialTheme.shapes.extraLarge,
+                                            colors = InputChipDefaults.inputChipColors(
+                                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer
                                             )
-                                        },
-                                        leadingIcon = {
-                                            val shape = MaterialTheme.shapes.extraLarge
-                                            Box(Modifier.background(accent.copy(alpha = 0.14f), shape).padding(4.dp)) {
-                                                Icon(eventIcon(event.label), null, Modifier.size(14.dp), accent)
-                                            }
-                                        },
-                                        shape = MaterialTheme.shapes.extraLarge,
-                                        colors = InputChipDefaults.inputChipColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }
