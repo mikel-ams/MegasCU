@@ -696,12 +696,12 @@ fun LatestChangelogCard(item: ChangelogVersion) {
                         color = if (isBeta) 
                             MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.85f) 
                         else 
-                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.85f)
+                            MaterialTheme.colorScheme.tertiaryContainer
                     ) {
                         Text(
                             text = if (isBeta) "Beta" else "Estable",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.5.sp),
-                            color = if (isBeta) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.padding(horizontal = 9.dp, vertical = 2.dp)
                         )
                     }
