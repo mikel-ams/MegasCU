@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.*
@@ -517,6 +518,11 @@ fun ChangelogBottomSheet(
                     }
 
                     if (changelogList.isNotEmpty()) {
+                        if (changelogList.first().version.startsWith("0.10.0")) {
+                            StableReleaseMessageCard()
+                            Spacer(Modifier.height(16.dp))
+                        }
+
                         // 1. Tarjeta de la versión activa / actual
                         Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
                             LatestChangelogCard(item = changelogList.first())
@@ -633,6 +639,54 @@ fun ChangelogBottomSheet(
                         .align(Alignment.BottomCenter)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun StableReleaseMessageCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.45f))
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Rounded.AutoAwesome,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Primera versión estable",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+            Text(
+                "Tras meses de trabajo, me alegra compartir la primera versión estable de MegasCU. La aplicación es gratuita y puedes usar sus funciones sin pagar.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            Text(
+                "Crear y mantener la app requiere tiempo y herramientas de inteligencia artificial de pago, como ChatGPT. Si MegasCU te resulta útil y deseas apoyar voluntariamente su desarrollo, cualquier contribución será bienvenida. Es completamente opcional y no cambia el acceso ni las funciones de la aplicación.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            Text(
+                "Para novedades, sugerencias o contacto, visita el canal oficial de Telegram: t.me/megascu_app",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
         }
     }
 }
