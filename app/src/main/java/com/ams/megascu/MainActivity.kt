@@ -513,6 +513,7 @@ fun MegasMainApp(
     var showChangelogSheet by remember { mutableStateOf(false) }
     var showMatrixTerminal by remember { mutableStateOf(false) }
     var showQuickActionSelector by remember { mutableStateOf(false) }
+    var showStableReleaseDialog by remember { mutableStateOf(false) }
     var showWhatsNewDialog by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
     var isPullRefreshing by remember { mutableStateOf(false) }
@@ -530,7 +531,11 @@ fun MegasMainApp(
             prefs.edit().putInt("pref_last_seen_version_code", currentVersion).apply()
         } else if (currentVersion > lastSeenVersion) {
             prefs.edit().putInt("pref_last_seen_version_code", currentVersion).apply()
-            showWhatsNewDialog = true
+            if (com.ams.megascu.BuildConfig.VERSION_NAME == "0.10.0") {
+                showStableReleaseDialog = true
+            } else {
+                showWhatsNewDialog = true
+            }
         }
     }
 
@@ -551,6 +556,7 @@ fun MegasMainApp(
             showChangelogSheet = false
             showMatrixTerminal = false
             showQuickActionSelector = false
+            showStableReleaseDialog = false
             showWhatsNewDialog = false
         }
     }
@@ -608,7 +614,7 @@ fun MegasMainApp(
     val isUpdateModalOpen = updateCheckResult != null && updateCheckResult!!.isUpdateAvailable
 
     var isCalendarOpen by remember { mutableStateOf(false) }
-    val isAnyDialogOnlyOpen = isCalendarOpen || showAbout || showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
+    val isAnyDialogOnlyOpen = isCalendarOpen || showAbout || showMatrixTerminal || showUssdTutorial || showStableReleaseDialog || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
             (ussdState !is UssdUiState.Idle && ussdState !is UssdUiState.Executing)
 
     val dialogBlurFraction by animateFloatAsState(
@@ -623,7 +629,7 @@ fun MegasMainApp(
     val activeSheetProgress = maxOf(primarySheetProgress, securitySheetProgress)
     val effectiveBlurAmount = maxOf(dialogBlurFraction, activeSheetProgress)
     val backgroundBlurRadius = if (disableBlurEffects) 0.dp else (24.dp * effectiveBlurAmount).coerceIn(0.dp, 24.dp)
-    val isDarkScrimDialog = (showMatrixTerminal || showUssdTutorial || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
+    val isDarkScrimDialog = (showMatrixTerminal || showUssdTutorial || showStableReleaseDialog || showWhatsNewDialog || pendingPurchaseCode != null || nonCubacelSimAlert != null || missingSimAlertSlot != null || isUpdateModalOpen ||
             (ussdState !is UssdUiState.Idle && ussdState !is UssdUiState.Executing)) && !showAbout
     val backgroundOverlayAlpha = if (isDarkScrimDialog) {
         (0.25f * dialogBlurFraction).coerceIn(0f, 0.25f)
@@ -1236,6 +1242,15 @@ fun MegasMainApp(
                 )
             }
 
+            if (showStableReleaseDialog) {
+                StableReleaseDialog(
+                    onDismiss = { showStableReleaseDialog = false },
+                    onContinue = {
+                        showStableReleaseDialog = false
+                        showWhatsNewDialog = true
+                    }
+                )
+            }
             if (showWhatsNewDialog) {
                 com.ams.megascu.ui.components.WhatsNewDialog(
                     onDismiss = { showWhatsNewDialog = false },
