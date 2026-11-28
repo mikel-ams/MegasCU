@@ -142,7 +142,7 @@ object GitHubUpdateChecker {
                     }
                 }
 
-                val remoteVersionCode = extractBuildCode(tagName, releaseName)
+                val remoteVersionCode = extractBuildCode(tagName, releaseName, apkDownloadUrl)
                 val remoteVersionName = releaseName.ifBlank { tagName }
                 val isNewer = isVersionNewer(
                     remoteTag = tagName,
@@ -294,25 +294,23 @@ object GitHubUpdateChecker {
         error("No se pudo resolver la URL")
     }
 
-    /** Supports the repository's existing beta_(W) form and the canonical beta.W form. */
-    fun extractBuildCode(tagName: String, releaseName: String): Int {
-        val canonical = Regex(
-            """^v?(\d+)\.(\d+)\.(\d+)-(?:alpha|beta|rc)[._]\(?([0-9]{1,6})\)?$""",
-            RegexOption.IGNORE_CASE
-        )
-        val legacy = Regex(
-            """^v?(\d+)\.(\d+)\.(\d+)-beta_\(([0-9]{1,6})\)$""",
+    /** Reads the build from stable or prerelease tags, then falls back to the title or APK name. */
+    fun extractBuildCode(tagName: String, releaseName: String, apkUrl: String? = null): Int {
+        val taggedBuild = Regex(
+            """^v?\d+\.\d+\.\d+(?:-(?:alpha|beta|rc))?[._]\(?([0-9]{1,6})\)?$""",
             RegexOption.IGNORE_CASE
         )
 
         for (value in listOf(tagName.trim(), releaseName.trim())) {
-            canonical.matchEntire(value)?.groupValues?.getOrNull(4)?.toIntOrNull()?.let { return it }
-            legacy.matchEntire(value)?.groupValues?.getOrNull(4)?.toIntOrNull()?.let { return it }
+            taggedBuild.matchEntire(value)?.groupValues?.getOrNull(1)?.toIntOrNull()?.let { return it }
         }
 
         // Legacy releases occasionally kept the build only in the human-readable release title.
         Regex("""\b(?:build|version\s*code|vc)\s*[#:=-]?\s*([0-9]{2,6})\b""", RegexOption.IGNORE_CASE)
             .find(releaseName)?.groupValues?.getOrNull(1)?.toIntOrNull()?.let { return it }
+
+        Regex("""(?:build[_ .-]*|[_ .-])([0-9]{2,6})\.apk$""", RegexOption.IGNORE_CASE)
+            .find(apkUrl.orEmpty())?.groupValues?.getOrNull(1)?.toIntOrNull()?.let { return it }
 
         return 0
     }
